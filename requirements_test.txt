@@ -1,0 +1,4 @@
+# Pinned deliberately. pytest-homeassistant-custom-component bundles the exact
+# Home Assistant version it tests against, so an unpinned bump would silently
+# change what CI is proving. Raise both together when moving to a new HA.
+pytest-homeassistant-custom-component==0.13.354

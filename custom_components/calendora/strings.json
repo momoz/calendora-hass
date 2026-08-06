@@ -1,0 +1,60 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect Calendora",
+        "description": "In Calendora, open Settings → Calendar feed and turn the feed on, then copy the URL it gives you and paste it below.\n\nTreat that URL like a password: anyone who has it can read your family's calendar.",
+        "data": {
+          "feed_url": "Calendar feed URL"
+        },
+        "data_description": {
+          "feed_url": "The address Calendora shows under Settings → Calendar feed. It ends in /api/feeds/ followed by a long token."
+        }
+      },
+      "reconfigure": {
+        "title": "Update your Calendora feed URL",
+        "description": "Currently reading from {host}.\n\nIf you regenerated your calendar feed in Calendora, the old address stopped working the moment you did. Paste the new one here and this integration will keep all of its existing entities — no need to remove it and add it again.",
+        "data": {
+          "feed_url": "Calendar feed URL"
+        },
+        "data_description": {
+          "feed_url": "The current address from Calendora, under Settings → Calendar feed."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Home Assistant could not reach Calendora. Check that the address is right and that this machine can get to the internet, then try again.",
+      "invalid_feed": "That address did not return a calendar. Copy the feed URL again from Calendora — if you regenerated it recently, the old one stops working immediately.",
+      "server_error": "Calendora answered with an error. It may be temporarily unavailable — wait a few minutes and try again.",
+      "unknown": "Something unexpected went wrong. Check the Home Assistant log for details."
+    },
+    "abort": {
+      "already_configured": "This Calendora feed is already set up.",
+      "reconfigure_successful": "Calendora is now reading from the new feed URL."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Calendora options",
+        "data": {
+          "scan_interval_minutes": "Check for changes every"
+        },
+        "data_description": {
+          "scan_interval_minutes": "How often to re-read the calendar feed. Shorter means changes show up sooner and Calendora is asked more often; 15 minutes suits most families."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "cannot_connect": {
+      "message": "Could not reach Calendora. Home Assistant will keep trying."
+    },
+    "invalid_feed": {
+      "message": "Calendora rejected the calendar feed URL. This usually means the feed was regenerated — open the Calendora integration, choose Reconfigure, and paste the new address."
+    },
+    "server_error": {
+      "message": "Calendora answered with an error. Home Assistant will keep trying."
+    }
+  }
+}

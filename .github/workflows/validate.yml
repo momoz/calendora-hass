@@ -1,0 +1,51 @@
+name: Validate
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 4 * * 1"
+  workflow_dispatch:
+
+# Without this, pushing again while a run is queued leaves the older run reporting
+# `conclusion: failure` with every job `cancelled` — which reads as a real failure
+# and is actually an absence of evidence. Superseding should be deliberate and
+# legible.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  hassfest:
+    name: hassfest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: home-assistant/actions/hassfest@master
+
+  tests:
+    name: pytest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          # Home Assistant 2026.8 requires >=3.14.2, and the test harness pulls
+          # in the matching Home Assistant. Bump this and requirements_test.txt
+          # together, never separately.
+          python-version: "3.14"
+      - run: pip install -r requirements_test.txt
+      - run: pytest -q
+
+  hacs:
+    name: HACS
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hacs/action@main
+        with:
+          category: integration
+          # Not submitting to the HACS default store - this ships as a custom
+          # repository. `brands` is skipped because icons live in
+          # custom_components/calendora/brand/ (HA 2026.3+), not the brands repo.
+          ignore: brands

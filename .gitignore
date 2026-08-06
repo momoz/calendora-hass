@@ -1,0 +1,23 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+.DS_Store
+.idea/
+.vscode/
+config/
+
+# Agent tooling — local, not part of the integration
+.claude/
+
+# Internal process docs. These stay on disk and are worked from locally; they
+# describe a private repository's roadmap and working arrangement, and are not
+# this project's business to publish.
+CONTRACT.md
+BRIEF.md
+docs/WHY-HOME-ASSISTANT.md

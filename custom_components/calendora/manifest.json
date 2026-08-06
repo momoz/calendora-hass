@@ -1,0 +1,12 @@
+{
+  "domain": "calendora",
+  "name": "Calendora",
+  "codeowners": ["@momoz"],
+  "config_flow": true,
+  "documentation": "https://github.com/momoz/calendora-hass",
+  "integration_type": "service",
+  "iot_class": "cloud_push",
+  "issue_tracker": "https://github.com/momoz/calendora-hass/issues",
+  "requirements": [],
+  "version": "0.0.1"
+}
