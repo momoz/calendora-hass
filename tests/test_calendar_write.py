@@ -266,3 +266,60 @@ async def test_a_member_calendar_does_not_offer_to_create(
     # and do not have to say whose it is.
     assert member.attributes["supported_features"] & CalendarEntityFeature.UPDATE_EVENT
     assert member.attributes["supported_features"] & CalendarEntityFeature.DELETE_EVENT
+
+
+async def test_an_event_created_from_home_assistant_belongs_to_everybody(
+    hass: HomeAssistant, setup_calendar: MockConfigEntry, aioclient_mock: AiohttpClientMocker
+) -> None:
+    """An end-to-end assertion about who OWNS the result, not about the request.
+
+    The request was always well-formed, which is why nothing caught this. What
+    matters is the outcome: `POST /events` has no attendee field — the server
+    enumerates what it accepts and no attendee appears — so anything created
+    from Home Assistant arrives with nobody on it, and §4a defines that as the
+    whole household.
+
+    Asserted here by checking the created event shows up on *every* member's
+    calendar, which is what a real household saw and reported.
+    """
+    aioclient_mock.clear_requests()
+    created = {
+        "id": "evt-new:2026-12-01", "eventId": "evt-new",
+        "occurrenceKey": "2026-12-01", "title": "Dentist",
+        "isAllDay": True, "start": "2026-11-30T23:00:00.000Z",
+        "end": "2026-12-01T23:00:00.000Z", "timezone": "Europe/Amsterdam",
+        # What the server stores when nobody can be named:
+        "attendeeIds": [],
+    }
+    aioclient_mock.post(EVENTS_URL, json={"id": "evt-new"}, status=201)
+    aioclient_mock.get(HOUSEHOLD_URL, json=load_fixture("household.json"))
+    aioclient_mock.get(MEMBERS_URL, json=load_fixture("members.json"))
+    aioclient_mock.get(EVENTS_URL, json={"occurrences": [created]})
+    aioclient_mock.get(LISTS_URL, json={"lists": []})
+    aioclient_mock.get(STREAM_URL, text="", headers={"Content-Type": "text/event-stream"})
+
+    household = hass.data["entity_components"]["calendar"].get_entity(ENTITY_ID)
+    await household.async_create_event(
+        summary="Dentist", dtstart=date(2026, 12, 1), dtend=date(2026, 12, 2)
+    )
+    await hass.async_block_till_done()
+
+    # The request could not name anybody — the server rejects the field.
+    body = _bodies(aioclient_mock, "POST")[0]
+    assert "attendeeIds" not in body
+    assert "attendees" not in body
+
+    # And the outcome: it is on every single member's calendar.
+    window = (
+        datetime(2026, 11, 25, tzinfo=dt_util.UTC),
+        datetime(2026, 12, 5, tzinfo=dt_util.UTC),
+    )
+    for entity_id in (
+        "calendar.test_household",
+        "calendar.test_household_alex",
+        "calendar.test_household_robin",
+        "calendar.test_household_biscuit",
+    ):
+        entity = hass.data["entity_components"]["calendar"].get_entity(entity_id)
+        uids = {e.uid for e in await entity.async_get_events(hass, *window)}
+        assert "evt-new:2026-12-01" in uids, f"{entity_id} should show a household event"

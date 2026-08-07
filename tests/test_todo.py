@@ -534,3 +534,39 @@ async def test_the_list_id_is_readable_by_an_automation(
     assert attributes["list_id"] == "lst-1"
     assert attributes["list_type"] == "shopping"
     assert attributes["section_count"] == 2
+
+
+async def test_ticking_an_item_does_not_drop_its_assignment(
+    hass: HomeAssistant, setup_todo: MockConfigEntry, aioclient_mock: AiohttpClientMocker
+) -> None:
+    """The to-do version of the calendar-attribution bug — and it does not exist.
+
+    List items DO carry `assignedMembershipId`, unlike events. Home Assistant's
+    to-do model has no assignee, so the risk was that ticking somebody's chore
+    would silently unassign it — nobody would notice until a chore stopped
+    appearing for the person it belonged to.
+
+    It does not happen, because merge-patch only carries what changed. Verified
+    against the live server too: an assigned item stayed assigned through a tick.
+    """
+    assigned = {
+        "id": "itm-9", "text": "Take the bins out", "quantity": None, "notes": None,
+        "isChecked": False, "sectionId": None, "position": "b0", "due": None,
+        "assignedMembershipId": "mem-2",
+    }
+    aioclient_mock.clear_requests()
+    aioclient_mock.get(ITEMS_1, json={"listId": "lst-1", "sections": [], "items": [assigned]})
+    aioclient_mock.patch(f"{ITEMS_1}/itm-9", json={"id": "itm-9"})
+    _mock_all(aioclient_mock)
+    await setup_todo.runtime_data.async_refresh()
+    await hass.async_block_till_done()
+
+    await hass.services.async_call(
+        "todo", "update_item",
+        {"entity_id": SHOPPING, "item": "Take the bins out", "status": "completed"},
+        blocking=True,
+    )
+
+    body = [c for c in aioclient_mock.mock_calls if c[0] == "PATCH"][0][2]
+    assert body == {"isChecked": True}
+    assert "assignedMembershipId" not in body, "an omitted field is left alone"
