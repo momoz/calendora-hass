@@ -1,5 +1,5 @@
 {
-  "describes": "A date the series does not fall on. Distinct from 404: the event exists, that day is not one of its occurrences.",
+  "describes": "A date the series does not fall on. 400, not 404: the event exists, and that day is simply not one of its occurrences.",
   "request": {
     "method": "PATCH",
     "path": "/api/v1/events/fx-event-gym:2027-03-18",

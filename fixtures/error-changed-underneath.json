@@ -1,5 +1,5 @@
 {
-  "describes": "Somebody else changed the event between the request arriving and it being written. 400, and NOTHING was applied — a detach that half-applied would show the day twice. Retrying is the correct response.",
+  "describes": "Somebody else changed the event between the request arriving and it being written. 409 conflict, and NOTHING was applied — a detach that half-applied would show the day twice. This is the only code to retry on.",
   "request": {
     "method": "PATCH",
     "path": "/api/v1/events/fx-event-contested:2027-03-09",

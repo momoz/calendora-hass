@@ -1,7 +1,7 @@
 # Calendora `/api/v1` — the third-party surface
 
-**Source:** `momoz/calendora` @ `becbe3e`
-**Contract fingerprint:** `4d4b1291bcf4e0ac` — see §10
+**Source:** `momoz/calendora` @ `5241dd1`
+**Contract fingerprint:** `a819907995ec8c49` — see §10
 **Regenerated:** 2026-08-08
 
 This is the whole of what a third-party client is promised. Nothing outside this

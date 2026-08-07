@@ -45,7 +45,9 @@ Real ids are opaque UUIDv7. **Do not parse one.**
 | `list-items.json` | `due` is `"2027-03-11"` for a DAY and an ISO instant for a moment. The form is the meaning (`GAP-002`) |
 | `write-event-create-all-day.json` | Sending dates rather than instants makes it all-day; the end is exclusive |
 | `write-event-patch.json` | Partial. Omitted is untouched, explicit `null` clears (`GAP-003`) |
-| `error-occurrence-id.json` | PATCHing the `{eventId}:{key}` id `GET` handed you is **refused**, because editing the series would move every occurrence |
+| `write-occurrence-this.json` | PATCHing the `{eventId}:{date}` id `GET` handed you, with `scope`. The reply's `id` is the **new** row, not the one you sent |
+| `error-scope-missing.json` | `scope` is required on every `PATCH`, including a bare series id |
+| `error-changed-underneath.json` | Somebody else got there first: **409 `conflict`**, nothing applied, retry is correct |
 | `error-unknown-field.json` | An unknown field is a 400 that names it, never a silent drop |
 | `error-bad-key.json` | Unknown, revoked and expired keys are **indistinguishable** — do not branch on which |
 | `error-other-household.json` | Somebody else's list is **404, not 403** |

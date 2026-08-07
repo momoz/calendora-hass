@@ -221,3 +221,36 @@ document's.
 3. An update that preserves fields the caller did not mention.
 4. A way to place an item between two identified neighbours.
 5. A decision on what reordering means when items live in sections.
+
+
+---
+
+## Appendix — notification platform facts, verified on a device
+
+Added 2026-08-07. Everything above this line is about the to-do API; this is
+about the notification layer the shopping blueprint sits on, recorded here
+because it was expensive to learn and easy to assume.
+
+**Verified on a real iPhone:**
+
+| | |
+|---|---|
+| `sfsymbols:` icons on actions | render, and **vary per notification** — not cached with the category |
+| Same-tag replacement | **re-alerts and updates the card in place**; no clear-and-resend, no time-sensitive override needed |
+| Tapping an action | **dismisses the notification** — a three-item list is not three taps |
+| `push.category` naming an unregistered category | **no action buttons render at all**, silently, with no error anywhere |
+| Locked phone with an Apple Watch nearby | delivery goes to the **watch**; the phone stays silent |
+| Locked phone, previews off (the default) | content is hidden until the user authenticates — the card is effectively blank |
+
+**Not verified, and must not be assumed:** whether one automation can write to
+two Android notification channels with different importance. No working Android
+device was available when the rest was tested. The intended design — a normal
+channel for the list and a low-importance one for the completion card — is
+**unconfirmed**, and an Android channel's importance is fixed at creation, so a
+wrong guess is permanent on that device until the app is reinstalled.
+
+**Corrected:** an earlier summary from this repo stated that iOS action buttons
+cannot carry icons. That was recall presented with the same confidence as
+things that had been checked, it was wrong, and a designer spent a round
+working around it. Platform claims from here carry a verified/unverified label
+or they are not stated.

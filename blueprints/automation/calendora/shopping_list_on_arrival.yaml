@@ -87,6 +87,27 @@ variables:
   # than duplicates.
   notification_tag: "calendora-{{ person_entity | replace('.', '-') }}-{{ list_entity | replace('.', '-') }}"
 
+# Verified on a real iPhone, 2026-08-07. Recorded here because every one of
+# these was either guessed wrong or unknown beforehand:
+#
+#   - `sfsymbols:` icons DO render on actions, and vary per notification —
+#     the same action id showed a different symbol on the next send.
+#   - A same-tag replacement re-alerts AND updates the card in place. No
+#     clear-and-resend dance, and no time-sensitive override needed.
+#   - Tapping an action DISMISSES the notification. A three-item list is not
+#     three taps; each tap needs a fresh send to show what is left.
+#   - **Never set `push.category` to a name the Companion app has not
+#     registered.** With one set, no action buttons render at all — silently,
+#     with no error anywhere. Nothing here sets one; do not add one.
+#   - With the phone locked and an Apple Watch present, delivery goes to the
+#     watch and the phone stays silent.
+#   - iOS hides notification content on a locked phone until the user
+#     authenticates. Previews must be turned on per-app or this looks broken.
+#
+# NOT verified: whether one automation can write to two Android notification
+# channels with different importance. No working Android device was available.
+# Do not build a low-importance completion channel as though it is confirmed.
+
 mode: single
 max_exceeded: silent
 
@@ -144,6 +165,9 @@ actions:
                 # Replaces a previous notification for this person and list
                 # rather than stacking a second one.
                 group: calendora-shopping
+                # `sfsymbols:` on an action is verified to render, and to
+                # change between sends rather than being cached with the
+                # category.
                 actions: >-
                   {{ showing | map(attribute='uid')
                      | map('regex_replace', '^', 'CALENDORA_TICK|')
