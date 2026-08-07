@@ -50,7 +50,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
 from . import CalendoraConfigEntry
-from .api import CalendoraAuthError, CalendoraError
+from .api import CalendoraAuthError, CalendoraConflictError, CalendoraError
 from .const import DOMAIN, LOGGER
 from .coordinator import CalendoraDataUpdateCoordinator
 
@@ -215,7 +215,7 @@ class CalendoraTodoList(CoordinatorEntity[CalendoraDataUpdateCoordinator], TodoL
         """
         return [_as_todo_item(row) for row in self._raw_items()]
 
-    async def _async_write(self, coro: Any, failure_key: str) -> None:
+    async def _async_write(self, make_request: Any, failure_key: str) -> None:
         """Run one write, then reconcile from the server.
 
         The local update is optimistic only in the sense that the refresh is
@@ -225,7 +225,7 @@ class CalendoraTodoList(CoordinatorEntity[CalendoraDataUpdateCoordinator], TodoL
         matters when two people are editing one shopping list.
         """
         try:
-            await coro
+            await self._async_attempt(make_request)
         except CalendoraAuthError as err:
             self.coordinator.config_entry.async_start_reauth(self.hass)
             raise HomeAssistantError(
@@ -239,7 +239,28 @@ class CalendoraTodoList(CoordinatorEntity[CalendoraDataUpdateCoordinator], TodoL
                 translation_placeholders={"detail": str(err)},
             ) from err
 
-        await self.coordinator.async_request_refresh()
+        # `async_request_refresh` is debounced by up to ten seconds. That is
+        # right for a stream event and wrong for a write the user just made:
+        # add an item and it would not appear until the debounce expired, so
+        # the next thing they do — tick it — fails with "unable to find item".
+        # Found by installing this into a real Home Assistant; no unit test
+        # sees a debouncer.
+        await self.coordinator.async_refresh()
+
+    async def _async_attempt(self, make_request: Any) -> Any:
+        """Send, and retry once if somebody else got there first.
+
+        §2: `conflict` is the only retryable code, and the retry is safe because
+        nothing was applied. The request is rebuilt rather than replayed — for an
+        update that means diffing against the row as it now stands, so we do not
+        re-assert a field the other person just changed.
+        """
+        try:
+            return await make_request()
+        except CalendoraConflictError:
+            LOGGER.debug("Calendora reported a conflict; re-reading and retrying once")
+            await self.coordinator.async_refresh()
+            return await make_request()
 
     async def async_create_todo_item(self, item: TodoItem) -> None:
         """Add an item.
@@ -261,9 +282,10 @@ class CalendoraTodoList(CoordinatorEntity[CalendoraDataUpdateCoordinator], TodoL
         if item.status == TodoItemStatus.COMPLETED:
             fields["isChecked"] = True
 
+        item_id = uuid4().hex
         await self._async_write(
-            self.coordinator.client.async_create_list_item(
-                self._list_id, uuid4().hex, fields
+            lambda: self.coordinator.client.async_create_list_item(
+                self._list_id, item_id, fields
             ),
             "create_failed",
         )
@@ -279,18 +301,20 @@ class CalendoraTodoList(CoordinatorEntity[CalendoraDataUpdateCoordinator], TodoL
                 translation_domain=DOMAIN, translation_key="item_not_found"
             )
 
-        changes = _changed_fields(item, self._raw_item(item.uid))
-        if not changes:
+        if not _changed_fields(item, self._raw_item(item.uid)):
             # §6: an empty PATCH body is a 400 by design. Nothing changed, so
             # there is nothing to send — and no reason to touch the server.
             return
 
-        await self._async_write(
-            self.coordinator.client.async_update_list_item(
-                self._list_id, item.uid, changes
-            ),
-            "update_failed",
-        )
+        def request():
+            # Recomputed per attempt, so a retry after a conflict diffs against
+            # the row as it now stands rather than replaying a stale diff.
+            changes = _changed_fields(item, self._raw_item(item.uid))
+            return self.coordinator.client.async_update_list_item(
+                self._list_id, item.uid, changes or {"text": item.summary or ""}
+            )
+
+        await self._async_write(request, "update_failed")
 
     async def async_delete_todo_items(self, uids: list[str]) -> None:
         """Delete items.
@@ -303,6 +327,8 @@ class CalendoraTodoList(CoordinatorEntity[CalendoraDataUpdateCoordinator], TodoL
         """
         for uid in uids:
             await self._async_write(
-                self.coordinator.client.async_delete_list_item(self._list_id, uid),
+                lambda uid=uid: self.coordinator.client.async_delete_list_item(
+                    self._list_id, uid
+                ),
                 "delete_failed",
             )

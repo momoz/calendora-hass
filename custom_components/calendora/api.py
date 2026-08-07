@@ -79,6 +79,17 @@ class CalendoraBadRequestError(CalendoraError):
     """400 — the request was wrong, and the message names the parameter."""
 
 
+class CalendoraConflictError(CalendoraError):
+    """409 — the request was correct and somebody else got there first.
+
+    **The only retryable code** (§2). Distinct from 400 by design: a 400 says
+    stop and fix the request, a 409 says the request was fine and the world
+    moved. Nothing was applied — the server refuses a half-applied detach rather
+    than leaving a day showing twice — so the second attempt reads the row as it
+    now stands and is safe.
+    """
+
+
 class CalendoraServerError(CalendoraError):
     """500 — Calendora's problem, and probably transient."""
 
@@ -102,6 +113,8 @@ def _error_for(status: int, code: str | None, message: str) -> CalendoraError:
         return CalendoraNotFoundError(message)
     if status == HTTPStatus.BAD_REQUEST:
         return CalendoraBadRequestError(message)
+    if status == HTTPStatus.CONFLICT:
+        return CalendoraConflictError(message)
     if status >= HTTPStatus.INTERNAL_SERVER_ERROR:
         return CalendoraServerError(message)
     return CalendoraResponseError(f"Calendora answered HTTP {status} ({code})")

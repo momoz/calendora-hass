@@ -31,6 +31,23 @@
           ]
         },
         {
+          "id": "fx-event-contested:2027-03-02",
+          "eventId": "fx-event-contested",
+          "occurrenceKey": "2027-03-02",
+          "title": "Contested",
+          "description": null,
+          "location": null,
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-03-02T09:00:00.000Z",
+          "end": "2027-03-02T10:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": null,
+          "travelMinutes": null,
+          "attendeeIds": []
+        },
+        {
           "id": "fx-event-gym:2027-03-09",
           "eventId": "fx-event-gym",
           "occurrenceKey": "2027-03-09",
@@ -44,6 +61,23 @@
           "timezone": "Europe/London",
           "repeats": true,
           "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": []
+        },
+        {
+          "id": "fx-event-contested:2027-03-09",
+          "eventId": "fx-event-contested",
+          "occurrenceKey": "2027-03-09",
+          "title": "Contested",
+          "description": null,
+          "location": null,
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-03-09T09:00:00.000Z",
+          "end": "2027-03-09T10:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": null,
           "travelMinutes": null,
           "attendeeIds": []
         },
@@ -84,6 +118,23 @@
           ]
         },
         {
+          "id": "fx-event-contested:2027-03-16",
+          "eventId": "fx-event-contested",
+          "occurrenceKey": "2027-03-16",
+          "title": "Contested",
+          "description": null,
+          "location": null,
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-03-16T09:00:00.000Z",
+          "end": "2027-03-16T10:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": null,
+          "travelMinutes": null,
+          "attendeeIds": []
+        },
+        {
           "id": "fx-event-gym:2027-03-23",
           "eventId": "fx-event-gym",
           "occurrenceKey": "2027-03-23",
@@ -103,6 +154,23 @@
           ]
         },
         {
+          "id": "fx-event-contested:2027-03-23",
+          "eventId": "fx-event-contested",
+          "occurrenceKey": "2027-03-23",
+          "title": "Contested",
+          "description": null,
+          "location": null,
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-03-23T09:00:00.000Z",
+          "end": "2027-03-23T10:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": null,
+          "travelMinutes": null,
+          "attendeeIds": []
+        },
+        {
           "id": "fx-event-gym:2027-03-30",
           "eventId": "fx-event-gym",
           "occurrenceKey": "2027-03-30",
@@ -120,6 +188,23 @@
           "attendeeIds": [
             "fx-member-donna"
           ]
+        },
+        {
+          "id": "fx-event-contested:2027-03-30",
+          "eventId": "fx-event-contested",
+          "occurrenceKey": "2027-03-30",
+          "title": "Contested",
+          "description": null,
+          "location": null,
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-03-30T08:00:00.000Z",
+          "end": "2027-03-30T09:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": null,
+          "travelMinutes": null,
+          "attendeeIds": []
         }
       ]
     }

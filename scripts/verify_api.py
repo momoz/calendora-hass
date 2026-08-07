@@ -422,17 +422,30 @@ async def check_write_rejections(client: Client, report: Report, lists: list[dic
         # between the two is not specified. It is checked in the write
         # round-trip instead, where a real row exists.
 
-    # §7: `{id}` on an event PATCH is the SERIES id, and an occurrence id is
-    # "refused by name". Using an id that cannot exist means this distinguishes
-    # refused-by-shape (400) from merely-absent (404) without touching real data.
+    # §7: the occurrence-id form is now ACCEPTED — that was the point of the
+    # change. An id of that shape which cannot exist must therefore answer 404
+    # (absent) rather than 400 (bad shape), which is how this distinguishes the
+    # new contract from the old one without touching real data.
     status, body = await client.send(
         "PATCH", "/api/v1/events/does-not-exist-0000:2026-01-01",
-        json={"title": "should never be applied"},
+        json={"scope": "this", "title": "should never be applied"},
     )
     code = body.get("code") if isinstance(body, dict) else None
     report.check(
-        status == 400,
-        f"an occurrence id on PATCH /events is refused by name (400): got {status} {code}",
+        status == 404,
+        f"an occurrence-id form is accepted and answers 404 when absent: got {status} {code}",
+    )
+
+    # §2: a refused write is 409 `conflict`, and 400 `bad_request` now means
+    # "do not retry unchanged". The two are branched on separately, so the codes
+    # matter more than the statuses.
+    status, body = await client.send(
+        "PATCH", "/api/v1/events/does-not-exist-0000", json={"title": "x"},
+    )
+    code = body.get("code") if isinstance(body, dict) else None
+    report.check(
+        code in ("not_found", "bad_request"),
+        f"a PATCH without scope on a missing series answers a documented code: {code}",
     )
 
     status, _ = await client.send(

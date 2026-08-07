@@ -1,0 +1,21 @@
+{
+  "describes": "Somebody else changed the event between the request arriving and it being written. 400, and NOTHING was applied — a detach that half-applied would show the day twice. Retrying is the correct response.",
+  "request": {
+    "method": "PATCH",
+    "path": "/api/v1/events/fx-event-contested:2027-03-09",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    },
+    "body": {
+      "scope": "this",
+      "location": "The pool"
+    }
+  },
+  "response": {
+    "status": 409,
+    "body": {
+      "error": "somebody else changed this a moment ago, so nothing was saved",
+      "code": "conflict"
+    }
+  }
+}

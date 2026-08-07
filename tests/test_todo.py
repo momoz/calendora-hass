@@ -18,7 +18,10 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_component import DATA_INSTANCES
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
-from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
+from pytest_homeassistant_custom_component.test_util.aiohttp import (
+    AiohttpClientMocker,
+    AiohttpClientMockResponse,
+)
 
 from custom_components.calendora.const import API_BASE_URL, CONF_API_KEY, DOMAIN
 from custom_components.calendora.todo import _changed_fields
@@ -435,3 +438,84 @@ def test_due_round_trips_through_the_wire(due) -> None:
 
     assert returned == due
     assert type(returned) is type(due)
+
+
+async def test_a_write_refreshes_immediately_not_on_a_debounce(
+    hass: HomeAssistant, setup_todo: MockConfigEntry, aioclient_mock: AiohttpClientMocker
+) -> None:
+    """A write must be visible before the user's next action.
+
+    `async_request_refresh` is debounced by up to ten seconds — correct for a
+    stream event, wrong for something the user just did. With it, adding an item
+    and then ticking it fails with "unable to find to-do list item", because the
+    item is not in `todo_items` yet. Found by installing into a real Home
+    Assistant; no unit test sees a debouncer, so this one asserts the effect
+    instead: the list is re-read before the service call returns.
+    """
+    aioclient_mock.clear_requests()
+    aioclient_mock.post(ITEMS_1, json={"id": "new"}, status=201)
+    _mock_all(aioclient_mock)
+
+    await hass.services.async_call(
+        "todo", "add_item", {"entity_id": SHOPPING, "item": "Milk"}, blocking=True
+    )
+
+    # The re-read happened as part of the call, not on a timer afterwards.
+    assert [c for c in aioclient_mock.mock_calls if "lists/lst-1/items" in str(c[1])
+            and c[0] == "GET"], "the list was not re-read before the call returned"
+
+
+async def test_a_conflict_is_retried_once_with_a_fresh_diff(
+    hass: HomeAssistant, setup_todo: MockConfigEntry, aioclient_mock: AiohttpClientMocker
+) -> None:
+    """§2: `conflict` is the only retryable code, and retrying is correct.
+
+    A 409 means the request was right and somebody else got there first, with
+    nothing applied. Treating it like a 400 would tell the user to stop when
+    they should try again — which is exactly what this client did before the
+    code existed, because 409 fell through to a generic "unexpected response".
+    """
+    aioclient_mock.clear_requests()
+    attempts: list[dict] = []
+
+    async def _conflict_then_ok(method, url, data):
+        attempts.append(data)
+        if len(attempts) == 1:
+            return AiohttpClientMockResponse(
+                method, url, status=409,
+                json={"error": "somebody else changed this a moment ago", "code": "conflict"},
+            )
+        return AiohttpClientMockResponse(method, url, status=200, json={"id": "itm-1"})
+
+    aioclient_mock.patch(f"{ITEMS_1}/itm-1", side_effect=_conflict_then_ok)
+    _mock_all(aioclient_mock)
+
+    await hass.services.async_call(
+        "todo", "update_item",
+        {"entity_id": SHOPPING, "item": "Apples", "status": "completed"},
+        blocking=True,
+    )
+
+    assert len(attempts) == 2, "a conflict should be retried exactly once"
+    assert attempts[0] == attempts[1] == {"isChecked": True}
+
+
+async def test_a_second_conflict_is_reported_rather_than_looped(
+    hass: HomeAssistant, setup_todo: MockConfigEntry, aioclient_mock: AiohttpClientMocker
+) -> None:
+    """Retry once, not forever. A contested row must not spin."""
+    aioclient_mock.clear_requests()
+    aioclient_mock.patch(
+        f"{ITEMS_1}/itm-1", status=409,
+        json={"error": "somebody else changed this a moment ago", "code": "conflict"},
+    )
+    _mock_all(aioclient_mock)
+
+    with pytest.raises(HomeAssistantError):
+        await hass.services.async_call(
+            "todo", "update_item",
+            {"entity_id": SHOPPING, "item": "Apples", "status": "completed"},
+            blocking=True,
+        )
+
+    assert len([c for c in aioclient_mock.mock_calls if c[0] == "PATCH"]) == 2

@@ -4,7 +4,7 @@ All notable changes to this integration are recorded here. Versions match the
 `version` field in `custom_components/calendora/manifest.json` and the GitHub tag
 they were released under.
 
-## Unreleased
+## 0.3.0 — 2026-08-07
 
 ### Added
 - **You can now edit the calendar from Home Assistant** — add an event, change
@@ -18,6 +18,12 @@ they were released under.
 - **A blueprint for the shopping trip.** Arrive at the shop and your list
   arrives on your phone with a button next to each item; tapping one ticks it
   off for everybody, while you are still in the aisle.
+
+### Fixed
+- **Something you just added is there immediately.** Adding an item then ticking
+  it used to fail for a few seconds, because the list had not caught up yet.
+- **If two people change the same thing at the same moment**, the change is
+  quietly retried instead of failing.
 
 ## 0.2.0 — 2026-08-07
 

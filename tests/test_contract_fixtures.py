@@ -25,6 +25,7 @@ from custom_components.calendora.api import (
     CalendoraAuthError,
     CalendoraBadRequestError,
     CalendoraClient,
+    CalendoraConflictError,
     CalendoraForbiddenError,
     CalendoraNotFoundError,
     CalendoraServerError,
@@ -43,6 +44,7 @@ CODE_TO_EXCEPTION = {
     "forbidden": CalendoraForbiddenError,
     "not_found": CalendoraNotFoundError,
     "bad_request": CalendoraBadRequestError,
+    "conflict": CalendoraConflictError,
     "server_error": CalendoraServerError,
 }
 

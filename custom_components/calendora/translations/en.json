@@ -74,6 +74,9 @@
     },
     "calendar_write_failed": {
       "message": "Calendora would not save that change: {detail}"
+    },
+    "write_conflict": {
+      "message": "Somebody else changed that at the same moment, so nothing was saved. Try again."
     }
   },
   "entity": {

@@ -51,7 +51,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
 from . import CalendoraConfigEntry
-from .api import CalendoraAuthError, CalendoraError
+from .api import CalendoraAuthError, CalendoraConflictError, CalendoraError
 from .const import DOMAIN, LOGGER, MAX_EVENT_RANGE_DAYS
 from .coordinator import CalendoraDataUpdateCoordinator
 
@@ -278,7 +278,7 @@ class CalendoraCalendar(
                 return event
         return None
 
-    async def _async_write(self, coro: Any) -> Any:
+    async def _async_write(self, make_request: Any) -> Any:
         """Run one write, surface its failure, then reconcile.
 
         Calendora's rejections are written for the person reading them — "this
@@ -287,7 +287,15 @@ class CalendoraCalendar(
         integration could invent, so it is passed through rather than replaced.
         """
         try:
-            result = await coro
+            try:
+                result = await make_request()
+            except CalendoraConflictError:
+                # §2: the only retryable code, and safe because nothing was
+                # applied — the server refuses a half-applied detach rather than
+                # leaving the day showing twice.
+                LOGGER.debug("Calendora reported a conflict; retrying once")
+                await self.coordinator.async_refresh()
+                result = await make_request()
         except CalendoraAuthError as err:
             self.coordinator.config_entry.async_start_reauth(self.hass)
             raise HomeAssistantError(
@@ -300,7 +308,13 @@ class CalendoraCalendar(
                 translation_placeholders={"detail": str(err)},
             ) from err
 
-        await self.coordinator.async_request_refresh()
+        # `async_request_refresh` is debounced by up to ten seconds. That is
+        # right for a stream event and wrong for a write the user just made:
+        # add an item and it would not appear until the debounce expired, so
+        # the next thing they do — tick it — fails with "unable to find item".
+        # Found by installing this into a real Home Assistant; no unit test
+        # sees a debouncer.
+        await self.coordinator.async_refresh()
         return result
 
     async def async_create_event(self, **kwargs: Any) -> None:
@@ -318,8 +332,9 @@ class CalendoraCalendar(
             if (value := kwargs.get(key)) is not None:
                 fields[key] = value
 
+        event_id = uuid4().hex
         await self._async_write(
-            self.coordinator.client.async_create_event(uuid4().hex, fields)
+            lambda: self.coordinator.client.async_create_event(event_id, fields)
         )
 
     async def async_update_event(
@@ -346,10 +361,9 @@ class CalendoraCalendar(
             if key in event:
                 changes[key] = event[key]
 
+        scope = _scope_for(recurrence_id, recurrence_range)
         await self._async_write(
-            self.coordinator.client.async_update_event(
-                uid, _scope_for(recurrence_id, recurrence_range), changes
-            )
+            lambda: self.coordinator.client.async_update_event(uid, scope, changes)
         )
 
     async def async_delete_event(
@@ -363,7 +377,9 @@ class CalendoraCalendar(
         A repeating series is refused by the API on purpose, and the refusal
         explains itself. It reaches the user unchanged.
         """
-        await self._async_write(self.coordinator.client.async_delete_event(uid))
+        await self._async_write(
+            lambda: self.coordinator.client.async_delete_event(uid)
+        )
 
     async def async_get_events(
         self, hass: HomeAssistant, start_date: datetime, end_date: datetime
