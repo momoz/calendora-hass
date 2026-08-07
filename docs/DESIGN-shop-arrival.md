@@ -1,7 +1,32 @@
 <!-- Vendored design spec, from the shop-arrival design package on 2026-08-07.
-     Do not edit here; re-copy from the design source. Where this repository's
-     implementation deviates, the deviation is recorded in the blueprint's own
-     comments and reported as a gap — it is not silently reconciled. -->
+     Do not edit here; re-copy from the design source. -->
+
+> ## Two places this document is superseded
+>
+> Recorded here so the next reader does not restore either of them. Both are
+> with design; neither is a deviation taken quietly.
+>
+> **§6's retry rule is superseded by the API contract.** It specifies "one
+> silent retry at 10s", undifferentiated. The server distinguishes the two
+> cases and the integration branches on them: `409 conflict` means nothing was
+> applied and retrying is correct, so it is retried once with the request
+> rebuilt rather than replayed; `400 bad_request` is explicitly
+> do-not-retry-unchanged and is surfaced. A blanket retry would re-send
+> something already rejected, and a blanket failure card would fire for a
+> conflict a retry clears silently. **Do not regress this to match §6.**
+>
+> **§0's `calendora_member` selector is `text`; the implementation uses an
+> entity picker.** The row directly beneath it forbids `text` for
+> `notify_service` because a typo fails silently at send time — and that
+> reasoning is stronger here, not weaker. A mistyped notify target sends to
+> nobody; a mistyped member id resolves to somebody else's opt-in, so a person
+> who declined gets a location-triggered shopping list. The key name is
+> unchanged, so the frozen interface is intact.
+>
+> **Verified since this document was written:** ticking an already-ticked item
+> does return success rather than an error (§6's claim holds). Two simultaneous
+> ticks both succeeded, so the `409` path was *not* reproduced on list items —
+> it remains handled but unobserved there.
 
 # Handoff — shop arrival notification
 

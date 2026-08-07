@@ -1,16 +1,18 @@
 blueprint:
   name: Calendora — shopping list when you arrive at the shop
   description: >-
-    When somebody arrives at a shop, send them the list on their phone with a
-    button next to every item. Tapping one ticks it off in Calendora, so
-    everybody else's list updates while they are still standing in the aisle.
+    When somebody has been at a shop for a couple of minutes, send them the
+    list with buttons to tick it off. Tapping ticks the items in Calendora, so
+    everybody else's list updates while they are still in the aisle.
 
 
-    You need: a Calendora list, a person, and the Home Assistant Companion app
-    on their phone with notifications turned on.
+    You need: a Calendora list, a person with the Home Assistant Companion app,
+    and a zone for the shop. That person must also be turned on for shop
+    notifications in the Calendora integration's options — this automation
+    checks before it sends anything.
 
 
-    Nothing is ticked off automatically — the notification is a reminder with
+    Nothing is ticked automatically. The notification is a reminder with
     buttons, not an assistant that guesses.
   domain: automation
   source_url: https://github.com/momoz/calendora-hass/blob/main/blueprints/automation/calendora/shopping_list_on_arrival.yaml
@@ -19,11 +21,30 @@ blueprint:
   input:
     person:
       name: Who
-      description: The person this applies to. They get the notification.
+      description: Their Home Assistant person. Their location is what fires this.
       selector:
         entity:
           filter:
             - domain: person
+    calendora_member:
+      name: Which member is this, in Calendora
+      description: >-
+        Pick any one of that person's Calendora entities — their calendar or
+        their next-event sensor will do. This automation reads their identity
+        and their opt-in from it.
+
+
+        An entity picker rather than a box to type an id into, on purpose: a
+        mistyped identifier fails silently, and the failure would be sending
+        somebody's location-triggered shopping list to a person who declined it.
+      selector:
+        entity:
+          filter:
+            - integration: calendora
+              domain:
+                - calendar
+                - sensor
+                - binary_sensor
     shop_zone:
       name: The shop
       description: >-
@@ -33,26 +54,6 @@ blueprint:
         entity:
           filter:
             - domain: zone
-    calendora_member:
-      name: Which member is this, in Calendora
-      description: >-
-        Pick any one of that person's Calendora entities — their calendar or
-        their next-event sensor will do. The automation reads their identity and
-        their opt-in from it.
-
-
-        This is an entity picker rather than a box to type an id into, on
-        purpose: a mistyped identifier fails silently, and a person who has not
-        opted in would then be sent their location-triggered shopping list
-        anyway.
-      selector:
-        entity:
-          filter:
-            - integration: calendora
-              domain:
-                - calendar
-                - sensor
-                - binary_sensor
     todo_entity:
       name: The list
       description: Which Calendora list to send.
@@ -64,20 +65,16 @@ blueprint:
     notify_service:
       name: Their phone
       description: >-
-        The notification action for their phone — pick the one named after
-        their device.
-
-
-        This has to be the mobile-app action rather than a notify entity,
-        because only the action accepts the buttons this blueprint attaches.
+        The notification action for their phone. If they wear an Apple Watch,
+        this reaches the watch too — and that is the surface this is built for.
       selector:
         action:
     batch_size:
       name: How many items to show
       description: >-
-        Phones limit how many buttons a notification can carry. Three is the
-        safe number on iOS; Android manages more.
-      default: 3
+        A long list does not fit a watch face, and the rest are counted rather
+        than dropped.
+      default: 5
       selector:
         number:
           min: 1
@@ -91,8 +88,9 @@ blueprint:
         petrol stop next door and a drop-off in the car park never trigger it.
 
 
-        Verified: arriving and leaving again after thirty seconds never sends,
-        and stepping outside restarts the clock rather than firing early.
+        Verified on a real Home Assistant: arriving and leaving after thirty
+        seconds never sends, and stepping outside restarts the clock rather than
+        firing early.
       default: 2
       selector:
         number:
@@ -104,7 +102,7 @@ blueprint:
       name: Don't send again for
       description: >-
         After a trip, stay quiet at this shop for this long. Stops a second
-        notification when somebody nips back out to the car and returns.
+        notification when somebody nips out to the car and comes back.
       default: 2
       selector:
         number:
@@ -127,149 +125,184 @@ blueprint:
       selector:
         time:
 
+# Verified on a real iPhone, 2026-08-07. Recorded here because each of these was
+# either guessed wrong or unknown beforehand:
+#
+#   - `sfsymbols:` icons DO render on actions, and vary per notification.
+#   - A same-tag replacement re-alerts AND updates the card in place.
+#   - Tapping an action DISMISSES the notification. Progress can only be shown
+#     by sending a fresh one — this is a send / tap / re-send loop.
+#   - **Never set `push.category` to a name the Companion app has not
+#     registered.** With one set, no action buttons render at all — silently,
+#     with no error anywhere. Nothing here sets one; do not add one.
+#   - A locked phone with a paired Apple Watch delivers to the watch, and the
+#     watch shows full content even when the phone hides previews.
+#   - Ticking an already-ticked item is a no-op, not an error. Verified against
+#     the server, because two shoppers tapping the same thing is ordinary.
+#
+# NOT verified: whether one automation can write to two Android notification
+# channels with different importance. Do not add a low-importance completion
+# channel as though it were confirmed.
+#
+# NOT verified: whether per-action `action_data` comes back on the tap event.
+# The tick path falls back to re-reading the list when it does not, which is
+# correct while one message carries the whole list. It stops being correct once
+# batching lands, so it needs a device test before then.
+
 # `!input` is a YAML tag, not a template value: it cannot be used inside {{ }}.
-# Every input that a template needs is bound to a variable here first. Getting
-# this wrong is the single most common blueprint bug, and it fails at runtime
-# rather than at import.
+# Every input a template needs is bound to a variable first. Getting this wrong
+# is the most common blueprint bug, and it fails at runtime rather than import.
 variables:
   list_entity: !input todo_entity
   person_entity: !input person
   member_entity: !input calendora_member
+  shop_entity: !input shop_zone
   item_limit: !input batch_size
-  revisit_hours: !input revisit_hours
-  quiet_from: !input quiet_from
-  quiet_until: !input quiet_until
-  # A tag unique to this person and list, so two people shopping at once do not
-  # overwrite each other's notification, and arriving twice replaces rather
-  # than duplicates.
-  notification_tag: "calendora-{{ person_entity | replace('.', '-') }}-{{ list_entity | replace('.', '-') }}"
-
-# Verified on a real iPhone, 2026-08-07. Recorded here because every one of
-# these was either guessed wrong or unknown beforehand:
-#
-#   - `sfsymbols:` icons DO render on actions, and vary per notification —
-#     the same action id showed a different symbol on the next send.
-#   - A same-tag replacement re-alerts AND updates the card in place. No
-#     clear-and-resend dance, and no time-sensitive override needed.
-#   - Tapping an action DISMISSES the notification. A three-item list is not
-#     three taps; each tap needs a fresh send to show what is left.
-#   - **Never set `push.category` to a name the Companion app has not
-#     registered.** With one set, no action buttons render at all — silently,
-#     with no error anywhere. Nothing here sets one; do not add one.
-#   - With the phone locked and an Apple Watch present, delivery goes to the
-#     watch and the phone stays silent.
-#   - iOS hides notification content on a locked phone until the user
-#     authenticates. Previews must be turned on per-app or this looks broken.
-#
-# NOT verified: whether one automation can write to two Android notification
-# channels with different importance. No working Android device was available.
-# Do not build a low-importance completion channel as though it is confirmed.
+  revisit_window: !input revisit_hours
+  # One tag for the whole trip, so a shopper never has more than one of these in
+  # the shade and every send replaces the last.
+  notification_tag: "calendora_shop_{{ person_entity.split('.')[1] }}"
 
 mode: single
 max_exceeded: silent
 
 triggers:
-  # 2026.7 zone triggers, targeting the zone rather than the person's state.
-  # The removed `person` device triggers are not used here.
   # The 2026.7 purpose-specific trigger, because it is the only one that takes
-  # `for` — the legacy `zone` trigger rejects it outright. Verified on a real
-  # Home Assistant: the dwell suppresses a drive-past, and re-entry restarts the
-  # clock rather than firing early. It does NOT survive a restart: a restart
-  # mid-dwell cancels the timer silently and the person must arrive again.
+  # `for` — the legacy `zone` trigger rejects it outright. It does NOT survive a
+  # restart: a restart mid-dwell cancels the timer silently and the person has
+  # to arrive again. We do not detect that or apologise for it.
   - trigger: zone.entered
     target:
       entity_id: !input person
     options:
       zone: !input shop_zone
-      for: >-
-        {{ dwell_minutes }}
+      for: "{{ dwell_minutes }}"
       behavior: each
     id: arrived
 
-  # The buttons come back as this event, carrying the item id we put in the
-  # action name. Home Assistant does not route it to the automation that sent
-  # the notification, so the tag check below is what keeps one household's
-  # notifications from ticking off another's items.
+  # The buttons come back as this event. Home Assistant does not route it to the
+  # automation that sent the notification, so the tag check in each branch is
+  # what stops one household's automation acting on another's tap.
   - trigger: event
     event_type: mobile_app_notification_action
-    id: ticked
+    id: tapped
 
 conditions: []
 
 actions:
+  - variables:
+      # Recomputed on every branch, so a tap acts on the list as it stands
+      # rather than as it was when the card was sent.
+      outstanding: >-
+        {{ (state_attr(list_entity, 'items') or [])
+           | selectattr('status', 'eq', 'needs_action') | list }}
+      showing: "{{ outstanding[:item_limit | int] }}"
+      remaining: "{{ (outstanding | count) - (outstanding[:item_limit | int] | count) }}"
+      shop_name: >-
+        {{ (state_attr(shop_entity, 'friendly_name') or 'The shop')
+           | truncate(18, true, '') }}
+      list_name: "{{ state_attr(list_entity, 'friendly_name') or 'List' }}"
+      deep_link: >-
+        /lists/{{ state_attr(list_entity, 'list_id') }}?mode=shopping
+
   - choose:
       # ---------------------------------------------------------------- arrival
       - conditions:
           - condition: trigger
             id: arrived
-          # The opt-in, checked by the thing that does the sending. Without
-          # this the switch in the integration's options would be decorative,
-          # and a person who never agreed to it would get a notification
-          # triggered by their location.
+
+          # The opt-in, checked by the thing that does the sending. Without this
+          # the switch in the integration's options would be decorative, and
+          # somebody who declined would get a notification triggered by their
+          # own location.
           - condition: template
             value_template: >-
               {{ state_attr(member_entity, 'shop_notifications') is true }}
 
-          # Nothing within the revisit window. Somebody who goes back to the
-          # car for a bag-for-life and returns has not started a second trip.
+          # Never announce an absence of work. An empty list and a list already
+          # ticked are the same thing here, and both are silence.
+          - condition: template
+            value_template: "{{ outstanding | count > 0 }}"
+
+          # Nothing within the revisit window. Somebody who goes back to the car
+          # for a bag-for-life has not started a second trip.
           #
-          # Measured from the automation's own last run, which includes the
-          # taps during a trip — deliberately, because "two hours since you
-          # were last shopping here" is the question worth asking, not "two
-          # hours since the trip began".
+          # Measured from this automation's own last run, which includes the
+          # taps during a trip — deliberately, because "two hours since you were
+          # last shopping here" is the question worth asking.
           - condition: template
             value_template: >-
-              {{ revisit_hours | float(0) == 0
+              {{ revisit_window | float(0) == 0
                  or this.attributes.last_triggered is none
                  or (now() - this.attributes.last_triggered).total_seconds()
-                    > revisit_hours | float(0) * 3600 }}
+                    > revisit_window | float(0) * 3600 }}
 
-          # Outside these hours nothing is sent at all. An automation that
-          # wakes a household at midnight gets switched off and never switched
-          # back on.
+          # Outside these hours nothing is sent. An automation that wakes a
+          # household at midnight gets switched off and never switched back on.
           - condition: time
             after: !input quiet_until
             before: !input quiet_from
         sequence:
-          - variables:
-              # Only what is still outstanding. A list of ticked items is not
-              # worth a notification.
-              outstanding: >-
-                {{ (state_attr(list_entity, 'items') or [])
-                   | selectattr('status', 'eq', 'needs_action')
-                   | list }}
-          - condition: template
-            value_template: "{{ outstanding | count > 0 }}"
-          - variables:
-              showing: "{{ outstanding[:item_limit | int] }}"
-              remaining: "{{ (outstanding | count) - (item_limit | int) }}"
           - action: !input notify_service
             data:
+              # The title must stand alone: it is the whole short look on a
+              # watch, and on a locked iPhone with previews hidden it is all
+              # there is. Nothing load-bearing lives below it.
               title: >-
-                {{ state_attr(list_entity, 'friendly_name') or 'Shopping list' }}
+                {{ shop_name }} —
+                {{ 'last one' if outstanding | count == 1
+                   else (outstanding | count) ~ ' things' }}
+              # The second sentence is designed to be cut off. Android collapses
+              # to one line and the watch long look cuts around there, so it is
+              # a separate sentence rather than a clause.
               message: >-
-                {{ showing | map(attribute='summary') | join(', ') }}
-                {%- if remaining > 0 %} and {{ remaining }} more{% endif %}
+                {{ showing | map(attribute='summary') | join(', ') }}.
+                {%- if remaining > 0 %} Then {{ remaining }} more.{% endif %}
               data:
+                # iOS and watchOS only; Android drops it.
+                subtitle: "{{ list_name }}"
                 tag: "{{ notification_tag }}"
-                # Replaces a previous notification for this person and list
-                # rather than stacking a second one.
                 group: calendora-shopping
-                # `sfsymbols:` on an action is verified to render, and to
-                # change between sends rather than being cached with the
-                # category.
-                actions: >-
-                  {{ (showing | map(attribute='uid')
-                     | map('regex_replace', '^', 'CALENDORA_TICK|')
-                     | zip(showing | map(attribute='summary'))
-                     | map('list') | list
-                     | map('zip', ['action', 'title']) | map('list')
-                     | map('items2dict') | list)
-                     + [{'action': 'CALENDORA_SHOP_STOP', 'title': 'Not shopping'}] }}
+                # Not time-sensitive. A shopping list is not allowed to break
+                # somebody's Focus.
+                push:
+                  interruption-level: active
+                # On Android the channel is the mute switch, and that is the
+                # point: a family can silence this without silencing their
+                # smart home.
+                channel: Shopping list
+                notification_icon: "mdi:cart"
+                # Tapping the card is the iPhone's primary action, because the
+                # expand gesture that reveals buttons is unreliable. The deep
+                # link has to open ready to tick.
+                url: "{{ deep_link }}"
+                clickAction: "{{ deep_link }}"
+                action_data:
+                  item_ids: "{{ showing | map(attribute='uid') | list }}"
+                # Four identifiers, fixed labels, same order every send. Labels
+                # never name their contents — the body does that — which is what
+                # keeps the set stable while the contents change. Android shows
+                # the first three and drops the fourth, which is why the deep
+                # link is also on the card itself.
+                actions:
+                  - action: CALENDORA_SHOP_GOT_BATCH
+                    title: Got these
+                    icon: "sfsymbols:checkmark"
+                  - action: CALENDORA_SHOP_GOT_ALL
+                    title: Got the rest
+                    icon: "sfsymbols:checkmark.circle.fill"
+                  - action: CALENDORA_SHOP_STOP
+                    title: Not shopping
+                    icon: "sfsymbols:xmark"
+                  - action: CALENDORA_SHOP_OPEN
+                    title: Open list
+                    icon: "sfsymbols:list.bullet"
+                    uri: "{{ deep_link }}"
+
       # ------------------------------------------------------------------ stop
       - conditions:
           - condition: trigger
-            id: ticked
+            id: tapped
           - condition: template
             value_template: >-
               {{ trigger.event.data.action | default('') == 'CALENDORA_SHOP_STOP' }}
@@ -277,7 +310,7 @@ actions:
             value_template: >-
               {{ trigger.event.data.tag | default('') == notification_tag }}
         sequence:
-          # Clear the card first: the trip is over and leaving it in the shade
+          # Clear the card first: the trip is over, and leaving it in the shade
           # invites a tap that no longer means anything.
           - action: !input notify_service
             data:
@@ -285,39 +318,53 @@ actions:
               data:
                 tag: "{{ notification_tag }}"
 
-          # Then sleep until midnight. `mode: single` means every later trigger
-          # at this zone — arrival or tap — is dropped silently while this runs,
-          # which is exactly "silent at that zone until midnight" with no helper
-          # entity and nothing persisted.
+          # Then sleep until midnight. `mode: single` does the rest — every
+          # later trigger at this zone, arrival or tap, is dropped silently
+          # while this runs. That is "silent at that zone until midnight" with
+          # no helper entity and nothing persisted.
           #
-          # A Home Assistant restart clears it. That matches the rest of the
-          # design: we do not detect a missed dwell either, and guessing is how
-          # this gets uninstalled.
+          # A restart clears it, which matches the rest of the design: we do not
+          # detect a missed dwell either, and guessing is how this gets
+          # uninstalled.
           - delay: >-
               {{ [ (today_at('23:59:59') - now()).total_seconds() | int, 1 ] | max }}
 
-      # ----------------------------------------------------------- button press
+      # -------------------------------------------------------------- ticking
       - conditions:
           - condition: trigger
-            id: ticked
+            id: tapped
           - condition: template
             value_template: >-
-              {{ trigger.event.data.action is defined
-                 and trigger.event.data.action.startswith('CALENDORA_TICK|') }}
-          # Only respond to our own notification. Without this, every automation
-          # built from this blueprint reacts to every button press in the house.
+              {{ trigger.event.data.action | default('') in
+                 ['CALENDORA_SHOP_GOT_BATCH', 'CALENDORA_SHOP_GOT_ALL'] }}
           - condition: template
             value_template: >-
               {{ trigger.event.data.tag | default('') == notification_tag }}
         sequence:
           - variables:
-              # The item id travels in the action name, because the event does
-              # not carry anything else we control.
-              item_id: >-
-                {{ trigger.event.data.action.split('|', 1)[1] }}
-          - action: todo.update_item
-            target:
-              entity_id: !input todo_entity
-            data:
-              item: "{{ item_id }}"
-              status: completed
+              # "Got the rest" means everything outstanding. "Got these" means
+              # what the card named — which arrives in the tap's payload if the
+              # platform returns it, and otherwise falls back to the same slice
+              # the card was built from. That fallback is correct while one
+              # message carries the whole list; it stops being correct when
+              # batching lands, which is why the payload needs a device test.
+              ticking: >-
+                {% if trigger.event.data.action == 'CALENDORA_SHOP_GOT_ALL' %}
+                  {{ outstanding | map(attribute='uid') | list }}
+                {% else %}
+                  {{ trigger.event.data.action_data.item_ids
+                     | default(showing | map(attribute='uid') | list, true) }}
+                {% endif %}
+
+          - repeat:
+              for_each: "{{ ticking }}"
+              sequence:
+                # Ticking something already ticked is a no-op rather than an
+                # error — verified against the server, because two shoppers
+                # tapping the same item is the ordinary case, not the edge one.
+                - action: todo.update_item
+                  target:
+                    entity_id: !input todo_entity
+                  data:
+                    item: "{{ repeat.item }}"
+                    status: completed
