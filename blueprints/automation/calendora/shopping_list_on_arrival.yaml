@@ -100,6 +100,18 @@ blueprint:
           max: 15
           unit_of_measurement: minutes
           mode: slider
+    revisit_hours:
+      name: Don't send again for
+      description: >-
+        After a trip, stay quiet at this shop for this long. Stops a second
+        notification when somebody nips back out to the car and returns.
+      default: 2
+      selector:
+        number:
+          min: 0
+          max: 12
+          unit_of_measurement: hours
+          mode: slider
     quiet_from:
       name: Quiet from
       description: Nothing is sent after this time.
@@ -124,6 +136,7 @@ variables:
   person_entity: !input person
   member_entity: !input calendora_member
   item_limit: !input batch_size
+  revisit_hours: !input revisit_hours
   quiet_from: !input quiet_from
   quiet_until: !input quiet_until
   # A tag unique to this person and list, so two people shopping at once do not
@@ -197,6 +210,20 @@ actions:
             value_template: >-
               {{ state_attr(member_entity, 'shop_notifications') is true }}
 
+          # Nothing within the revisit window. Somebody who goes back to the
+          # car for a bag-for-life and returns has not started a second trip.
+          #
+          # Measured from the automation's own last run, which includes the
+          # taps during a trip — deliberately, because "two hours since you
+          # were last shopping here" is the question worth asking, not "two
+          # hours since the trip began".
+          - condition: template
+            value_template: >-
+              {{ revisit_hours | float(0) == 0
+                 or this.attributes.last_triggered is none
+                 or (now() - this.attributes.last_triggered).total_seconds()
+                    > revisit_hours | float(0) * 3600 }}
+
           # Outside these hours nothing is sent at all. An automation that
           # wakes a household at midnight gets switched off and never switched
           # back on.
@@ -232,12 +259,42 @@ actions:
                 # change between sends rather than being cached with the
                 # category.
                 actions: >-
-                  {{ showing | map(attribute='uid')
+                  {{ (showing | map(attribute='uid')
                      | map('regex_replace', '^', 'CALENDORA_TICK|')
                      | zip(showing | map(attribute='summary'))
                      | map('list') | list
                      | map('zip', ['action', 'title']) | map('list')
-                     | map('items2dict') | list }}
+                     | map('items2dict') | list)
+                     + [{'action': 'CALENDORA_SHOP_STOP', 'title': 'Not shopping'}] }}
+      # ------------------------------------------------------------------ stop
+      - conditions:
+          - condition: trigger
+            id: ticked
+          - condition: template
+            value_template: >-
+              {{ trigger.event.data.action | default('') == 'CALENDORA_SHOP_STOP' }}
+          - condition: template
+            value_template: >-
+              {{ trigger.event.data.tag | default('') == notification_tag }}
+        sequence:
+          # Clear the card first: the trip is over and leaving it in the shade
+          # invites a tap that no longer means anything.
+          - action: !input notify_service
+            data:
+              message: clear_notification
+              data:
+                tag: "{{ notification_tag }}"
+
+          # Then sleep until midnight. `mode: single` means every later trigger
+          # at this zone — arrival or tap — is dropped silently while this runs,
+          # which is exactly "silent at that zone until midnight" with no helper
+          # entity and nothing persisted.
+          #
+          # A Home Assistant restart clears it. That matches the rest of the
+          # design: we do not detect a missed dwell either, and guessing is how
+          # this gets uninstalled.
+          - delay: >-
+              {{ [ (today_at('23:59:59') - now()).total_seconds() | int, 1 ] | max }}
 
       # ----------------------------------------------------------- button press
       - conditions:
