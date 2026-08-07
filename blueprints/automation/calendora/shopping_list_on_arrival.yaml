@@ -33,6 +33,26 @@ blueprint:
         entity:
           filter:
             - domain: zone
+    calendora_member:
+      name: Which member is this, in Calendora
+      description: >-
+        Pick any one of that person's Calendora entities — their calendar or
+        their next-event sensor will do. The automation reads their identity and
+        their opt-in from it.
+
+
+        This is an entity picker rather than a box to type an id into, on
+        purpose: a mistyped identifier fails silently, and a person who has not
+        opted in would then be sent their location-triggered shopping list
+        anyway.
+      selector:
+        entity:
+          filter:
+            - integration: calendora
+              domain:
+                - calendar
+                - sensor
+                - binary_sensor
     todo_entity:
       name: The list
       description: Which Calendora list to send.
@@ -102,6 +122,7 @@ blueprint:
 variables:
   list_entity: !input todo_entity
   person_entity: !input person
+  member_entity: !input calendora_member
   item_limit: !input batch_size
   quiet_from: !input quiet_from
   quiet_until: !input quiet_until
@@ -168,6 +189,14 @@ actions:
       - conditions:
           - condition: trigger
             id: arrived
+          # The opt-in, checked by the thing that does the sending. Without
+          # this the switch in the integration's options would be decorative,
+          # and a person who never agreed to it would get a notification
+          # triggered by their location.
+          - condition: template
+            value_template: >-
+              {{ state_attr(member_entity, 'shop_notifications') is true }}
+
           # Outside these hours nothing is sent at all. An automation that
           # wakes a household at midnight gets switched off and never switched
           # back on.

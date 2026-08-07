@@ -35,7 +35,7 @@ from homeassistant.util import dt as dt_util
 from . import CalendoraConfigEntry
 from .calendar import _belongs_to_member
 from .const import DOMAIN
-from .coordinator import CalendoraDataUpdateCoordinator
+from .coordinator import CalendoraDataUpdateCoordinator, member_attributes
 
 PARALLEL_UPDATES = 0
 
@@ -144,10 +144,12 @@ class CalendoraNextEventSensor(
         every update and recorded in the database, so this is not the place for
         the whole event.
         """
+        attributes = member_attributes(self.coordinator, self._member_id)
         occurrence = self._next_occurrence()
         if occurrence is None:
-            return None
+            return attributes
         return {
+            **attributes,
             "summary": occurrence.get("title") or "",
             "location": occurrence.get("location"),
             "all_day": bool(occurrence.get("isAllDay")),

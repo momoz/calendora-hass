@@ -53,7 +53,7 @@ from homeassistant.util import dt as dt_util
 from . import CalendoraConfigEntry
 from .api import CalendoraAuthError, CalendoraConflictError, CalendoraError
 from .const import DOMAIN, LOGGER, MAX_EVENT_RANGE_DAYS
-from .coordinator import CalendoraDataUpdateCoordinator
+from .coordinator import CalendoraDataUpdateCoordinator, member_attributes
 
 # The coordinator owns the fetching; entities never poll.
 PARALLEL_UPDATES = 0
@@ -476,6 +476,15 @@ class CalendoraMemberCalendar(CalendoraCalendar):
             member.get("id") == self._member_id
             for member in self.coordinator.data.members
         )
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Carry the member id and the shop-notification opt-in.
+
+        This is how a blueprint identifies the person and checks their consent
+        without anybody typing an identifier.
+        """
+        return member_attributes(self.coordinator, self._member_id)
 
     def _keep(self, occurrence: dict[str, Any]) -> bool:
         """Keep what names this member, and what names nobody."""

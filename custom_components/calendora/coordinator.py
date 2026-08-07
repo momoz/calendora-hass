@@ -29,6 +29,7 @@ from .api import (
 )
 from .const import (
     CONF_API_KEY,
+    CONF_SHOP_MEMBERS,
     DOMAIN,
     EVENT_WINDOW_FUTURE,
     EVENT_WINDOW_PAST,
@@ -50,6 +51,27 @@ STREAM_RETRY_MAX = timedelta(minutes=5)
 # somebody sees an old event.
 WINDOW_CACHE_SECONDS = 15
 WINDOW_CACHE_MAX = 32
+
+
+def member_attributes(
+    coordinator: CalendoraDataUpdateCoordinator, member_id: str
+) -> dict[str, Any]:
+    """Attributes every per-member entity carries.
+
+    `shop_notifications` exists so the opt-in is **readable by the thing that
+    does the sending**. An opt-in an automation cannot check is not an opt-in;
+    it is a switch that lies, on the most location-sensitive feature here.
+
+    `member_id` is exposed alongside it so a blueprint can identify the member
+    from a typed entity picker rather than from somebody pasting a uuid — a
+    mistyped id fails silently, which is the same class of bug as a free-text
+    entity name.
+    """
+    opted_in = coordinator.config_entry.options.get(CONF_SHOP_MEMBERS) or []
+    return {
+        "member_id": member_id,
+        "shop_notifications": member_id in opted_in,
+    }
 
 
 @dataclass(slots=True)

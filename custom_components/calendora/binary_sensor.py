@@ -34,7 +34,7 @@ from homeassistant.util import dt as dt_util
 from . import CalendoraConfigEntry
 from .calendar import _belongs_to_member
 from .const import DOMAIN
-from .coordinator import CalendoraDataUpdateCoordinator
+from .coordinator import CalendoraDataUpdateCoordinator, member_attributes
 
 PARALLEL_UPDATES = 0
 
@@ -174,7 +174,8 @@ class CalendoraClashSensor(
         "Robin has a clash today" sends someone to open the app. "Swimming
         overlaps the dentist" does not.
         """
+        attributes = member_attributes(self.coordinator, self._member_id)
         clash = self._clash()
         if clash is None:
-            return None
-        return {"first": clash[0], "second": clash[1]}
+            return attributes
+        return {**attributes, "first": clash[0], "second": clash[1]}

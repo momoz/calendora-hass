@@ -264,6 +264,13 @@ channel for the list and a low-importance one for the completion card — is
 **unconfirmed**, and an Android channel's importance is fixed at creation, so a
 wrong guess is permanent on that device until the app is reinstalled.
 
+**Unexercised against real data, and not to be read as tested:** the design's
+rule that quantities appear in the body when greater than one. No item on any
+real list currently carries a quantity, and the one household sampled has
+sections on its shopping list and none on its todo list. Both the quantity rule
+and the section-based batching are written against a sample of one, which is
+why the section fallback stays.
+
 **Corrected:** an earlier summary from this repo stated that iOS action buttons
 cannot carry icons. That was recall presented with the same confidence as
 things that had been checked, it was wrong, and a designer spent a round
