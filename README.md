@@ -3,9 +3,10 @@
 A Home Assistant integration for [Calendora](https://calendora.app) — the family
 calendar, lists and assistant.
 
-> **Status: early, and read-only.** You get your household calendar in Home
-> Assistant, updating live, and nothing can change it from here. See
-> `CHANGELOG.md` for what has shipped so far.
+> **Status: early.** Your household calendar and your lists, live in Home
+> Assistant — and you can tick things off and add to lists from here. Calendar
+> events are still read-only; see [Known limits](#known-limits) for why. What has
+> shipped so far is in `CHANGELOG.md`.
 
 ## Install
 
@@ -17,8 +18,10 @@ This is **not** in the HACS default store. Add it as a custom repository:
 4. Download, then **restart Home Assistant**
 5. Settings → Devices & Services → **Add Integration** → Calendora
 
-You will be asked for an **API key**. Create one in Calendora's settings — it
-needs permission to read your household and your calendar.
+You will be asked for an **API key**. Create one in Calendora's settings. It
+needs permission to **read** your household and calendar, and to **read and
+write** your lists — the write permission is what lets you tick things off from
+Home Assistant. Without it everything still appears; only editing fails.
 
 > The key is a password. Don't paste it into a bug report, a screenshot, or a
 > support chat. If it ever gets out, revoke it in Calendora and use

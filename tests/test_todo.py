@@ -412,3 +412,26 @@ async def test_a_write_never_leaks_the_key(
         )
 
     assert API_KEY not in caplog.text
+
+
+@pytest.mark.parametrize(
+    "due",
+    [date(2026, 9, 3), datetime(2026, 9, 4, 14, 30, tzinfo=dt_util.UTC), None],
+    ids=["a-day", "a-moment", "nothing"],
+)
+def test_due_round_trips_through_the_wire(due) -> None:
+    """Both due forms survive the round trip, which is what licenses both flags.
+
+    `SET_DUE_DATE_ON_ITEM` and `SET_DUE_DATETIME_ON_ITEM` are separate
+    capabilities, and declaring one you cannot honour means the UI offers a
+    field that quietly loses information. §5 makes the form the meaning, so this
+    checks the form survives out and back — a `date` must not come home as a
+    `datetime` at midnight, which is how "due Thursday" becomes "due Wednesday
+    evening" for anyone west of the authoring timezone.
+    """
+    from custom_components.calendora.todo import _due_from_wire, _due_to_wire
+
+    returned = _due_from_wire(_due_to_wire(due))
+
+    assert returned == due
+    assert type(returned) is type(due)

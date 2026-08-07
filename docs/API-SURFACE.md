@@ -1,5 +1,5 @@
 <!-- Third-party API contract, extracted from momoz/calendora docs/05-API-SURFACE.md
-     on 2026-08-09. This is an EXTRACT, not the whole document — the internal doc contains
+     on 2026-08-07. This is an EXTRACT, not the whole document — the internal doc contains
      the route inventory, sync-protocol internals and open security questions, none of which
      are part of the third-party contract and none of which are published here.
      Do not edit here; re-extract from source.
@@ -115,7 +115,7 @@ filtered out by `?member=`.
 
 **`from` and `to` are both inclusive**, `YYYY-MM-DD`, resolved in the key owner's timezone.
 An instant is rejected. **`to = from + 400 days` is accepted; `+401` is not; `from = to` is a
-single day.** *(Corrected 2026-08-08 — the server previously compared elapsed time and
+single day.** *(Corrected 2026-08-07 — the server previously compared elapsed time and
 refused exactly 400. Found by live verification.)*
 
 ### `GET /api/v1/lists`
@@ -133,7 +133,7 @@ refused exactly 400. Found by live verification.)*
 Pre-sorted by `position` — **a fractional index, a STRING.** Compare as a string; never parse
 it as a number.
 
-**`due` replaced `dueAt` on 2026-08-08. Breaking, and deliberate** — it closes GAP-002. The
+**`due` replaced `dueAt` on 2026-08-07. Breaking, and deliberate** — it closes GAP-002. The
 form carries the meaning:
 
 | Value | Means |

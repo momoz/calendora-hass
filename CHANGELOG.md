@@ -4,7 +4,7 @@ All notable changes to this integration are recorded here. Versions match the
 `version` field in `custom_components/calendora/manifest.json` and the GitHub tag
 they were released under.
 
-## Unreleased
+## 0.2.0 — 2026-08-07
 
 ### Added
 - **Your Calendora lists, and you can change them from Home Assistant.** Tick

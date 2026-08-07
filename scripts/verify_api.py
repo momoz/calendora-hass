@@ -36,6 +36,7 @@ import re
 import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
+from uuid import uuid4
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import aiohttp
@@ -123,19 +124,23 @@ def compare_fields(report: Report, label: str, rows: list[dict], documented: set
 
 
 class Client:
-    """Minimal read-only client. Deliberately not the integration's."""
+    """Minimal client. Deliberately not the integration's — a conformance check
+    that shares code with the thing it checks proves only that they agree."""
 
     def __init__(self, session: aiohttp.ClientSession, key: str) -> None:
         self._session = session
         self._key = key
 
     async def get(self, path: str, params: dict | None = None, key: str | None = None):
+        return await self.send("GET", path, params=params, key=key)
+
+    async def send(self, method, path, *, params=None, json=None, key=None):
         headers = {
             "Authorization": f"Bearer {key or self._key}",
             "Accept": "application/json",
         }
-        async with self._session.get(
-            f"{BASE_URL}{path}", headers=headers, params=params
+        async with self._session.request(
+            method, f"{BASE_URL}{path}", headers=headers, params=params, json=json
         ) as response:
             try:
                 return response.status, await response.json(content_type=None)
@@ -396,6 +401,185 @@ async def check_errors(client: Client, report: Report) -> None:
         )
 
 
+async def check_write_rejections(client: Client, report: Report, lists: list[dict]) -> None:
+    """Check the documented *refusals*. Nothing here can mutate anything.
+
+    Run unconditionally, because every one of these is a request the server is
+    documented to turn down — if one of them ever succeeds, that is the finding.
+    """
+    print("\n[9/10] Write rejections (no data is created or changed)")
+
+    # §7: PATCH on a row that does not exist is a 404, not an insert.
+    if lists:
+        status, _ = await client.send(
+            "PATCH", f"/api/v1/lists/{lists[0]['id']}/items/does-not-exist-0000",
+            json={"text": "should never be created"},
+        )
+        report.check(status == 404, f"PATCH on a missing item is 404, not an insert: got {status}")
+
+        # NOTE: "an empty PATCH body is a 400" cannot be checked here. Against a
+        # row that does not exist, 404 legitimately wins, and the precedence
+        # between the two is not specified. It is checked in the write
+        # round-trip instead, where a real row exists.
+
+    # §7: `{id}` on an event PATCH is the SERIES id, and an occurrence id is
+    # "refused by name". Using an id that cannot exist means this distinguishes
+    # refused-by-shape (400) from merely-absent (404) without touching real data.
+    status, body = await client.send(
+        "PATCH", "/api/v1/events/does-not-exist-0000:2026-01-01",
+        json={"title": "should never be applied"},
+    )
+    code = body.get("code") if isinstance(body, dict) else None
+    report.check(
+        status == 400,
+        f"an occurrence id on PATCH /events is refused by name (400): got {status} {code}",
+    )
+
+    status, _ = await client.send(
+        "PATCH", "/api/v1/events/does-not-exist-0000",
+        json={"title": "should never be applied"},
+    )
+    report.check(status == 404, f"PATCH on a missing event series is 404: got {status}")
+
+
+async def check_writes(client: Client, report: Report, lists: list[dict]) -> None:
+    """Round-trip a throwaway item. **This creates and deletes real data.**
+
+    Opt-in via --writes, and deliberately so: the person who connected the
+    integration is notified about its writes (§8), a delete leaves a tombstone
+    rather than vanishing, and nobody running a conformance check casually
+    against their own household expects it to appear on their family's shopping
+    list. Everything created here is named so that a human seeing it knows what
+    it is, and is deleted before the script exits.
+    """
+    print("\n[10/10] Write round-trip (creates and deletes one throwaway item)")
+    if not lists:
+        report.info("skipped: no lists available")
+        return
+
+    list_id = lists[0]["id"]
+    item_id = f"hass-conformance-{uuid4().hex[:12]}"
+    label = "Home Assistant conformance check — safe to delete"
+
+    # §7: the id is honoured when sent, which is what makes a retry idempotent.
+    status, body = await client.send(
+        "POST", f"/api/v1/lists/{list_id}/items",
+        json={"id": item_id, "text": label, "quantity": "3", "due": "2026-09-03"},
+    )
+    if not report.check(status == 201, f"POST an item returns 201: got {status}"):
+        return
+    report.check(
+        isinstance(body, dict) and body.get("id") == item_id,
+        "a client-supplied id is honoured, so a retry cannot duplicate",
+    )
+
+    try:
+        # §7: position is computed server-side and rejected if sent.
+        status, _ = await client.send(
+            "POST", f"/api/v1/lists/{list_id}/items",
+            json={"id": f"{item_id}-pos", "text": label, "position": "a0"},
+        )
+        report.check(status == 400, f"sending `position` on create is rejected: got {status}")
+
+        # §5/§7: a day-form due stays a day through the round trip. This is what
+        # makes SET_DUE_DATE_ON_ITEM honourable rather than a lie.
+        status, payload = await client.get(f"/api/v1/lists/{list_id}/items")
+        created = next((i for i in (payload.get("items") or []) if i["id"] == item_id), None)
+        if report.check(created is not None, "a created item comes back on the list"):
+            report.check(
+                created.get("due") == "2026-09-03",
+                f"a day-form `due` round-trips as a day: got {value_shape(created.get('due'))}",
+            )
+            report.check(
+                created.get("quantity") == "3",
+                "quantity round-trips as sent",
+            )
+
+        # §6: the whole point. Patch ONE field and prove the others survive.
+        status, _ = await client.send(
+            "PATCH", f"/api/v1/lists/{list_id}/items/{item_id}", json={"isChecked": True},
+        )
+        report.check(status == 200, f"PATCH one field returns 200: got {status}")
+
+        status, payload = await client.get(f"/api/v1/lists/{list_id}/items")
+        after = next((i for i in (payload.get("items") or []) if i["id"] == item_id), None)
+        if report.check(after is not None, "the patched item is still on the list"):
+            report.check(after.get("isChecked") is True, "the patched field changed")
+            report.check(
+                after.get("quantity") == "3",
+                f"an OMITTED field is untouched by a patch: quantity is "
+                f"{'intact' if after.get('quantity') == '3' else 'GONE'}",
+            )
+            report.check(
+                after.get("due") == "2026-09-03",
+                "an omitted `due` is untouched by a patch",
+            )
+
+        # §6: a well-formed request that changes nothing is indistinguishable
+        # from success, so an empty body is refused. Checked against a real row,
+        # where 404 cannot mask the answer.
+        status, _ = await client.send(
+            "PATCH", f"/api/v1/lists/{list_id}/items/{item_id}", json={},
+        )
+        report.check(status == 400, f"an empty PATCH body on a real item is 400: got {status}")
+
+        # An instant-form due, which is the other half of the two due flags.
+        status, _ = await client.send(
+            "PATCH", f"/api/v1/lists/{list_id}/items/{item_id}",
+            json={"due": "2026-09-04T14:30:00.000Z"},
+        )
+        status, payload = await client.get(f"/api/v1/lists/{list_id}/items")
+        after = next((i for i in (payload.get("items") or []) if i["id"] == item_id), None)
+        report.check(
+            after is not None and value_shape(after.get("due")) == "ISO instant",
+            f"an instant-form `due` round-trips as an instant: got "
+            f"{value_shape(after.get('due')) if after else 'missing'}",
+        )
+
+        # §6: explicit null clears.
+        await client.send(
+            "PATCH", f"/api/v1/lists/{list_id}/items/{item_id}", json={"due": None},
+        )
+        status, payload = await client.get(f"/api/v1/lists/{list_id}/items")
+        after = next((i for i in (payload.get("items") or []) if i["id"] == item_id), None)
+        report.check(
+            after is not None and after.get("due") is None,
+            "an explicit null clears the field",
+        )
+
+        # §6: an unknown field is a 400 that names it, never a silent drop.
+        status, body = await client.send(
+            "PATCH", f"/api/v1/lists/{list_id}/items/{item_id}", json={"sparkle": True},
+        )
+        report.check(status == 400, f"an unknown field is rejected, not dropped: got {status}")
+        if isinstance(body, dict):
+            report.check(
+                "sparkle" in (body.get("error") or ""),
+                f"the 400 names the offending field: {'yes' if 'sparkle' in (body.get('error') or '') else 'no'}",
+            )
+
+        # §7: both ids are checked against each other.
+        if len(lists) > 1:
+            status, _ = await client.send(
+                "PATCH", f"/api/v1/lists/{lists[1]['id']}/items/{item_id}",
+                json={"text": label},
+            )
+            report.check(
+                status == 404,
+                f"an item on a different list answers 404: got {status}",
+            )
+    finally:
+        status, body = await client.send(
+            "DELETE", f"/api/v1/lists/{list_id}/items/{item_id}"
+        )
+        report.check(status == 200, f"DELETE returns 200: got {status}")
+        report.check(
+            isinstance(body, dict) and body.get("deleted") is True,
+            "DELETE confirms with deleted: true",
+        )
+        print(f"    cleaned up {item_id}")
+
+
 def read_key(args: argparse.Namespace) -> str:
     if key := os.environ.get("CALENDORA_API_KEY"):
         return key.strip()
@@ -411,6 +595,16 @@ def read_key(args: argparse.Namespace) -> str:
 async def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--key-file", default=str(DEFAULT_KEY_FILE))
+    parser.add_argument(
+        "--writes",
+        action="store_true",
+        help=(
+            "also check the write routes. CREATES AND DELETES one clearly-named "
+            "throwaway item on your first list. The person who connected the "
+            "integration is notified about writes, and a delete leaves a "
+            "tombstone rather than vanishing."
+        ),
+    )
     args = parser.parse_args()
     key = read_key(args)
 
@@ -428,6 +622,11 @@ async def main() -> int:
         await check_list_items(client, report, lists)
         await check_stream(client, report, key)
         await check_errors(client, report)
+        await check_write_rejections(client, report, lists)
+        if args.writes:
+            await check_writes(client, report, lists)
+        else:
+            print("\n[10/10] Write round-trip skipped — pass --writes to include it")
 
     print("\n" + "=" * 72)
     print(f"AGREES WITH THE DOCUMENT ({len(report.matches)})")
