@@ -4,6 +4,16 @@ All notable changes to this integration are recorded here. Versions match the
 `version` field in `custom_components/calendora/manifest.json` and the GitHub tag
 they were released under.
 
+## Unreleased
+
+### Fixed
+- **Adding an event to one person's calendar no longer adds it for everybody.**
+  Calendora has no way to say who a *new* event belongs to, so anything created
+  from a person's calendar arrived with nobody on it — which means the whole
+  household. Person calendars no longer offer an add button; create the event on
+  the household calendar, or in Calendora where you can say who it is for.
+  Editing and deleting from a person's calendar still work.
+
 ## 0.4.0 — 2026-08-07
 
 **The shopping trip.** Arrive at a shop, and a couple of minutes later your

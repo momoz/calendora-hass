@@ -449,7 +449,24 @@ class CalendoraHouseholdCalendar(CalendoraCalendar):
 
 
 class CalendoraMemberCalendar(CalendoraCalendar):
-    """One person's calendar: what they are on, plus what everyone is on."""
+    """One person's calendar: what they are on, plus what everyone is on.
+
+    **This calendar cannot create events, and the household one can.**
+
+    `POST /api/v1/events` has no attendee field (`docs/API-SURFACE.md` §7), so
+    an event created here would be created with nobody on it — which §4a defines
+    as belonging to the whole household. Adding "dentist" to Mike's calendar
+    would put it on everybody's, silently, and the only clue would be seeing it
+    six times on a household dashboard.
+
+    Declaring a capability that cannot be honoured is worse than not having it,
+    so this entity does not offer an add button. Editing and removing stay: they
+    act on an event that already exists and do not need to say whose it is.
+    """
+
+    _attr_supported_features = (
+        CalendarEntityFeature.UPDATE_EVENT | CalendarEntityFeature.DELETE_EVENT
+    )
 
     def __init__(
         self, coordinator: CalendoraDataUpdateCoordinator, member: dict[str, Any]

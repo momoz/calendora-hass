@@ -240,3 +240,29 @@ async def test_a_write_never_leaks_the_key(
             recurrence_id="2026-11-04", recurrence_range="")
 
     assert API_KEY not in caplog.text
+
+
+async def test_a_member_calendar_does_not_offer_to_create(
+    hass: HomeAssistant, setup_calendar: MockConfigEntry
+) -> None:
+    """Creating on a person's calendar would create it for everybody.
+
+    `POST /events` has no attendee field, so an event created from Robin's
+    calendar arrives with nobody on it — which means the whole household. The
+    user asked for one person's event and got everyone's, with no error and no
+    clue beyond seeing it repeated across the dashboard.
+
+    Reported from a real household before this test existed.
+    """
+    from homeassistant.components.calendar import CalendarEntityFeature
+
+    member = hass.states.get("calendar.test_household_robin")
+    household = hass.states.get("calendar.test_household")
+
+    assert not member.attributes["supported_features"] & CalendarEntityFeature.CREATE_EVENT
+    assert household.attributes["supported_features"] & CalendarEntityFeature.CREATE_EVENT
+
+    # Editing and removing still work: they act on an event that already exists
+    # and do not have to say whose it is.
+    assert member.attributes["supported_features"] & CalendarEntityFeature.UPDATE_EVENT
+    assert member.attributes["supported_features"] & CalendarEntityFeature.DELETE_EVENT
