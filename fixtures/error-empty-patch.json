@@ -1,0 +1,20 @@
+{
+  "describes": "{} changes nothing and is a 400. A well-formed request that does nothing is indistinguishable from success.",
+  "request": {
+    "method": "PATCH",
+    "path": "/api/v1/events/fx-event-birthday",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    },
+    "body": {
+      "scope": "all"
+    }
+  },
+  "response": {
+    "status": 400,
+    "body": {
+      "error": "nothing to change",
+      "code": "bad_request"
+    }
+  }
+}

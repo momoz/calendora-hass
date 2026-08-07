@@ -1,0 +1,23 @@
+{
+  "describes": "Named rather than dropped. A third party cannot notice a silent drop and files it against the wrong project. `05` §15.",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/events",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    },
+    "body": {
+      "title": "Typo",
+      "start": "2027-03-05T09:00:00.000Z",
+      "end": "2027-03-05T10:00:00.000Z",
+      "locatoin": "The pool"
+    }
+  },
+  "response": {
+    "status": 400,
+    "body": {
+      "error": "unknown field: locatoin. This route accepts: id, title, description, location, icon, start, end, isAllDay, timezone, importance, travelMinutes",
+      "code": "bad_request"
+    }
+  }
+}

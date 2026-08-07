@@ -1,0 +1,17 @@
+{
+  "describes": "to must not be before from.",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/events?from=2027-03-10&to=2027-03-01",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 400,
+    "body": {
+      "error": "to must not be before from",
+      "code": "bad_request"
+    }
+  }
+}

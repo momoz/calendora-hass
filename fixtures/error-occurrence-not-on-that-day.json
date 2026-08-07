@@ -1,0 +1,21 @@
+{
+  "describes": "A date the series does not fall on. Distinct from 404: the event exists, that day is not one of its occurrences.",
+  "request": {
+    "method": "PATCH",
+    "path": "/api/v1/events/fx-event-gym:2027-03-18",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    },
+    "body": {
+      "scope": "this",
+      "title": "x"
+    }
+  },
+  "response": {
+    "status": 400,
+    "body": {
+      "error": "2027-03-18 is not an occurrence of this event. It may have been cancelled, or already taken out of the repeat.",
+      "code": "bad_request"
+    }
+  }
+}

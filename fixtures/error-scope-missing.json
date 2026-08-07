@@ -1,0 +1,20 @@
+{
+  "describes": "scope is required on every PATCH, including a bare series id and an event that does not repeat — the server never guesses which occurrences you meant.",
+  "request": {
+    "method": "PATCH",
+    "path": "/api/v1/events/fx-event-birthday",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    },
+    "body": {
+      "title": "Half term (moved)"
+    }
+  },
+  "response": {
+    "status": 400,
+    "body": {
+      "error": "scope is required: \"this\" (one occurrence), \"following\" (this one and the rest), or \"all\" (the whole series). It is required on a one-off too, so the same code works when somebody makes it repeat.",
+      "code": "bad_request"
+    }
+  }
+}

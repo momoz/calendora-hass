@@ -1,0 +1,15 @@
+{
+  "describes": "No Authorization header. 401, and deliberately vague.",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/household",
+    "headers": {}
+  },
+  "response": {
+    "status": 401,
+    "body": {
+      "error": "invalid API key",
+      "code": "unauthenticated"
+    }
+  }
+}

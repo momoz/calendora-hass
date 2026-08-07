@@ -71,6 +71,9 @@
     },
     "delete_failed": {
       "message": "Calendora would not remove that item: {detail}"
+    },
+    "calendar_write_failed": {
+      "message": "Calendora would not save that change: {detail}"
     }
   },
   "entity": {

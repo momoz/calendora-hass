@@ -1,0 +1,27 @@
+{
+  "describes": "People who are not members. `birthday` is a date string and may be the year-less --MM-DD form.",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/people",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "people": [
+        {
+          "id": "fx-person-kayla",
+          "name": "Kayla",
+          "firstName": "Kayla",
+          "lastName": null,
+          "kind": "person",
+          "relationship": "Daughter",
+          "birthday": "--08-11",
+          "color": "green"
+        }
+      ]
+    }
+  }
+}

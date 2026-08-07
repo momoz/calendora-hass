@@ -1,0 +1,21 @@
+{
+  "describes": "PATCH on a row that does not exist is a 404, never an insert.",
+  "request": {
+    "method": "PATCH",
+    "path": "/api/v1/events/fx-event-nowhere",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    },
+    "body": {
+      "scope": "all",
+      "title": "Ghost"
+    }
+  },
+  "response": {
+    "status": 404,
+    "body": {
+      "error": "event not found",
+      "code": "not_found"
+    }
+  }
+}

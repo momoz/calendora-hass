@@ -1,0 +1,47 @@
+{
+  "describes": "Items and their headings, pre-sorted by a fractional index. `due` carries day-versus-moment in its form. GAP-002.",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/lists/fx-list-shopping/items",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "listId": "fx-list-shopping",
+      "sections": [
+        {
+          "id": "fx-section-produce",
+          "name": "PRODUCE",
+          "position": "a0"
+        }
+      ],
+      "items": [
+        {
+          "id": "fx-item-milk",
+          "text": "Milk",
+          "quantity": "2",
+          "notes": null,
+          "isChecked": false,
+          "sectionId": "fx-section-produce",
+          "position": "a0",
+          "assignedMembershipId": null,
+          "due": null
+        },
+        {
+          "id": "fx-item-bins",
+          "text": "Bins out",
+          "quantity": null,
+          "notes": null,
+          "isChecked": false,
+          "sectionId": null,
+          "position": "a1",
+          "assignedMembershipId": "fx-member-mike",
+          "due": "2027-03-11"
+        }
+      ]
+    }
+  }
+}

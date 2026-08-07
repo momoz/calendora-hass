@@ -291,6 +291,52 @@ class CalendoraClient:
             "DELETE", f"/api/v1/lists/{list_id}/items/{item_id}"
         )
 
+    async def async_create_event(self, event_id: str, fields: dict[str, Any]) -> Any:
+        """`POST /api/v1/events` — requires `calendar:write`.
+
+        The caller chooses the id, for the same reason list items do: a request
+        that times out cannot be told from a reply that was lost, and a retry
+        without an id creates the event twice.
+        """
+        return await self._async_send(
+            "POST", "/api/v1/events",
+            json={"id": event_id, **fields},
+            expect=HTTPStatus.CREATED,
+        )
+
+    async def async_update_event(
+        self, event_id: str, scope: str, changes: dict[str, Any]
+    ) -> Any:
+        """`PATCH /api/v1/events/{id}` — requires `calendar:write`.
+
+        `event_id` may be a series id or the `{eventId}:{occurrenceKey}` form
+        that `GET` handed out; the two mean different things and `scope` says
+        which was meant.
+
+        **`scope` is a body field and is required on every call** — including a
+        bare series id and an event that does not repeat, where all three values
+        mean the same thing. The server never guesses which occurrences were
+        meant, and omitting it is a 400.
+
+        Returns the reply intact, because **the `id` in it is not always the id
+        that was sent**: `this` and `following` create a row, and that row is
+        what a subsequent request must address.
+        """
+        if not changes:
+            raise ValueError("a PATCH carrying only a scope changes nothing")
+        return await self._async_send(
+            "PATCH", f"/api/v1/events/{event_id}", json={"scope": scope, **changes}
+        )
+
+    async def async_delete_event(self, event_id: str) -> Any:
+        """`DELETE /api/v1/events/{id}` — requires `calendar:write`.
+
+        A repeating event is refused with a 400 that explains itself. That is
+        not a failure to handle quietly: the message is written for the person
+        reading it, so callers should surface it rather than replace it.
+        """
+        return await self._async_send("DELETE", f"/api/v1/events/{event_id}")
+
     async def async_stream(self) -> AsyncIterator[str]:
         """Yield event names from `GET /api/v1/stream` — requires `household:read`.
 

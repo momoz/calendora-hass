@@ -1,0 +1,21 @@
+{
+  "describes": "Reordering is a decided non-goal and `position` never appears in a write body. `05` §24.",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/lists/fx-list-shopping/items",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    },
+    "body": {
+      "text": "Bread",
+      "position": "a5"
+    }
+  },
+  "response": {
+    "status": 400,
+    "body": {
+      "error": "unknown field: position. This route accepts: id, text, notes, quantity, isChecked, due, sectionId, assignedMembershipId",
+      "code": "bad_request"
+    }
+  }
+}

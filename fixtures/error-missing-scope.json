@@ -1,0 +1,22 @@
+{
+  "describes": "Authenticated but not permitted. 403 and specific, because re-issuing the key is actionable.",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/events",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    },
+    "body": {
+      "title": "Nope",
+      "start": "2027-03-02T09:00:00.000Z",
+      "end": "2027-03-02T10:00:00.000Z"
+    }
+  },
+  "response": {
+    "status": 403,
+    "body": {
+      "error": "this key does not have the \"calendar:write\" permission",
+      "code": "forbidden"
+    }
+  }
+}

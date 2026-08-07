@@ -1,0 +1,17 @@
+{
+  "describes": "A list in another household answers 404, not 403 — 'that exists but is not yours' is how ids get enumerated.",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/lists/fx-list-not-yours/items",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 404,
+    "body": {
+      "error": "list not found",
+      "code": "not_found"
+    }
+  }
+}

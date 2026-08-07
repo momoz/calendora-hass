@@ -1,0 +1,1134 @@
+{
+  "describes": "Exactly 400 days is accepted. Both ends are inclusive. GAP-005.",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/events?from=2027-03-01&to=2028-04-04",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "occurrences": [
+        {
+          "id": "fx-event-gym:2027-03-02",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-03-02",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-03-02T07:00:00.000Z",
+          "end": "2027-03-02T08:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-03-09",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-03-09",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-03-09T07:00:00.000Z",
+          "end": "2027-03-09T08:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": []
+        },
+        {
+          "id": "fx-event-birthday:2027-03-15",
+          "eventId": "fx-event-birthday",
+          "occurrenceKey": "2027-03-15",
+          "title": "Half term",
+          "description": null,
+          "location": null,
+          "icon": null,
+          "isAllDay": true,
+          "start": "2027-03-15T00:00:00.000Z",
+          "end": "2027-03-20T00:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": false,
+          "importance": null,
+          "travelMinutes": null,
+          "attendeeIds": []
+        },
+        {
+          "id": "fx-event-gym:2027-03-16",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-03-16",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-03-16T07:00:00.000Z",
+          "end": "2027-03-16T08:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-03-23",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-03-23",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-03-23T07:00:00.000Z",
+          "end": "2027-03-23T08:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-03-30",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-03-30",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-03-30T06:00:00.000Z",
+          "end": "2027-03-30T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-04-06",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-04-06",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-04-06T06:00:00.000Z",
+          "end": "2027-04-06T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-04-13",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-04-13",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-04-13T06:00:00.000Z",
+          "end": "2027-04-13T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-04-20",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-04-20",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-04-20T06:00:00.000Z",
+          "end": "2027-04-20T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-04-27",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-04-27",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-04-27T06:00:00.000Z",
+          "end": "2027-04-27T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-05-04",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-05-04",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-05-04T06:00:00.000Z",
+          "end": "2027-05-04T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-05-11",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-05-11",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-05-11T06:00:00.000Z",
+          "end": "2027-05-11T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-05-18",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-05-18",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-05-18T06:00:00.000Z",
+          "end": "2027-05-18T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-05-25",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-05-25",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-05-25T06:00:00.000Z",
+          "end": "2027-05-25T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-06-01",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-06-01",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-06-01T06:00:00.000Z",
+          "end": "2027-06-01T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-06-08",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-06-08",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-06-08T06:00:00.000Z",
+          "end": "2027-06-08T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-06-15",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-06-15",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-06-15T06:00:00.000Z",
+          "end": "2027-06-15T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-06-22",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-06-22",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-06-22T06:00:00.000Z",
+          "end": "2027-06-22T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-06-29",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-06-29",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-06-29T06:00:00.000Z",
+          "end": "2027-06-29T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-07-06",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-07-06",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-07-06T06:00:00.000Z",
+          "end": "2027-07-06T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-07-13",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-07-13",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-07-13T06:00:00.000Z",
+          "end": "2027-07-13T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-07-20",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-07-20",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-07-20T06:00:00.000Z",
+          "end": "2027-07-20T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-07-27",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-07-27",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-07-27T06:00:00.000Z",
+          "end": "2027-07-27T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-08-03",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-08-03",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-08-03T06:00:00.000Z",
+          "end": "2027-08-03T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-08-10",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-08-10",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-08-10T06:00:00.000Z",
+          "end": "2027-08-10T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-08-17",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-08-17",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-08-17T06:00:00.000Z",
+          "end": "2027-08-17T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-08-24",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-08-24",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-08-24T06:00:00.000Z",
+          "end": "2027-08-24T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-08-31",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-08-31",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-08-31T06:00:00.000Z",
+          "end": "2027-08-31T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-09-07",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-09-07",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-09-07T06:00:00.000Z",
+          "end": "2027-09-07T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-09-14",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-09-14",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-09-14T06:00:00.000Z",
+          "end": "2027-09-14T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-09-21",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-09-21",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-09-21T06:00:00.000Z",
+          "end": "2027-09-21T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-09-28",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-09-28",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-09-28T06:00:00.000Z",
+          "end": "2027-09-28T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-10-05",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-10-05",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-10-05T06:00:00.000Z",
+          "end": "2027-10-05T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-10-12",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-10-12",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-10-12T06:00:00.000Z",
+          "end": "2027-10-12T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-10-19",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-10-19",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-10-19T06:00:00.000Z",
+          "end": "2027-10-19T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-10-26",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-10-26",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-10-26T06:00:00.000Z",
+          "end": "2027-10-26T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-11-02",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-11-02",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-11-02T07:00:00.000Z",
+          "end": "2027-11-02T08:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-11-09",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-11-09",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-11-09T07:00:00.000Z",
+          "end": "2027-11-09T08:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-11-16",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-11-16",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-11-16T07:00:00.000Z",
+          "end": "2027-11-16T08:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-11-23",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-11-23",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-11-23T07:00:00.000Z",
+          "end": "2027-11-23T08:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-11-30",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-11-30",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-11-30T07:00:00.000Z",
+          "end": "2027-11-30T08:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-12-07",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-12-07",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-12-07T07:00:00.000Z",
+          "end": "2027-12-07T08:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-12-14",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-12-14",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-12-14T07:00:00.000Z",
+          "end": "2027-12-14T08:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-12-21",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-12-21",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-12-21T07:00:00.000Z",
+          "end": "2027-12-21T08:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2027-12-28",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2027-12-28",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2027-12-28T07:00:00.000Z",
+          "end": "2027-12-28T08:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2028-01-04",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2028-01-04",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2028-01-04T07:00:00.000Z",
+          "end": "2028-01-04T08:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2028-01-11",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2028-01-11",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2028-01-11T07:00:00.000Z",
+          "end": "2028-01-11T08:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2028-01-18",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2028-01-18",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2028-01-18T07:00:00.000Z",
+          "end": "2028-01-18T08:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2028-01-25",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2028-01-25",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2028-01-25T07:00:00.000Z",
+          "end": "2028-01-25T08:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2028-02-01",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2028-02-01",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2028-02-01T07:00:00.000Z",
+          "end": "2028-02-01T08:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2028-02-08",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2028-02-08",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2028-02-08T07:00:00.000Z",
+          "end": "2028-02-08T08:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2028-02-15",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2028-02-15",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2028-02-15T07:00:00.000Z",
+          "end": "2028-02-15T08:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2028-02-22",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2028-02-22",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2028-02-22T07:00:00.000Z",
+          "end": "2028-02-22T08:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2028-02-29",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2028-02-29",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2028-02-29T07:00:00.000Z",
+          "end": "2028-02-29T08:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2028-03-07",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2028-03-07",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2028-03-07T07:00:00.000Z",
+          "end": "2028-03-07T08:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2028-03-14",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2028-03-14",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2028-03-14T07:00:00.000Z",
+          "end": "2028-03-14T08:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2028-03-21",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2028-03-21",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2028-03-21T07:00:00.000Z",
+          "end": "2028-03-21T08:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2028-03-28",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2028-03-28",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2028-03-28T06:00:00.000Z",
+          "end": "2028-03-28T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        },
+        {
+          "id": "fx-event-gym:2028-04-04",
+          "eventId": "fx-event-gym",
+          "occurrenceKey": "2028-04-04",
+          "title": "Gym",
+          "description": null,
+          "location": "Planet Fitness",
+          "icon": null,
+          "isAllDay": false,
+          "start": "2028-04-04T06:00:00.000Z",
+          "end": "2028-04-04T07:00:00.000Z",
+          "timezone": "Europe/London",
+          "repeats": true,
+          "importance": 4,
+          "travelMinutes": null,
+          "attendeeIds": [
+            "fx-member-donna"
+          ]
+        }
+      ]
+    }
+  }
+}

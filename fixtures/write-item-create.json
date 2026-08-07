@@ -1,0 +1,21 @@
+{
+  "describes": "Add to a list. `position` is computed here and never sent. `05` §24.",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/lists/fx-list-shopping/items",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    },
+    "body": {
+      "id": "fx-item-created",
+      "text": "Eggs",
+      "quantity": "6"
+    }
+  },
+  "response": {
+    "status": 201,
+    "body": {
+      "id": "fx-item-created"
+    }
+  }
+}

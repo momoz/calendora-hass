@@ -1,0 +1,17 @@
+{
+  "describes": "An instant is rejected where a day is wanted — it would mean a different day depending on the zone it was written in.",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/events?from=2027-03-01T00:00:00Z&to=2027-03-31",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 400,
+    "body": {
+      "error": "from and to are required, as YYYY-MM-DD dates",
+      "code": "bad_request"
+    }
+  }
+}

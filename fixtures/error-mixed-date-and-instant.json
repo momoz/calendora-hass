@@ -1,0 +1,22 @@
+{
+  "describes": "A date paired with an instant does not describe anything, and picking a side would silently be wrong half the time.",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/events",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    },
+    "body": {
+      "title": "Half and half",
+      "start": "2027-03-11",
+      "end": "2027-03-11T18:00:00.000Z"
+    }
+  },
+  "response": {
+    "status": 400,
+    "body": {
+      "error": "start and end must both be dates or both be instants",
+      "code": "bad_request"
+    }
+  }
+}

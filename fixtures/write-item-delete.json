@@ -1,0 +1,17 @@
+{
+  "describes": "A tombstone, as with an event.",
+  "request": {
+    "method": "DELETE",
+    "path": "/api/v1/lists/fx-list-shopping/items/fx-item-created",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "id": "fx-item-created",
+      "deleted": true
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "describes": "Ticking sets checkedAt with it — two halves of one fact.",
+  "request": {
+    "method": "PATCH",
+    "path": "/api/v1/lists/fx-list-shopping/items/fx-item-created",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    },
+    "body": {
+      "isChecked": true
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "id": "fx-item-created"
+    }
+  }
+}

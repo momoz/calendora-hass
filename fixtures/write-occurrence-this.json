@@ -1,0 +1,22 @@
+{
+  "describes": "Editing ONE occurrence of a repeat. Send the {eventId}:{date} id GET gave you, with scope 'this'. It is taken out of the repeat and the reply carries the NEW id. GAP-007.",
+  "request": {
+    "method": "PATCH",
+    "path": "/api/v1/events/fx-event-gym:2027-03-16",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    },
+    "body": {
+      "scope": "this",
+      "location": "The pool"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "id": "<new-id>",
+      "scope": "this",
+      "result": "this one was taken out of the repeat and changed on its own"
+    }
+  }
+}

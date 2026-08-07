@@ -1,0 +1,25 @@
+{
+  "describes": "The household, and whose timezone dates are resolved in.",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/household",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "household": {
+        "id": "fx-household",
+        "name": "The Olsens",
+        "description": "One calm place",
+        "color": "blue"
+      },
+      "timezone": {
+        "value": "Europe/London",
+        "source": "key-owner"
+      }
+    }
+  }
+}

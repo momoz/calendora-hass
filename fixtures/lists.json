@@ -1,0 +1,26 @@
+{
+  "describes": "Every list in the household.",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/lists",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "lists": [
+        {
+          "id": "fx-list-shopping",
+          "name": "Shopping",
+          "description": null,
+          "type": "shopping",
+          "color": null,
+          "icon": null,
+          "isArchived": false
+        }
+      ]
+    }
+  }
+}

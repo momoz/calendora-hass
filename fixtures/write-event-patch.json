@@ -1,0 +1,23 @@
+{
+  "describes": "Partial. An omitted field is untouched; an explicit null clears. `scope` is always required. GAP-003.",
+  "request": {
+    "method": "PATCH",
+    "path": "/api/v1/events/fx-event-created",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    },
+    "body": {
+      "scope": "all",
+      "location": null,
+      "description": "Bring the carrier"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "id": "fx-event-created",
+      "scope": "all",
+      "result": "the whole series was changed"
+    }
+  }
+}

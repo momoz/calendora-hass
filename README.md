@@ -107,17 +107,18 @@ silently hides half of family life from each person's view. If you need to tell
 them apart, a shared event shows `shared_with_household: true` on that person's
 next-event sensor.
 
-### Calendars are read-only; lists are not
+### Editing a repeating event asks which ones you mean
 
-You can add, tick, rename and delete **list** items from Home Assistant, and
-*"add milk to the shopping list"* works through Assist with no setup.
+Change a repeating event and Home Assistant asks: just this one, or this and
+everything after? Both do what they say — moving *this* Tuesday leaves the other
+Tuesdays alone.
 
-**Calendar events cannot be changed from here.** Calendora can edit an event
-series through its API, but not a single occurrence of a repeating event — and
-Home Assistant hands an integration the occurrence you clicked on. Wiring those
-together would mean "change this Tuesday" silently moving every Tuesday of the
-year. So no editing capability is declared, and Home Assistant hides the button
-rather than offering one that does something you did not ask for.
+There is no third option for "including the ones that already happened", because
+Home Assistant has no way to offer it and this integration will not guess.
+
+**Deleting a repeating event is refused**, by Calendora rather than by us, and
+the message says so and tells you to delete it in Calendora instead. Deleting a
+one-off works normally.
 
 ### You cannot reorder list items
 

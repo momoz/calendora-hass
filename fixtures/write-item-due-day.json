@@ -1,0 +1,19 @@
+{
+  "describes": "A date means a DAY. Stored anchored at 9am in the caller's zone, because 'due Thursday' means during Thursday.",
+  "request": {
+    "method": "PATCH",
+    "path": "/api/v1/lists/fx-list-shopping/items/fx-item-created",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    },
+    "body": {
+      "due": "2027-03-11"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "id": "fx-item-created"
+    }
+  }
+}

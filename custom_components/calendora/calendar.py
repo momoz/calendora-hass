@@ -1,9 +1,17 @@
 """Calendar platform for Calendora.
 
-**Read-only. No `CalendarEntityFeature` flag is set**, because `/api/v1` has no
-write routes yet (`docs/API-SURFACE.md` §7). Those flags are not decoration — the
-UI and the service field filters key off them, so claiming `CREATE_EVENT` would
-hand the user an edit dialog that fails on save.
+Writable, as of the API accepting the occurrence id it was already handing out.
+Before that, "move this Tuesday" could only be expressed as "move every
+Tuesday", so no editing capability was declared at all.
+
+**`scope` is the whole difficulty** (`docs/API-SURFACE.md` §7). Home Assistant
+asks the user "this event, or this and all following?" and hands the answer
+down as `recurrence_range`; Calendora wants that as a required body field with
+three values. `_scope_for` is that translation, and getting it wrong does not
+error — it silently edits the wrong number of days.
+
+**The reply carries a new id.** `this` and `following` create a row, so the id
+that comes back is not the one that was sent. Nothing here keeps the old one.
 
 Occurrences arrive **pre-expanded** (§4). The server owns recurrence; there is no
 RRULE on the wire and nothing here re-derives one.
@@ -24,17 +32,26 @@ from __future__ import annotations
 
 from datetime import date, datetime, timedelta
 from typing import Any
+from uuid import uuid4
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from homeassistant.components.calendar import CalendarEntity, CalendarEvent
+from homeassistant.components.calendar import (
+    EVENT_END,
+    EVENT_START,
+    EVENT_SUMMARY,
+    CalendarEntity,
+    CalendarEntityFeature,
+    CalendarEvent,
+)
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
 from . import CalendoraConfigEntry
-from .api import CalendoraError
+from .api import CalendoraAuthError, CalendoraError
 from .const import DOMAIN, LOGGER, MAX_EVENT_RANGE_DAYS
 from .coordinator import CalendoraDataUpdateCoordinator
 
@@ -171,6 +188,49 @@ def _as_calendar_event(occurrence: dict[str, Any]) -> CalendarEvent | None:
     )
 
 
+def _scope_for(recurrence_id: str | None, recurrence_range: str | None) -> str:
+    """Translate Home Assistant's answer into Calendora's `scope`.
+
+    Home Assistant offers a user two choices on a repeating event and encodes
+    them in `recurrence_range`: `""` for this one, `"THISANDFUTURE"` for this
+    and everything after. There is no third value — it has no way to say "the
+    whole series including the past".
+
+    So `all` is never emitted from here, even though the API accepts it. It is
+    not ours to choose: a user who asked to change one Tuesday has not asked to
+    change the ones already gone.
+
+    A one-off carries no `recurrence_id`. `scope` is still required there, and
+    all three values mean the same thing, so `all` is the honest one — nothing
+    is being singled out.
+    """
+    if recurrence_id is None:
+        return "all"
+    if recurrence_range == "THISANDFUTURE":
+        return "following"
+    return "this"
+
+
+def _wire_times(event: CalendarEvent | dict[str, Any]) -> dict[str, Any]:
+    """Render start and end in the form that says what they mean.
+
+    §7: a date is a day and an instant is a moment, and the two may not be
+    mixed. Home Assistant already keeps that distinction in the type, so this is
+    a straight rendering rather than a decision — which is why `isAllDay` is not
+    sent at all. Sending one that disagrees with the form is a 400, and the form
+    is not something to restate.
+    """
+    start = event[EVENT_START] if isinstance(event, dict) else event.start
+    end = event[EVENT_END] if isinstance(event, dict) else event.end
+
+    def render(value: date | datetime) -> str:
+        if isinstance(value, datetime):
+            return dt_util.as_utc(value).isoformat().replace("+00:00", "Z")
+        return value.isoformat()
+
+    return {"start": render(start), "end": render(end)}
+
+
 class CalendoraCalendar(
     CoordinatorEntity[CalendoraDataUpdateCoordinator], CalendarEntity
 ):
@@ -181,6 +241,11 @@ class CalendoraCalendar(
     """
 
     _attr_has_entity_name = True
+    _attr_supported_features = (
+        CalendarEntityFeature.CREATE_EVENT
+        | CalendarEntityFeature.UPDATE_EVENT
+        | CalendarEntityFeature.DELETE_EVENT
+    )
 
     def __init__(self, coordinator: CalendoraDataUpdateCoordinator) -> None:
         """Initialise the entity."""
@@ -212,6 +277,93 @@ class CalendoraCalendar(
             if event is not None and _ends_after(event, now):
                 return event
         return None
+
+    async def _async_write(self, coro: Any) -> Any:
+        """Run one write, surface its failure, then reconcile.
+
+        Calendora's rejections are written for the person reading them — "this
+        event repeats, and a repeating series cannot be removed through this
+        API … Remove it in Calendora instead" is more use than anything this
+        integration could invent, so it is passed through rather than replaced.
+        """
+        try:
+            result = await coro
+        except CalendoraAuthError as err:
+            self.coordinator.config_entry.async_start_reauth(self.hass)
+            raise HomeAssistantError(
+                translation_domain=DOMAIN, translation_key="invalid_auth"
+            ) from err
+        except CalendoraError as err:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="calendar_write_failed",
+                translation_placeholders={"detail": str(err)},
+            ) from err
+
+        await self.coordinator.async_request_refresh()
+        return result
+
+    async def async_create_event(self, **kwargs: Any) -> None:
+        """Add an event.
+
+        The id is chosen here so a retry after a timeout lands on the same row
+        rather than creating the thing twice.
+        """
+        fields: dict[str, Any] = {
+            "title": kwargs[EVENT_SUMMARY],
+            **_wire_times(kwargs),
+            "timezone": str(dt_util.get_default_time_zone()),
+        }
+        for key in ("description", "location"):
+            if (value := kwargs.get(key)) is not None:
+                fields[key] = value
+
+        await self._async_write(
+            self.coordinator.client.async_create_event(uuid4().hex, fields)
+        )
+
+    async def async_update_event(
+        self,
+        uid: str,
+        event: dict[str, Any],
+        recurrence_id: str | None = None,
+        recurrence_range: str | None = None,
+    ) -> None:
+        """Change an event, or one occurrence of it.
+
+        `uid` is the id `GET` handed out — for an occurrence, the
+        `{eventId}:{occurrenceKey}` form the API now accepts back.
+
+        The reply's `id` is deliberately not stored: `this` and `following`
+        create a row, and the refresh that follows re-reads every id from the
+        server rather than trusting one held here.
+        """
+        changes: dict[str, Any] = {
+            "title": event[EVENT_SUMMARY],
+            **_wire_times(event),
+        }
+        for key in ("description", "location"):
+            if key in event:
+                changes[key] = event[key]
+
+        await self._async_write(
+            self.coordinator.client.async_update_event(
+                uid, _scope_for(recurrence_id, recurrence_range), changes
+            )
+        )
+
+    async def async_delete_event(
+        self,
+        uid: str,
+        recurrence_id: str | None = None,
+        recurrence_range: str | None = None,
+    ) -> None:
+        """Remove an event.
+
+        A repeating series is refused by the API on purpose, and the refusal
+        explains itself. It reaches the user unchanged.
+        """
+        await self._async_write(self.coordinator.client.async_delete_event(uid))
 
     async def async_get_events(
         self, hass: HomeAssistant, start_date: datetime, end_date: datetime

@@ -1,0 +1,17 @@
+{
+  "describes": "A tombstone, so the removal reaches every device.",
+  "request": {
+    "method": "DELETE",
+    "path": "/api/v1/events/fx-event-created",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "id": "fx-event-created",
+      "deleted": true
+    }
+  }
+}

@@ -102,16 +102,19 @@ async def test_entity_uses_the_household_id(
     assert API_KEY not in entity_entry.unique_id
 
 
-async def test_declares_no_write_features(
+async def test_declares_the_write_features_it_can_honour(
     hass: HomeAssistant, setup_calendar: MockConfigEntry
 ) -> None:
-    """No write routes exist yet (§7), so no capability may be claimed."""
-    state = hass.states.get(ENTITY_ID)
-    supported = state.attributes.get("supported_features", 0)
+    """All three, now that an occurrence id can be addressed.
 
-    assert supported == 0
-    for feature in CalendarEntityFeature:
-        assert not supported & feature
+    Before the API accepted the id it was handing out, "move this Tuesday"
+    could only be expressed as "move every Tuesday", so nothing was declared.
+    """
+    supported = hass.states.get(ENTITY_ID).attributes.get("supported_features", 0)
+
+    assert supported & CalendarEntityFeature.CREATE_EVENT
+    assert supported & CalendarEntityFeature.UPDATE_EVENT
+    assert supported & CalendarEntityFeature.DELETE_EVENT
 
 
 async def test_all_day_event_becomes_a_date(

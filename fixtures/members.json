@@ -1,0 +1,35 @@
+{
+  "describes": "Members and pets. Names are already resolved — an override beats the stored name server-side.",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/members",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "members": [
+        {
+          "id": "fx-member-mike",
+          "name": "Mike",
+          "kind": "person",
+          "color": "blue",
+          "role": "owner",
+          "avatarId": null,
+          "personId": null
+        },
+        {
+          "id": "fx-member-donna",
+          "name": "Donna",
+          "kind": "person",
+          "color": "pink",
+          "role": "member",
+          "avatarId": null,
+          "personId": null
+        }
+      ]
+    }
+  }
+}

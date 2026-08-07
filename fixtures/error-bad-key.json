@@ -1,0 +1,17 @@
+{
+  "describes": "Unknown, revoked and expired keys are INDISTINGUISHABLE from each other. 401.",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/household",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 401,
+    "body": {
+      "error": "invalid API key",
+      "code": "unauthenticated"
+    }
+  }
+}

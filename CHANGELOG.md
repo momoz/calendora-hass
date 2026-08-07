@@ -7,6 +7,10 @@ they were released under.
 ## Unreleased
 
 ### Added
+- **You can now edit the calendar from Home Assistant** — add an event, change
+  one, or remove one. Changing a repeating event asks the question you would
+  expect: just this one, or this and all the ones after it. Moving *this*
+  Tuesday moves this Tuesday, and leaves the rest alone.
 - **A clash warning for each person.** On when two of today's timed events
   overlap, and it names both, so a notification can say *"swimming overlaps the
   dentist"* rather than *"there's a clash"*. All-day events never count — a

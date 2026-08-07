@@ -1,0 +1,23 @@
+{
+  "describes": "Dates rather than instants mean an ALL-DAY event, and the end is exclusive. isAllDay follows the form.",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/events",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    },
+    "body": {
+      "id": "fx-event-created-allday",
+      "title": "School holiday",
+      "start": "2027-03-08",
+      "end": "2027-03-13",
+      "timezone": "Europe/London"
+    }
+  },
+  "response": {
+    "status": 201,
+    "body": {
+      "id": "fx-event-created-allday"
+    }
+  }
+}
