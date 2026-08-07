@@ -135,6 +135,26 @@ guessable. Prefer a cloudhook when the user has Nabu Casa.
   **re-copied from source, never edited here.** No credentials, no internal URLs, no schema
   dumps, no screenshots containing real family data.
 
+## How to report
+
+Reports are read by the product owner, not by another engineer. Format, every time:
+
+1. **First line: one word — `GREEN`, `BLOCKED`, or `DECIDE`.**
+   - `GREEN` — shipped, nothing needed.
+   - `BLOCKED` — something is needed from the other repo. Include the request verbatim,
+     ready to paste.
+   - `DECIDE` — a product decision only the owner can make.
+2. **Then three sentences at most**, in plain language. What changed, and what it means for
+   the family using the app. No file paths, no symbol names, no version numbers.
+3. **If `DECIDE`:** name the options, give each a one-line consequence, and say which you
+   recommend and why. Never ask an open-ended question, and never hand over a technical
+   trade-off without translating it into something a user would feel.
+4. **Then a line of dashes.** Everything technical goes below it — file names, test output,
+   reasoning. Assume nobody reads below the line, and that this is fine.
+
+The same applies to a gap entry: its summary line must make sense to somebody who has never
+opened this repository.
+
 ## Never block on CI
 
 Push, then check **once**:
