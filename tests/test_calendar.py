@@ -23,7 +23,10 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_component import DATA_INSTANCES
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
-from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
+from pytest_homeassistant_custom_component.test_util.aiohttp import (
+    AiohttpClientMocker,
+    AiohttpClientMockResponse,
+)
 
 from custom_components.calendora.calendar import _as_calendar_event
 from custom_components.calendora.const import API_BASE_URL, CONF_API_KEY, DOMAIN
@@ -277,3 +280,68 @@ async def test_empty_window_returns_nothing(
         )
         == []
     )
+
+
+async def test_window_cache_is_keyed_on_the_range_not_on_being_in_flight(
+    hass: HomeAssistant, setup_calendar: MockConfigEntry, aioclient_mock
+) -> None:
+    """Two entities asking for *different* months must not share one answer.
+
+    Collapsing four identical requests into one is the point of the cache.
+    Collapsing two *different* ranges into one would serve the second entity the
+    first one's month, and it would look entirely plausible — a calendar showing
+    the wrong month's events with no error anywhere. Keyed on the range, so it
+    cannot happen; asserted here so a refactor cannot make it possible.
+    """
+    coordinator = setup_calendar.runtime_data
+    aioclient_mock.clear_requests()
+
+    august = {"occurrences": [{"id": "aug:1", "start": "2026-08-05T09:00:00.000Z",
+                               "end": "2026-08-05T10:00:00.000Z", "title": "August"}]}
+    september = {"occurrences": [{"id": "sep:1", "start": "2026-09-05T09:00:00.000Z",
+                                  "end": "2026-09-05T10:00:00.000Z", "title": "September"}]}
+
+    async def _by_range(method, url, data):
+        return AiohttpClientMockResponse(
+            method, url, json=august if url.query["from"].startswith("2026-08") else september
+        )
+
+    aioclient_mock.get(EVENTS_URL, side_effect=_by_range)
+
+    first = await coordinator.async_fetch_window(date(2026, 8, 1), date(2026, 8, 31))
+    second = await coordinator.async_fetch_window(date(2026, 9, 1), date(2026, 9, 30))
+
+    assert [o["id"] for o in first] == ["aug:1"]
+    assert [o["id"] for o in second] == ["sep:1"], "served another range's window"
+    assert len(aioclient_mock.mock_calls) == 2, "different ranges must not collapse"
+
+
+async def test_identical_ranges_do_collapse(
+    hass: HomeAssistant, setup_calendar: MockConfigEntry, aioclient_mock
+) -> None:
+    """The case the cache exists for: one dashboard render, one request."""
+    coordinator = setup_calendar.runtime_data
+    aioclient_mock.clear_requests()
+    aioclient_mock.get(EVENTS_URL, json={"occurrences": []})
+
+    window = (date(2026, 8, 1), date(2026, 8, 31))
+    for _ in range(4):
+        await coordinator.async_fetch_window(*window)
+
+    assert len(aioclient_mock.mock_calls) == 1
+
+
+async def test_a_stream_change_invalidates_the_cache(
+    hass: HomeAssistant, setup_calendar: MockConfigEntry, aioclient_mock
+) -> None:
+    """A push that arrives and changes nothing on screen is worse than a poll."""
+    coordinator = setup_calendar.runtime_data
+    aioclient_mock.clear_requests()
+    aioclient_mock.get(EVENTS_URL, json={"occurrences": []})
+
+    window = (date(2026, 8, 1), date(2026, 8, 31))
+    await coordinator.async_fetch_window(*window)
+    coordinator._window_cache.clear()  # what the stream's `changed` handler does
+    await coordinator.async_fetch_window(*window)
+
+    assert len(aioclient_mock.mock_calls) == 2

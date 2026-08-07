@@ -186,6 +186,21 @@ async def test_removed_member_sensor_goes_unavailable(
     assert hass.states.get(BISCUIT).state == STATE_UNAVAILABLE
 
 
+async def test_no_busy_binary_sensor_is_created(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, before_everything: None
+) -> None:
+    """A busy sensor would duplicate the calendar entity's own state.
+
+    `calendar.<household>_<member>` is already `on` while an event is running.
+    A second entity saying the same thing is two sources for one truth that can
+    disagree, and the derived one is the one that will be wrong.
+    """
+    await _setup(hass, aioclient_mock)
+
+    assert not hass.states.async_entity_ids("binary_sensor")
+    assert hass.states.get("calendar.test_household_alex") is not None
+
+
 async def test_no_leave_by_sensor_is_created(
     hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, before_everything: None
 ) -> None:

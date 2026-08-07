@@ -4,11 +4,20 @@ One sensor per member: **when their next event starts.** `device_class:
 timestamp`, so a dashboard renders it as "in 20 minutes" and an automation can
 compare it directly instead of parsing a string.
 
-`leave_by` is deliberately absent. `GET /api/v1/events/{id}/leave-by` is listed
-under §7 as not built, and there is no honest way to derive a leave time here:
-`travelMinutes` is a property of the event, not a route from wherever the person
-currently is, and subtracting it would produce a number that looks authoritative
-and is not.
+Two entities from the original scope are deliberately absent, and both omissions
+are decisions rather than oversights:
+
+**`leave_by`.** `GET /api/v1/events/{id}/leave-by` is listed under §7 as not
+built, and there is no honest way to derive a leave time here: `travelMinutes` is
+a property of the event, not a route from wherever the person currently is.
+Subtracting it would produce a number that looks authoritative and is not.
+
+**A `busy` binary sensor.** A calendar entity's own state is already `on` while
+an event is running, so a `binary_sensor.<member>_busy` would duplicate
+`calendar.<household>_<member>` exactly — and give people two things to write
+automations against that can disagree with each other. Two sources of one truth
+is worse than one, especially when the second is derived and can lag. Use the
+calendar entity's state.
 """
 
 from __future__ import annotations
