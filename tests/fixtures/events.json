@@ -1,0 +1,72 @@
+{
+  "occurrences": [
+    {
+      "id": "evt-allday:2026-08-10",
+      "eventId": "evt-allday",
+      "occurrenceKey": "2026-08-10",
+      "title": "School photo day",
+      "description": "An all-day event authored in Europe/Amsterdam.",
+      "location": null,
+      "icon": null,
+      "isAllDay": true,
+      "start": "2026-08-09T22:00:00.000Z",
+      "end": "2026-08-10T22:00:00.000Z",
+      "timezone": "Europe/Amsterdam",
+      "repeats": false,
+      "importance": "normal",
+      "travelMinutes": null,
+      "attendeeIds": []
+    },
+    {
+      "id": "evt-camping:2026-08-14",
+      "eventId": "evt-camping",
+      "occurrenceKey": "2026-08-14",
+      "title": "Camping trip",
+      "description": null,
+      "location": "The coast",
+      "icon": null,
+      "isAllDay": true,
+      "start": "2026-08-13T22:00:00.000Z",
+      "end": "2026-08-16T22:00:00.000Z",
+      "timezone": "Europe/Amsterdam",
+      "repeats": false,
+      "importance": "normal",
+      "travelMinutes": null,
+      "attendeeIds": ["mem-1"]
+    },
+    {
+      "id": "evt-piano:2026-11-04",
+      "eventId": "evt-piano",
+      "occurrenceKey": "2026-11-04",
+      "title": "Piano lesson",
+      "description": null,
+      "location": null,
+      "icon": null,
+      "isAllDay": false,
+      "start": "2026-11-04T14:00:00.000Z",
+      "end": "2026-11-04T15:00:00.000Z",
+      "timezone": "America/New_York",
+      "repeats": true,
+      "importance": "normal",
+      "travelMinutes": 15,
+      "attendeeIds": ["mem-2"]
+    },
+    {
+      "id": "evt-ferry:2026-08-20",
+      "eventId": "evt-ferry",
+      "occurrenceKey": "2026-08-20",
+      "title": "Overnight ferry",
+      "description": null,
+      "location": "Terminal 3",
+      "icon": null,
+      "isAllDay": false,
+      "start": "2026-08-20T20:00:00.000Z",
+      "end": "2026-08-22T04:00:00.000Z",
+      "timezone": "Europe/Amsterdam",
+      "repeats": false,
+      "importance": "normal",
+      "travelMinutes": null,
+      "attendeeIds": []
+    }
+  ]
+}

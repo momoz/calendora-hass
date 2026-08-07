@@ -2,62 +2,32 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any
 
 import voluptuous as vol
-from homeassistant.config_entries import (
-    ConfigEntry,
-    ConfigFlow,
-    ConfigFlowResult,
-    OptionsFlowWithReload,
-)
-from homeassistant.core import callback
+from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import (
-    NumberSelector,
-    NumberSelectorConfig,
-    NumberSelectorMode,
     TextSelector,
     TextSelectorConfig,
     TextSelectorType,
 )
 
 from .api import (
-    CalendoraConnectionError,
-    CalendoraFeedClient,
-    CalendoraInvalidFeedError,
-    CalendoraResponseError,
-    feed_host,
-    feed_identity,
+    CalendoraAuthError,
+    CalendoraClient,
+    CalendoraError,
+    CalendoraForbiddenError,
 )
-from .const import (
-    CONF_FEED_URL,
-    CONF_SCAN_INTERVAL_MINUTES,
-    DEFAULT_SCAN_INTERVAL,
-    DOMAIN,
-    LOGGER,
-    MAX_SCAN_INTERVAL_MINUTES,
-    MIN_SCAN_INTERVAL_MINUTES,
-)
+from .const import CONF_API_KEY, DOMAIN, LOGGER
 
-FEED_URL_SCHEMA = vol.Schema(
+API_KEY_SCHEMA = vol.Schema(
     {
-        vol.Required(CONF_FEED_URL): TextSelector(
-            TextSelectorConfig(type=TextSelectorType.URL, autocomplete="url")
-        )
-    }
-)
-
-OPTIONS_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_SCAN_INTERVAL_MINUTES): NumberSelector(
-            NumberSelectorConfig(
-                min=MIN_SCAN_INTERVAL_MINUTES,
-                max=MAX_SCAN_INTERVAL_MINUTES,
-                step=5,
-                unit_of_measurement="min",
-                mode=NumberSelectorMode.BOX,
-            )
+        vol.Required(CONF_API_KEY): TextSelector(
+            # PASSWORD, so the key is masked on screen and never lands in a
+            # screenshot of the setup dialog. It is a credential (§9).
+            TextSelectorConfig(type=TextSelectorType.PASSWORD)
         )
     }
 )
@@ -66,23 +36,32 @@ OPTIONS_SCHEMA = vol.Schema(
 class CalendoraConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Calendora."""
 
-    VERSION = 1
+    VERSION = 2
 
-    async def _async_feed_works(self, feed_url: str, errors: dict[str, str]) -> bool:
-        """Fetch the feed once, translating any failure into a form error."""
-        client = CalendoraFeedClient(async_get_clientsession(self.hass), feed_url)
+    async def _async_key_works(self, api_key: str, errors: dict[str, str]) -> bool:
+        """Prove the key works before storing it.
+
+        `GET /api/v1/household` is the cheapest documented call that exercises
+        authentication, and it needs only `household:read` — the scope every
+        useful key must have anyway.
+        """
+        client = CalendoraClient(async_get_clientsession(self.hass), api_key)
         try:
-            await client.async_fetch_ics()
-        except CalendoraInvalidFeedError:
-            errors["base"] = "invalid_feed"
-        except CalendoraConnectionError:
+            await client.async_get_household()
+        except CalendoraAuthError:
+            errors["base"] = "invalid_auth"
+        except CalendoraForbiddenError as err:
+            # A real key with the wrong scopes. Distinct from invalid_auth
+            # because the user must issue a *different* key, not re-enter this
+            # one — and the message names the scope, which is the actionable bit.
+            LOGGER.debug("Calendora key is missing a scope: %s", err)
+            errors["base"] = "missing_scope"
+        except CalendoraError:
             errors["base"] = "cannot_connect"
-        except CalendoraResponseError:
-            errors["base"] = "server_error"
-        except Exception:  # noqa: BLE001 - the flow must never leak a traceback
-            # Logged without the URL: the token is in it, and this line reaches
-            # every log — and every bug report pasted out of one.
-            LOGGER.exception("Unexpected error validating the Calendora feed")
+        except Exception:  # noqa: BLE001 - a flow must never leak a traceback
+            # Logged without the key: this line reaches every log, and every bug
+            # report pasted out of one.
+            LOGGER.exception("Unexpected error validating the Calendora API key")
             errors["base"] = "unknown"
         else:
             return True
@@ -91,110 +70,76 @@ class CalendoraConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Take the calendar feed URL and prove it works before saving it."""
+        """Take an API key and prove it works before saving it."""
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            feed_url = user_input[CONF_FEED_URL].strip()
+            api_key = user_input[CONF_API_KEY].strip()
 
-            # One entry per household. The unique id is a hash of the feed token,
-            # never the token itself — see api.feed_identity for why, and for what
-            # replaces it in Phase 2.
-            await self.async_set_unique_id(feed_identity(feed_url))
-            self._abort_if_unique_id_configured()
+            # Weaker than the `async_set_unique_id` on a household id that
+            # AGENTS.md asks for, and deliberately not faked: no documented
+            # response field carries the household id yet, so there is nothing
+            # honest to key on. This at least stops the same key being added
+            # twice. Filed as a gap.
+            self._async_abort_entries_match({CONF_API_KEY: api_key})
 
-            if await self._async_feed_works(feed_url, errors):
+            if await self._async_key_works(api_key, errors):
                 return self.async_create_entry(
-                    title=feed_host(feed_url), data={CONF_FEED_URL: feed_url}
+                    title="Calendora", data={CONF_API_KEY: api_key}
                 )
 
         return self.async_show_form(
-            step_id="user", data_schema=FEED_URL_SCHEMA, errors=errors
+            step_id="user", data_schema=API_KEY_SCHEMA, errors=errors
+        )
+
+    async def async_step_reauth(
+        self, entry_data: Mapping[str, Any]
+    ) -> ConfigFlowResult:
+        """Start reauth after a 401.
+
+        Reached when Calendora rejects the key — revoked, expired, or simply
+        unknown, which §3 makes deliberately indistinguishable. The remedy is
+        the same for all three: a new key.
+        """
+        return await self.async_step_reauth_confirm()
+
+    async def async_step_reauth_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Take a replacement key into the existing entry."""
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            api_key = user_input[CONF_API_KEY].strip()
+            if await self._async_key_works(api_key, errors):
+                return self.async_update_reload_and_abort(
+                    self._get_reauth_entry(), data_updates={CONF_API_KEY: api_key}
+                )
+
+        return self.async_show_form(
+            step_id="reauth_confirm", data_schema=API_KEY_SCHEMA, errors=errors
         )
 
     async def async_step_reconfigure(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Point an existing entry at a new feed URL.
+        """Swap the key deliberately, rather than in response to a failure.
 
-        This exists because the unique id is derived from the feed token, and
-        rotating that token is the *security-conscious* thing for a user to do.
-        Without this step the sequence is: regenerate the feed, watch every
-        calendar go unavailable, add the integration again, and end up with a
-        duplicate entry — because the hash changed, so nothing recognises the new
-        URL as the same household. Punishing the careful user is not acceptable,
-        and a reconfigure step is much smaller than the support thread it avoids.
-
-        `_abort_if_unique_id_mismatch()` is deliberately *not* used: a changed
-        unique id is the expected outcome here, not an error.
+        Separate from reauth because the reasons differ: rotating a key on a
+        schedule, or replacing one whose scopes were too narrow. Both should keep
+        every entity and automation the user has already built on this entry,
+        which removing and re-adding would not.
         """
-        entry = self._get_reconfigure_entry()
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            feed_url = user_input[CONF_FEED_URL].strip()
-            new_identity = feed_identity(feed_url)
-
-            if any(
-                other.entry_id != entry.entry_id and other.unique_id == new_identity
-                for other in self.hass.config_entries.async_entries(DOMAIN)
-            ):
-                # The URL belongs to a household that is already set up. Silently
-                # moving this entry onto it would leave two entries fighting over
-                # the same feed.
-                return self.async_abort(reason="already_configured")
-
-            if await self._async_feed_works(feed_url, errors):
+            api_key = user_input[CONF_API_KEY].strip()
+            if await self._async_key_works(api_key, errors):
                 return self.async_update_reload_and_abort(
-                    entry,
-                    unique_id=new_identity,
-                    title=feed_host(feed_url),
-                    data_updates={CONF_FEED_URL: feed_url},
+                    self._get_reconfigure_entry(),
+                    data_updates={CONF_API_KEY: api_key},
                 )
 
         return self.async_show_form(
-            step_id="reconfigure",
-            data_schema=FEED_URL_SCHEMA,
-            errors=errors,
-            description_placeholders={"host": feed_host(entry.data[CONF_FEED_URL])},
-        )
-
-    @staticmethod
-    @callback
-    def async_get_options_flow(config_entry: ConfigEntry) -> CalendoraOptionsFlow:
-        """Return the options flow."""
-        return CalendoraOptionsFlow()
-
-
-class CalendoraOptionsFlow(OptionsFlowWithReload):
-    """Handle Calendora options.
-
-    OptionsFlowWithReload reloads the entry on save, which is what makes a
-    changed poll interval take effect without the user restarting anything.
-    """
-
-    async def async_step_init(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
-        """Manage the options."""
-        if user_input is not None:
-            return self.async_create_entry(
-                data={
-                    CONF_SCAN_INTERVAL_MINUTES: int(
-                        user_input[CONF_SCAN_INTERVAL_MINUTES]
-                    )
-                }
-            )
-
-        return self.async_show_form(
-            step_id="init",
-            data_schema=self.add_suggested_values_to_schema(
-                OPTIONS_SCHEMA,
-                {
-                    CONF_SCAN_INTERVAL_MINUTES: self.config_entry.options.get(
-                        CONF_SCAN_INTERVAL_MINUTES,
-                        int(DEFAULT_SCAN_INTERVAL.total_seconds() // 60),
-                    )
-                },
-            ),
+            step_id="reconfigure", data_schema=API_KEY_SCHEMA, errors=errors
         )

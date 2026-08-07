@@ -1,53 +1,70 @@
-"""Data coordinator for Calendora."""
+"""Data coordinator for Calendora.
+
+Push, not poll. `GET /api/v1/stream` says *that* something changed and never
+what, so the shape is: hold the stream open, and on every `changed` re-read what
+we care about. The 30-minute poll underneath is a safety net for a stream that
+died without saying so — not a data path. A push integration that also polls
+every minute is a polling integration wearing a costume.
+"""
 
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass
-from datetime import timedelta
-from typing import TYPE_CHECKING
+from datetime import date, timedelta
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.util import dt as dt_util
 
 from .api import (
+    CalendoraAuthError,
+    CalendoraClient,
     CalendoraError,
-    CalendoraFeedClient,
-    CalendoraInvalidFeedError,
-    CalendoraResponseError,
+    CalendoraForbiddenError,
+    CalendoraServerError,
 )
 from .const import (
-    CONF_FEED_URL,
-    CONF_SCAN_INTERVAL_MINUTES,
-    DEFAULT_SCAN_INTERVAL,
+    CONF_API_KEY,
     DOMAIN,
+    EVENT_WINDOW_FUTURE,
+    EVENT_WINDOW_PAST,
+    FALLBACK_POLL_INTERVAL,
     LOGGER,
 )
 
 if TYPE_CHECKING:
     from . import CalendoraConfigEntry
 
+# Reconnect backoff for the stream. Starts quickly because the common case is a
+# blip, and gives up climbing at five minutes because a server that has been
+# down for five minutes is not helped by being asked every second.
+STREAM_RETRY_INITIAL = timedelta(seconds=5)
+STREAM_RETRY_MAX = timedelta(minutes=5)
+
 
 @dataclass(slots=True)
 class CalendoraData:
     """Everything one refresh produced.
 
-    Phase 0 carries only the raw document. Phase 1 adds the parsed calendars —
-    the seam is here so that the parsing work lands in the calendar platform and
-    this class grows a field, rather than the coordinator growing a parser.
+    Fields come from `docs/API-SURFACE.md` §4a and nowhere else. Anything not
+    named there is not read, however obvious it looks in a response.
     """
 
-    raw_ics: str
+    household_id: str
+    household_name: str
+    # The key owner's zone, not the household's — §4 is explicit that there is
+    # no household timezone, only a per-person preference reported as whose it
+    # is. It is used to turn a requested window into the days the API wants.
+    key_owner_timezone: str
+    occurrences: list[dict[str, Any]]
 
 
 class CalendoraDataUpdateCoordinator(DataUpdateCoordinator[CalendoraData]):
-    """Keeps the household's calendar data fresh.
-
-    `AGENTS.md` mandates a push coordinator "where possible" — and from Phase 2
-    this becomes one, driven by `GET /api/v1/stream`. Phase 1 polls because the
-    feed is a static ICS document with nothing to push with: the fallback path is
-    the only path that exists yet.
-    """
+    """Keeps the household's data fresh, driven by the stream."""
 
     config_entry: CalendoraConfigEntry
 
@@ -55,53 +72,61 @@ class CalendoraDataUpdateCoordinator(DataUpdateCoordinator[CalendoraData]):
         self, hass: HomeAssistant, config_entry: CalendoraConfigEntry
     ) -> None:
         """Initialise the coordinator."""
-        interval = DEFAULT_SCAN_INTERVAL
-        if minutes := config_entry.options.get(CONF_SCAN_INTERVAL_MINUTES):
-            interval = timedelta(minutes=minutes)
-
         super().__init__(
             hass,
             LOGGER,
             config_entry=config_entry,
             name=DOMAIN,
-            update_interval=interval,
+            update_interval=FALLBACK_POLL_INTERVAL,
         )
+        self._api_key: str = config_entry.data.get(CONF_API_KEY, "")
+        self.client = CalendoraClient(async_get_clientsession(hass), self._api_key)
 
-        self.client = CalendoraFeedClient(
-            async_get_clientsession(hass),
-            config_entry.data[CONF_FEED_URL],
-        )
+    def _window(self) -> tuple[date, date]:
+        """Return the day range to load.
+
+        Days, not instants: §4 rejects an instant outright, because the same
+        instant is a different day depending on the zone it was written in.
+        """
+        today = dt_util.now().date()
+        return today - EVENT_WINDOW_PAST, today + EVENT_WINDOW_FUTURE
 
     async def _async_update_data(self) -> CalendoraData:
-        """Fetch the feed once.
-
-        The three failures are kept apart on purpose. "Unavailable" with no
-        explanation is a support thread; "your feed URL was rejected — you
-        probably regenerated it, use Reconfigure" is a thirty-second fix. The
-        distinction costs three lines here and is worth far more than that in the
-        one case that actually happens.
-        """
-        # Each of these passes the message twice: once as plain text and once as
-        # a translation key. They are not redundant — `entry.reason`, which is
-        # what a user actually reads under a failed entry and what they paste
-        # into an issue, carries the positional message, while the translated one
-        # is what a localised frontend renders. Supplying only the key leaves the
-        # reason showing whatever the underlying client error happened to say.
-        try:
-            raw_ics = await self.client.async_fetch_ics()
-        except CalendoraInvalidFeedError as err:
-            # A rejected token is not transient and retrying cannot fix it. The
-            # feed has no credential to re-authenticate against, so the repair is
-            # the reconfigure step, not a reauth flow — reauth arrives with API
-            # keys in Phase 2.
-            raise UpdateFailed(
-                "Calendora rejected the calendar feed URL. This usually means the"
-                " feed was regenerated — open the Calendora integration, choose"
-                " Reconfigure, and paste the new address.",
+        """Re-read the household and its events."""
+        if not self._api_key:
+            # A 0.0.1 entry that was migrated off the calendar feed. There is no
+            # key to try, so go straight to asking for one.
+            raise ConfigEntryAuthFailed(
+                "Calendora now needs an API key. Add one to continue.",
                 translation_domain=DOMAIN,
-                translation_key="invalid_feed",
+                translation_key="invalid_auth",
+            )
+
+        date_from, date_to = self._window()
+        try:
+            household, events = await asyncio.gather(
+                self.client.async_get_household(),
+                self.client.async_get_events(date_from, date_to),
+            )
+        except CalendoraAuthError as err:
+            # §3: never retry a 401, never fail silently. This hands the user a
+            # reauth flow instead of an entity that is quietly always stale.
+            raise ConfigEntryAuthFailed(
+                "Calendora rejected the API key. It may have been revoked or"
+                " expired — add a new one to continue.",
+                translation_domain=DOMAIN,
+                translation_key="invalid_auth",
             ) from err
-        except CalendoraResponseError as err:
+        except CalendoraForbiddenError as err:
+            # A valid key missing a scope. Reauth would return the same key and
+            # loop, so this fails the refresh with the scope named instead.
+            raise UpdateFailed(
+                f"The Calendora API key is missing a permission: {err}",
+                translation_domain=DOMAIN,
+                translation_key="missing_scope",
+                translation_placeholders={"detail": str(err)},
+            ) from err
+        except CalendoraServerError as err:
             raise UpdateFailed(
                 "Calendora answered with an error. Home Assistant will keep trying.",
                 translation_domain=DOMAIN,
@@ -114,4 +139,64 @@ class CalendoraDataUpdateCoordinator(DataUpdateCoordinator[CalendoraData]):
                 translation_key="cannot_connect",
             ) from err
 
-        return CalendoraData(raw_ics=raw_ics)
+        if not isinstance(household, dict) or not isinstance(events, dict):
+            # §4a fixes both shapes as objects. Anything else means the server
+            # changed under us, and a clear failure beats an AttributeError
+            # surfacing from a dict access three lines later.
+            raise UpdateFailed(
+                "Calendora returned data in an unexpected shape. This is a bug —"
+                " please report it.",
+                translation_domain=DOMAIN,
+                translation_key="unexpected_response",
+            )
+
+        household_data = household.get("household") or {}
+        return CalendoraData(
+            household_id=household_data.get("id", ""),
+            household_name=household_data.get("name") or "Calendora",
+            key_owner_timezone=household.get("timezone", {}).get("value") or "UTC",
+            occurrences=events.get("occurrences") or [],
+        )
+
+    async def async_run_stream(self) -> None:
+        """Hold the stream open and refresh on every `changed`.
+
+        Runs for the life of the config entry as a background task. It never
+        exits on a transport failure — that is what a reconnect loop is for —
+        but it does exit on an auth failure, because retrying a 401 is
+        prohibited and the only way out is the user supplying a new key.
+        """
+        delay = STREAM_RETRY_INITIAL
+
+        while True:
+            try:
+                async for event_name in self.client.async_stream():
+                    # A successful read means the connection is healthy, so the
+                    # backoff resets here rather than after connecting — a server
+                    # that accepts the connection and then drops it would
+                    # otherwise reconnect in a tight loop forever.
+                    delay = STREAM_RETRY_INITIAL
+
+                    if event_name == "changed":
+                        # The payload is always `{}`; it says something changed,
+                        # never what. Re-read rather than trying to be clever.
+                        await self.async_request_refresh()
+
+            except CalendoraAuthError:
+                LOGGER.debug("Calendora stream rejected the API key; starting reauth")
+                self.config_entry.async_start_reauth(self.hass)
+                return
+
+            except CalendoraError as err:
+                LOGGER.debug("Calendora stream dropped (%s); reconnecting", type(err).__name__)
+
+            except asyncio.CancelledError:
+                # Unload, or Home Assistant shutting down. Not an error, and it
+                # must not be swallowed or the task cannot be cancelled.
+                raise
+
+            else:
+                LOGGER.debug("Calendora stream closed cleanly; reconnecting")
+
+            await asyncio.sleep(delay.total_seconds())
+            delay = min(delay * 2, STREAM_RETRY_MAX)

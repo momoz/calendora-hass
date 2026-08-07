@@ -3,58 +3,62 @@
     "step": {
       "user": {
         "title": "Connect Calendora",
-        "description": "In Calendora, open Settings → Calendar feed and turn the feed on, then copy the URL it gives you and paste it below.\n\nTreat that URL like a password: anyone who has it can read your family's calendar.",
+        "description": "In Calendora, create an API key and paste it below.\n\nThe key needs read access to your household and calendar. Treat it like a password.",
         "data": {
-          "feed_url": "Calendar feed URL"
+          "api_key": "API key"
         },
         "data_description": {
-          "feed_url": "The address Calendora shows under Settings → Calendar feed. It ends in /api/feeds/ followed by a long token."
+          "api_key": "The key Calendora gave you. It starts with cal_."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Calendora needs a new API key",
+        "description": "Calendora is no longer accepting the key this integration has. That usually means it was revoked or has expired.\n\nCreate a new key in Calendora and paste it below — everything you have already set up will keep working.",
+        "data": {
+          "api_key": "API key"
+        },
+        "data_description": {
+          "api_key": "A new key with the same permissions as the old one."
         }
       },
       "reconfigure": {
-        "title": "Update your Calendora feed URL",
-        "description": "Currently reading from {host}.\n\nIf you regenerated your calendar feed in Calendora, the old address stopped working the moment you did. Paste the new one here and this integration will keep all of its existing entities — no need to remove it and add it again.",
+        "title": "Replace your Calendora API key",
+        "description": "Paste a new key below. Your entities and automations stay exactly as they are — no need to remove this integration and add it again.",
         "data": {
-          "feed_url": "Calendar feed URL"
+          "api_key": "API key"
         },
         "data_description": {
-          "feed_url": "The current address from Calendora, under Settings → Calendar feed."
+          "api_key": "The key Calendora gave you. It starts with cal_."
         }
       }
     },
     "error": {
-      "cannot_connect": "Home Assistant could not reach Calendora. Check that the address is right and that this machine can get to the internet, then try again.",
-      "invalid_feed": "That address did not return a calendar. Copy the feed URL again from Calendora — if you regenerated it recently, the old one stops working immediately.",
-      "server_error": "Calendora answered with an error. It may be temporarily unavailable — wait a few minutes and try again.",
+      "invalid_auth": "Calendora did not accept that key. Check you copied all of it, and that it has not been revoked.",
+      "missing_scope": "That key does not have enough permissions. Create one that can read your household and calendar, then try again.",
+      "cannot_connect": "Home Assistant could not reach Calendora. Check this machine's internet connection and try again.",
       "unknown": "Something unexpected went wrong. Check the Home Assistant log for details."
     },
     "abort": {
-      "already_configured": "This Calendora feed is already set up.",
-      "reconfigure_successful": "Calendora is now reading from the new feed URL."
-    }
-  },
-  "options": {
-    "step": {
-      "init": {
-        "title": "Calendora options",
-        "data": {
-          "scan_interval_minutes": "Check for changes every"
-        },
-        "data_description": {
-          "scan_interval_minutes": "How often to re-read the calendar feed. Shorter means changes show up sooner and Calendora is asked more often; 15 minutes suits most families."
-        }
-      }
+      "already_configured": "That API key is already set up.",
+      "reauth_successful": "Calendora is connected again.",
+      "reconfigure_successful": "Calendora is now using the new key."
     }
   },
   "exceptions": {
+    "invalid_auth": {
+      "message": "Calendora rejected the API key. It may have been revoked or expired — open the Calendora integration and add a new key."
+    },
+    "missing_scope": {
+      "message": "The Calendora API key is missing a permission: {detail}"
+    },
     "cannot_connect": {
       "message": "Could not reach Calendora. Home Assistant will keep trying."
     },
-    "invalid_feed": {
-      "message": "Calendora rejected the calendar feed URL. This usually means the feed was regenerated — open the Calendora integration, choose Reconfigure, and paste the new address."
-    },
     "server_error": {
       "message": "Calendora answered with an error. Home Assistant will keep trying."
+    },
+    "unexpected_response": {
+      "message": "Calendora returned data in an unexpected shape. This is a bug — please report it at the issue tracker."
     }
   }
 }

@@ -1,0 +1,9 @@
+{
+  "household": {
+    "id": "hh-test-0001",
+    "name": "Test Household",
+    "description": null,
+    "color": "#1e6a8c"
+  },
+  "timezone": { "value": "Europe/Amsterdam", "source": "key-owner" }
+}

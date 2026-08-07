@@ -1,39 +1,43 @@
-"""The Calendora client.
+"""The Calendora `/api/v1` client.
 
 **This is the only file in the integration that makes HTTP calls.** One file that
-knows the wire format means the Phase 2 swap from the ICS feed to `/api/v1`
-touches one file — and it is also the file that would show it if this integration
-were ever tempted to route around a missing endpoint.
+knows the wire means the rest of the integration cannot quietly grow a second way
+to talk to Calendora — and it is the file where a temptation to reach for a
+prohibited surface would have to be written down in order to happen.
 
-The interface this speaks is `docs/API-SURFACE.md` and nothing else. If something
-is not written there it is not part of the contract: raise it with the maintainer
-rather than reaching for the sync protocol, a session cookie, or an HTML
-surface.
+The interface this speaks is `docs/API-SURFACE.md` and nothing else. Notably
+prohibited, and absent from this file on purpose: `/api/sync/*`, session cookies,
+scraping any HTML surface, and `/api/feeds/{token}` — the ICS feed, which §8 now
+lists as superseded and prohibited. It was implemented here in 0.0.1 and has been
+deleted rather than deprecated: a prohibited surface left in the codebase is a
+prohibited surface someone reaches for at 2am.
 
-Phase 1 surface (`docs/API-SURFACE.md` §2):
-
-    GET /api/feeds/{token}
-    GET /api/feeds/{token}?member={memberId}
-
-Returns iCalendar. No auth — the token *is* the authorisation.
+This file deals in transport, authentication and error meaning. It deliberately
+does **not** interpret response bodies — it returns decoded JSON and lets callers
+name fields, so that when a response shape is finally documented, nothing in here
+has to change.
 """
 
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
+from datetime import date
 from http import HTTPStatus
-from urllib.parse import urlparse
+from typing import Any
 
 import aiohttp
-from yarl import URL
 
-# The feed is a plain document fetch, but a household with a decade of history
-# is not small and a stalled TCP connection must not hold a coordinator refresh
-# open forever.
-FEED_TIMEOUT = aiohttp.ClientTimeout(total=30)
+from .const import API_BASE_URL, MAX_EVENT_RANGE_DAYS
 
-# Enough of the ICS content types to recognise a real feed. A reverse proxy or a
-# CDN may append a charset, so this is a prefix test, not equality.
-_ICS_CONTENT_TYPES = ("text/calendar", "application/ics")
+# Generous enough for a household with years of history, short enough that a hung
+# connection cannot pin a coordinator refresh open forever.
+REQUEST_TIMEOUT = aiohttp.ClientTimeout(total=30)
+
+# The stream is long-lived, so a total timeout would kill a healthy connection.
+# `docs/API-SURFACE.md` §4 promises a keep-alive comment every 25 seconds, which
+# makes a read timeout the right instrument: silence for well over that interval
+# means the connection is dead even though the socket has not said so.
+STREAM_TIMEOUT = aiohttp.ClientTimeout(total=None, sock_read=90)
 
 
 class CalendoraError(Exception):
@@ -41,120 +45,234 @@ class CalendoraError(Exception):
 
 
 class CalendoraConnectionError(CalendoraError):
-    """The server could not be reached, or did not answer in time."""
+    """Calendora could not be reached, or did not answer in time."""
 
 
-class CalendoraInvalidFeedError(CalendoraError):
-    """The URL is not a Calendora feed, or its token has been revoked.
+class CalendoraAuthError(CalendoraError):
+    """401 — no key, unknown key, revoked, or expired.
 
-    `docs/API-SURFACE.md` §1: 404 is also returned for "not yours", so a 404 here
-    cannot be read as "this token never existed" — only as "this token does not
-    work". Both mean the same thing to a user: regenerate it and reconfigure.
+    §3 makes those four **deliberately indistinguishable**, so this exception
+    cannot and must not try to tell a user which one it was. The caller's only
+    correct response is `ConfigEntryAuthFailed`: never a retry, never a silent
+    failure.
     """
+
+
+class CalendoraForbiddenError(CalendoraError):
+    """403 — the key is valid but is missing a scope.
+
+    Kept separate from auth failure because the remedy differs and is actionable:
+    the user issues a new key carrying the scope named in the message. Sending
+    them through reauth instead would loop, because the key they have is fine.
+    """
+
+
+class CalendoraNotFoundError(CalendoraError):
+    """404 — no such thing, **or it belongs to another household**.
+
+    §3 is explicit that those are the same answer, so that ids cannot be
+    enumerated. Never read this as proof that an id is invalid.
+    """
+
+
+class CalendoraBadRequestError(CalendoraError):
+    """400 — the request was wrong, and the message names the parameter."""
+
+
+class CalendoraServerError(CalendoraError):
+    """500 — Calendora's problem, and probably transient."""
 
 
 class CalendoraResponseError(CalendoraError):
-    """The server answered, but not with something usable."""
+    """The response was not something this client could read at all."""
 
 
-def feed_identity(feed_url: str) -> str:
-    """Return a stable, non-secret identifier for a feed URL.
+def _error_for(status: int, code: str | None, message: str) -> CalendoraError:
+    """Map one documented failure onto its exception.
 
-    Used as the config entry's ``unique_id`` so a household cannot be added
-    twice. The token itself must never be the unique id: unique ids surface in
-    places entry data does not, and this one is a credential.
-
-    A SHA-256 of the token is stable for the life of the token and reveals
-    nothing. It does change when the user regenerates their feed — accepted for
-    Phase 1, because Phase 2 replaces this with the real household id from
-    ``GET /api/v1/household``, which is what `AGENTS.md` actually asks for.
+    Keyed on the HTTP status rather than on the `code` string. The status is what
+    the contract fixes; a `code` this client has never seen must still produce
+    the right behaviour instead of falling through to something generic.
     """
-    # Imported here rather than at module scope so the dependency is visible at
-    # the one place it is used.
-    from hashlib import sha256
-
-    token = URL(feed_url).path.rstrip("/").rpartition("/")[2]
-    return sha256(token.encode()).hexdigest()
-
-
-def feed_host(feed_url: str) -> str:
-    """Return the host of a feed URL, for use in a user-visible entry title.
-
-    The host is not a secret; the path is. Titles are shown in the UI and quoted
-    into bug reports, so only ever build them from this.
-    """
-    return urlparse(feed_url).hostname or "Calendora"
+    if status == HTTPStatus.UNAUTHORIZED:
+        return CalendoraAuthError(message)
+    if status == HTTPStatus.FORBIDDEN:
+        return CalendoraForbiddenError(message)
+    if status == HTTPStatus.NOT_FOUND:
+        return CalendoraNotFoundError(message)
+    if status == HTTPStatus.BAD_REQUEST:
+        return CalendoraBadRequestError(message)
+    if status >= HTTPStatus.INTERNAL_SERVER_ERROR:
+        return CalendoraServerError(message)
+    return CalendoraResponseError(f"Calendora answered HTTP {status} ({code})")
 
 
-class CalendoraFeedClient:
-    """Reads the Phase 1 ICS feed.
+class CalendoraClient:
+    """Reads Calendora's `/api/v1` surface."""
 
-    Deliberately thin: it fetches and validates the transport, and returns the
-    ICS document as text. Parsing and recurrence expansion belong to the calendar
-    platform, not to the wire.
-    """
-
-    def __init__(
-        self,
-        session: aiohttp.ClientSession,
-        feed_url: str,
-        *,
-        member_id: str | None = None,
-    ) -> None:
-        """Initialise the client.
-
-        The session is Home Assistant's shared one — never create your own.
-        """
+    def __init__(self, session: aiohttp.ClientSession, api_key: str) -> None:
+        """Initialise the client with Home Assistant's shared session."""
         self._session = session
-        self._feed_url = feed_url
-        self._member_id = member_id
+        self._api_key = api_key
 
-    async def async_fetch_ics(self) -> str:
-        """Fetch the feed and return the raw iCalendar document.
+    def _build_headers(self, accept: str = "application/json") -> dict[str, str]:
+        """Build the auth header.
 
-        Raises a `CalendoraError` subclass on any failure. Nothing here ever
-        includes the feed URL in an exception message: the token is in that URL,
-        and exception messages reach the log.
+        Assembled per request rather than kept on the instance, so the key never
+        sits in an attribute that a repr, a diagnostics dump or a debugger frame
+        might surface. The key is a secret (§9), and the cheapest way to keep it
+        out of somewhere is to never put it there.
         """
-        url = URL(self._feed_url)
-        if self._member_id is not None:
-            url = url.update_query({"member": self._member_id})
+        return {"Authorization": f"Bearer {self._api_key}", "Accept": accept}
 
+    async def _async_request(
+        self, path: str, params: dict[str, str] | None = None
+    ) -> Any:
+        """Perform one GET and return decoded JSON.
+
+        Every failure becomes a `CalendoraError` subclass, and no message raised
+        from here contains the key: messages reach logs, and logs reach public
+        issue trackers.
+        """
         try:
-            response = await self._session.get(url, timeout=FEED_TIMEOUT)
+            response = await self._session.get(
+                f"{API_BASE_URL}{path}",
+                headers=self._build_headers(),
+                params=params,
+                timeout=REQUEST_TIMEOUT,
+            )
         except aiohttp.ClientError as err:
-            raise CalendoraConnectionError("Could not reach the Calendora feed") from err
+            raise CalendoraConnectionError("Could not reach Calendora") from err
         except TimeoutError as err:
-            raise CalendoraConnectionError("The Calendora feed timed out") from err
+            raise CalendoraConnectionError("Calendora timed out") from err
 
         async with response:
-            if response.status in (HTTPStatus.NOT_FOUND, HTTPStatus.GONE):
-                raise CalendoraInvalidFeedError(
-                    "The feed URL was rejected — it may have been regenerated"
-                )
             if response.status != HTTPStatus.OK:
-                raise CalendoraResponseError(
-                    f"The Calendora feed answered HTTP {response.status}"
-                )
-
-            content_type = response.headers.get(aiohttp.hdrs.CONTENT_TYPE, "")
-            if not content_type.startswith(_ICS_CONTENT_TYPES):
-                # Almost always a login page from a reverse proxy, or the user
-                # pasting the web URL instead of the feed URL. Treating it as an
-                # invalid feed rather than a transport error puts the repair
-                # instruction in front of the person who can act on it.
-                raise CalendoraInvalidFeedError(
-                    "That URL did not return a calendar feed"
-                )
+                code, message = await self._async_read_error(response)
+                raise _error_for(response.status, code, message)
 
             try:
-                body = await response.text()
-            except aiohttp.ClientError as err:
-                raise CalendoraConnectionError(
-                    "The Calendora feed disconnected mid-download"
+                return await response.json()
+            except (aiohttp.ClientError, ValueError) as err:
+                raise CalendoraResponseError(
+                    "Calendora returned something that was not JSON"
                 ) from err
 
-        if "BEGIN:VCALENDAR" not in body:
-            raise CalendoraInvalidFeedError("That URL did not return a calendar feed")
+    @staticmethod
+    async def _async_read_error(
+        response: aiohttp.ClientResponse,
+    ) -> tuple[str | None, str]:
+        """Pull `{"error": ..., "code": ...}` out of a failure response.
 
-        return body
+        A failing server is precisely the one likely to answer with an HTML error
+        page from a proxy rather than the documented shape, so this never assumes
+        it parsed.
+        """
+        try:
+            body = await response.json()
+        except (aiohttp.ClientError, ValueError):
+            return None, f"Calendora answered HTTP {response.status}"
+
+        if not isinstance(body, dict):
+            return None, f"Calendora answered HTTP {response.status}"
+
+        code = body.get("code")
+        message = body.get("error") or f"Calendora answered HTTP {response.status}"
+        return (code if isinstance(code, str) else None), str(message)
+
+    async def async_get_household(self) -> Any:
+        """`GET /api/v1/household` — requires `household:read`."""
+        return await self._async_request("/api/v1/household")
+
+    async def async_get_members(self) -> Any:
+        """`GET /api/v1/members` — requires `household:read`."""
+        return await self._async_request("/api/v1/members")
+
+    async def async_get_people(self) -> Any:
+        """`GET /api/v1/people` — requires `household:read`."""
+        return await self._async_request("/api/v1/people")
+
+    async def async_get_lists(self) -> Any:
+        """`GET /api/v1/lists` — requires `lists:read`."""
+        return await self._async_request("/api/v1/lists")
+
+    async def async_get_list_items(self, list_id: str) -> Any:
+        """`GET /api/v1/lists/{id}/items` — requires `lists:read`."""
+        return await self._async_request(f"/api/v1/lists/{list_id}/items")
+
+    async def async_get_events(
+        self, date_from: date, date_to: date, member_id: str | None = None
+    ) -> Any:
+        """`GET /api/v1/events` — requires `calendar:read`.
+
+        Takes `date` objects, never datetimes. §4: `from` and `to` are days,
+        resolved in the key owner's timezone, and an instant is **rejected** —
+        the same instant means different days depending on the zone it was
+        written in. Typing the parameter as `date` makes that unrepresentable
+        rather than merely documented.
+        """
+        if date_to < date_from:
+            raise ValueError("date_to is before date_from")
+
+        span = (date_to - date_from).days
+        if span > MAX_EVENT_RANGE_DAYS:
+            # Checked here rather than left to the server. The server rejects
+            # rather than truncating, and this is a programming error rather
+            # than a user one — failing at the call site names the real mistake.
+            raise ValueError(
+                f"range of {span} days exceeds the documented maximum of "
+                f"{MAX_EVENT_RANGE_DAYS}"
+            )
+
+        params = {"from": date_from.isoformat(), "to": date_to.isoformat()}
+        if member_id is not None:
+            params["member"] = member_id
+        return await self._async_request("/api/v1/events", params)
+
+    async def async_stream(self) -> AsyncIterator[str]:
+        """Yield event names from `GET /api/v1/stream` — requires `household:read`.
+
+        Server-sent events. §4 fixes the vocabulary: `ready` on connect, `changed`
+        when something in the household changes, and a `: keep-alive` comment
+        every 25 seconds.
+
+        **The payload is always `{}`.** It says *that* something changed, never
+        what — so this yields event names and drops `data:` on the floor rather
+        than pretending to parse it. A caller reading the payload would be
+        building on something the contract explicitly refuses to promise.
+
+        Reconnection is the caller's business: this iterator ends when the stream
+        does, because how eagerly to come back is a policy decision and policy
+        does not belong on the wire.
+        """
+        try:
+            response = await self._session.get(
+                f"{API_BASE_URL}/api/v1/stream",
+                headers=self._build_headers(accept="text/event-stream"),
+                timeout=STREAM_TIMEOUT,
+            )
+        except aiohttp.ClientError as err:
+            raise CalendoraConnectionError(
+                "Could not open the Calendora stream"
+            ) from err
+        except TimeoutError as err:
+            raise CalendoraConnectionError("The Calendora stream timed out") from err
+
+        async with response:
+            if response.status != HTTPStatus.OK:
+                code, message = await self._async_read_error(response)
+                raise _error_for(response.status, code, message)
+
+            try:
+                async for raw_line in response.content:
+                    line = raw_line.decode("utf-8", errors="replace").strip()
+                    # A `:` comment is the keep-alive. Its whole job is to prove
+                    # the connection is alive, which arriving has already done.
+                    if not line or line.startswith(":"):
+                        continue
+                    if line.startswith("event:"):
+                        yield line.removeprefix("event:").strip()
+            except (aiohttp.ClientError, TimeoutError) as err:
+                raise CalendoraConnectionError(
+                    "The Calendora stream disconnected"
+                ) from err

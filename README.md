@@ -3,9 +3,8 @@
 A Home Assistant integration for [Calendora](https://calendora.app) — the family
 calendar, lists and assistant.
 
-> **Status: pre-release, and it does not do anything yet.** The integration
-> installs, asks for your Calendora calendar feed URL, checks that the URL works,
-> and then creates **no entities** — the calendar entities land in v0.1.0. See
+> **Status: early, and read-only.** You get your household calendar in Home
+> Assistant, updating live, and nothing can change it from here. See
 > `CHANGELOG.md` for what has shipped so far.
 
 ## Install
@@ -18,13 +17,12 @@ This is **not** in the HACS default store. Add it as a custom repository:
 4. Download, then **restart Home Assistant**
 5. Settings → Devices & Services → **Add Integration** → Calendora
 
-You will be asked for your **calendar feed URL**. In Calendora, open Settings →
-Calendar feed, turn the feed on, and copy the address it gives you.
+You will be asked for an **API key**. Create one in Calendora's settings — it
+needs permission to read your household and your calendar.
 
-> That URL is a password in disguise — anyone who has it can read your family's
-> calendar without logging in. Don't paste it into a bug report, a screenshot, or
-> a support chat. If it ever gets out, regenerate it in Calendora; the old one
-> stops working immediately.
+> The key is a password. Don't paste it into a bug report, a screenshot, or a
+> support chat. If it ever gets out, revoke it in Calendora and use
+> **Reconfigure** here to enter a new one.
 
 ## Known limits
 
@@ -41,17 +39,18 @@ Android-only. Use `sensor.<device>_activity` == `Automotive` to detect driving.
 roughly every 500 metres or 15 minutes. Precise arrival timing needs a real zone
 crossing, not a background fetch.
 
-## If you regenerate your feed
+## If you replace your API key
 
-Regenerating the calendar feed in Calendora is the right thing to do if the URL
-ever leaks — but the old address stops working the instant you do it, and this
-integration will go unavailable with a message saying exactly that.
+Rotating a key is the right thing to do if it ever leaks, and it costs you
+nothing here.
 
 **Use Reconfigure, not remove-and-re-add.** Settings → Devices & Services →
-Calendora → ⋮ → **Reconfigure**, then paste the new URL. Your entities, automations
-and history stay as they are. Removing the integration and adding it again would
-create a second, separate entry, because from the outside a new feed URL looks
-like a different household.
+Calendora → ⋮ → **Reconfigure**, then paste the new key. Your entities,
+automations and history stay exactly as they are.
+
+If Calendora stops accepting your key — because it was revoked, or it expired —
+Home Assistant notices and asks you for a new one rather than going quietly
+stale. It will never keep retrying a rejected key.
 
 ## Repository layout
 

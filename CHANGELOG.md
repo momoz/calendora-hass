@@ -4,6 +4,35 @@ All notable changes to this integration are recorded here. Versions match the
 `version` field in `custom_components/calendora/manifest.json` and the GitHub tag
 they were released under.
 
+## 0.1.0 — 2026-08-07
+
+Moved to Calendora's API. **You now sign in with an API key instead of a calendar
+feed URL**, and you get your household calendar as a real Home Assistant calendar.
+
+### Added
+- `calendar.<your household>` — every event, with repeating events already
+  expanded into their individual occurrences by Calendora.
+- Updates arrive **as they happen**. Home Assistant holds a live connection to
+  Calendora, so a change made on your phone shows up in seconds rather than at
+  the next poll. If that connection drops it reconnects itself, and there is a
+  slow background check underneath as a safety net.
+- If your key is revoked or expires, Home Assistant asks you for a new one
+  instead of going quietly stale.
+- You can swap your key at any time from the integration's **Reconfigure**
+  option, keeping every entity and automation you have built.
+
+### Changed
+- **The calendar feed is gone.** 0.0.1 read a feed URL; that path has been
+  removed entirely rather than deprecated. If you were on 0.0.1, Home Assistant
+  will ask you for an API key — your old feed URL is discarded, not kept.
+
+### Known limitations
+- **Read-only.** Calendora's API has no write routes yet, so nothing here can
+  create, edit or delete an event — and the integration does not claim it can,
+  which is why Home Assistant hides the edit button.
+- **One calendar, not one per person.** Per-member calendars need care that
+  household-wide events are not silently dropped; that comes later.
+
 ## 0.0.1 — 2026-08-06
 
 Phase 0: the scaffold. **This release creates no entities.** It exists so the

@@ -10,17 +10,23 @@ DOMAIN: Final = "calendora"
 
 LOGGER: Final = logging.getLogger(__package__)
 
-# Config-entry data. The feed URL contains a capability token — possession is
-# authorisation — so it is a secret: never log it, never surface it in
-# diagnostics, never put it in an issue template.
-CONF_FEED_URL: Final = "feed_url"
+# `docs/API-SURFACE.md` §1: hardcoded on purpose. There is no issuer field on a
+# key and no discovery endpoint, so a config field for this would be a form
+# every user skips past in service of a deployment model that does not exist.
+# If self-hosting becomes real it arrives as a documented field first.
+API_BASE_URL: Final = "https://calendora.app"
 
-# Options.
-CONF_SCAN_INTERVAL_MINUTES: Final = "scan_interval_minutes"
+CONF_API_KEY: Final = "api_key"
 
-# Polling is correct here and nowhere else: /api/feeds/{token} is a static ICS
-# document with nothing to push with. From Phase 2 the coordinator moves to the
-# SSE stream and this constant goes away with the feed path.
-DEFAULT_SCAN_INTERVAL: Final = timedelta(minutes=15)
-MIN_SCAN_INTERVAL_MINUTES: Final = 5
-MAX_SCAN_INTERVAL_MINUTES: Final = 240
+# The stream is the update path; this is only the safety net for a stream that
+# died without telling us. Deliberately slow — a push integration that polls
+# every minute is a polling integration with extra steps.
+FALLBACK_POLL_INTERVAL: Final = timedelta(minutes=30)
+
+# How much calendar to keep loaded. `docs/API-SURFACE.md` §4 rejects a range
+# longer than 400 days outright rather than truncating it, so this must stay
+# comfortably inside that — and the check in `api.py` enforces it rather than
+# trusting whoever edits these next.
+EVENT_WINDOW_PAST: Final = timedelta(days=30)
+EVENT_WINDOW_FUTURE: Final = timedelta(days=365)
+MAX_EVENT_RANGE_DAYS: Final = 400
