@@ -1,0 +1,25 @@
+{
+  "describes": "Change who is coming on an existing event. `scope` still decides what it means: `all` changes the series roster for every occurrence.",
+  "request": {
+    "method": "PATCH",
+    "path": "/api/v1/events/fx-event-attendees",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    },
+    "body": {
+      "scope": "all",
+      "attendeeIds": [
+        "fx-member-mike",
+        "fx-member-donna"
+      ]
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "id": "fx-event-attendees",
+      "scope": "all",
+      "result": "the whole series was changed"
+    }
+  }
+}

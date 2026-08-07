@@ -317,6 +317,16 @@ class CalendoraCalendar(
         await self.coordinator.async_refresh()
         return result
 
+    def _attendees_for_new_event(self) -> list[str] | None:
+        """Who a new event belongs to, or None to leave it to the household.
+
+        §7 distinguishes three things and they are not interchangeable:
+        omitting `attendeeIds` leaves the event with the household, `[]` says
+        "everybody" deliberately, and a list names people. The household
+        calendar omits; a member calendar names one person.
+        """
+        return None
+
     async def async_create_event(self, **kwargs: Any) -> None:
         """Add an event.
 
@@ -328,6 +338,8 @@ class CalendoraCalendar(
             **_wire_times(kwargs),
             "timezone": str(dt_util.get_default_time_zone()),
         }
+        if (attendees := self._attendees_for_new_event()) is not None:
+            fields["attendeeIds"] = attendees
         for key in ("description", "location"):
             if (value := kwargs.get(key)) is not None:
                 fields[key] = value
@@ -353,6 +365,11 @@ class CalendoraCalendar(
         create a row, and the refresh that follows re-reads every id from the
         server rather than trusting one held here.
         """
+        # `attendeeIds` is deliberately absent. §7: omitting it leaves the
+        # roster alone, and this edit is about a time or a title. Sending it
+        # would assert a roster nobody asked to change — and on a recurring
+        # event `scope` decides how far that assertion reaches, so a
+        # per-occurrence edit could quietly rewrite who is on the series.
         changes: dict[str, Any] = {
             "title": event[EVENT_SUMMARY],
             **_wire_times(event),
@@ -451,27 +468,21 @@ class CalendoraHouseholdCalendar(CalendoraCalendar):
 class CalendoraMemberCalendar(CalendoraCalendar):
     """One person's calendar: what they are on, plus what everyone is on.
 
-    **This calendar cannot create events, and the household one can.**
-
-    `POST /api/v1/events` has no attendee field (`docs/API-SURFACE.md` §7), so
-    an event created here would be created with nobody on it — which §4a defines
-    as belonging to the whole household. Adding "dentist" to Mike's calendar
-    would put it on everybody's, silently, and the only clue would be seeing it
-    six times on a household dashboard.
-
-    Declaring a capability that cannot be honoured is worse than not having it,
-    so this entity does not offer an add button. Editing and removing stay: they
-    act on an event that already exists and do not need to say whose it is.
+    An event created here names this member, so it lands on their calendar and
+    not on everybody's. That was not possible until `attendeeIds` was accepted
+    on write: before it, adding "dentist" to one person's calendar put it on all
+    six, silently, and the only clue was seeing it repeated on a dashboard.
     """
 
-    # When `POST /events` gains an attendee field this becomes a one-line
-    # change: restore CREATE_EVENT here, send the member id from
-    # `self._member_id`, and flip
-    # `test_an_event_created_from_home_assistant_belongs_to_everybody` from
-    # "appears on every member's calendar" to "appears only on this member's".
-    _attr_supported_features = (
-        CalendarEntityFeature.UPDATE_EVENT | CalendarEntityFeature.DELETE_EVENT
-    )
+    def _attendees_for_new_event(self) -> list[str]:
+        """A new event here belongs to this member.
+
+        This is what `attendeeIds` on `POST /events` bought. Before it existed,
+        an event created from somebody's calendar arrived with nobody on it,
+        which means the whole household — a real family added one thing to one
+        person's calendar and watched it appear on all six.
+        """
+        return [self._member_id]
 
     def __init__(
         self, coordinator: CalendoraDataUpdateCoordinator, member: dict[str, Any]

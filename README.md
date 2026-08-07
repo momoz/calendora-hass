@@ -122,17 +122,11 @@ silently hides half of family life from each person's view. If you need to tell
 them apart, a shared event shows `shared_with_household: true` on that person's
 next-event sensor.
 
-### New events go on the household calendar
+### Where a new event lands
 
-You can add an event from **`calendar.<household>`**, but not from an individual
-person's calendar. Calendora's API has no way to say who a brand-new event is
-for, so one created from Robin's calendar would arrive with nobody attached —
-and an event with nobody attached belongs to the whole household, appearing on
-everybody's calendar. Rather than let that happen quietly, person calendars
-don't offer the button.
-
-Editing and deleting from a person's calendar work normally. To create something
-for one person, add it in Calendora.
+Add it from a **person's** calendar and it is theirs. Add it from the
+**household** calendar and it belongs to everybody — which is what a household
+event is, and why it then appears on each person's calendar too.
 
 ### Editing a repeating event asks which ones you mean
 

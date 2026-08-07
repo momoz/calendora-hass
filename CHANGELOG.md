@@ -4,6 +4,14 @@ All notable changes to this integration are recorded here. Versions match the
 `version` field in `custom_components/calendora/manifest.json` and the GitHub tag
 they were released under.
 
+## 0.4.2 — 2026-08-07
+
+### Added
+- **Adding an event to one person's calendar now puts it on theirs.** Calendora
+  can say who an event is for, so the add button is back on each person's
+  calendar and the event lands where you chose. Adding on the household calendar
+  still gives everybody the event, as before.
+
 ## 0.4.1 — 2026-08-07
 
 ### Fixed

@@ -1,0 +1,22 @@
+{
+  "describes": "An empty array hands the event back to the household. Distinct from omitting the field, which leaves the roster alone — the same partial rule as every other field.",
+  "request": {
+    "method": "PATCH",
+    "path": "/api/v1/events/fx-event-attendees",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    },
+    "body": {
+      "scope": "all",
+      "attendeeIds": []
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "id": "fx-event-attendees",
+      "scope": "all",
+      "result": "the whole series was changed"
+    }
+  }
+}

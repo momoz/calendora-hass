@@ -1,0 +1,27 @@
+{
+  "describes": "An id that names nobody is refused rather than ignored. Ignoring it would write an attendee row pointing at nothing and report the create as a success — an event on no one's calendar, and nothing anywhere saying so.",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/events",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    },
+    "body": {
+      "id": "fx-event-bad-attendee",
+      "title": "Physio",
+      "start": "2027-03-05T14:00:00.000Z",
+      "end": "2027-03-05T15:00:00.000Z",
+      "timezone": "Europe/London",
+      "attendeeIds": [
+        "fx-member-nobody"
+      ]
+    }
+  },
+  "response": {
+    "status": 400,
+    "body": {
+      "error": "no member of this household has the id fx-member-nobody",
+      "code": "bad_request"
+    }
+  }
+}

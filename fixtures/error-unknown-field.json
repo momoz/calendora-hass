@@ -16,7 +16,7 @@
   "response": {
     "status": 400,
     "body": {
-      "error": "unknown field: locatoin. This route accepts: id, title, description, location, icon, start, end, isAllDay, timezone, importance, travelMinutes",
+      "error": "unknown field: locatoin. This route accepts: id, title, description, location, icon, start, end, isAllDay, timezone, importance, travelMinutes, attendeeIds",
       "code": "bad_request"
     }
   }

@@ -242,54 +242,27 @@ async def test_a_write_never_leaks_the_key(
     assert API_KEY not in caplog.text
 
 
-async def test_a_member_calendar_does_not_offer_to_create(
-    hass: HomeAssistant, setup_calendar: MockConfigEntry
-) -> None:
-    """Creating on a person's calendar would create it for everybody.
-
-    `POST /events` has no attendee field, so an event created from Robin's
-    calendar arrives with nobody on it — which means the whole household. The
-    user asked for one person's event and got everyone's, with no error and no
-    clue beyond seeing it repeated across the dashboard.
-
-    Reported from a real household before this test existed.
-    """
-    from homeassistant.components.calendar import CalendarEntityFeature
-
-    member = hass.states.get("calendar.test_household_robin")
-    household = hass.states.get("calendar.test_household")
-
-    assert not member.attributes["supported_features"] & CalendarEntityFeature.CREATE_EVENT
-    assert household.attributes["supported_features"] & CalendarEntityFeature.CREATE_EVENT
-
-    # Editing and removing still work: they act on an event that already exists
-    # and do not have to say whose it is.
-    assert member.attributes["supported_features"] & CalendarEntityFeature.UPDATE_EVENT
-    assert member.attributes["supported_features"] & CalendarEntityFeature.DELETE_EVENT
-
-
-async def test_an_event_created_from_home_assistant_belongs_to_everybody(
+async def test_an_event_created_on_a_members_calendar_belongs_to_that_member(
     hass: HomeAssistant, setup_calendar: MockConfigEntry, aioclient_mock: AiohttpClientMocker
 ) -> None:
-    """An end-to-end assertion about who OWNS the result, not about the request.
+    """The flipped assertion. Same test, opposite outcome, because the API changed.
 
-    The request was always well-formed, which is why nothing caught this. What
-    matters is the outcome: `POST /events` has no attendee field — the server
-    enumerates what it accepts and no attendee appears — so anything created
-    from Home Assistant arrives with nobody on it, and §4a defines that as the
-    whole household.
+    This began life asserting that an event created from Home Assistant appears
+    on *every* member's calendar — which is what a real household reported after
+    adding one thing to one person's calendar. `attendeeIds` on write is what
+    made the other answer possible.
 
-    Asserted here by checking the created event shows up on *every* member's
-    calendar, which is what a real household saw and reported.
+    It still asserts the OUTCOME rather than the request. The request was always
+    well-formed; that is exactly why nothing caught the original bug.
     """
     aioclient_mock.clear_requests()
     created = {
         "id": "evt-new:2026-12-01", "eventId": "evt-new",
-        "occurrenceKey": "2026-12-01", "title": "Dentist",
+        "occurrenceKey": "2026-12-01", "title": "Physio",
         "isAllDay": True, "start": "2026-11-30T23:00:00.000Z",
         "end": "2026-12-01T23:00:00.000Z", "timezone": "Europe/Amsterdam",
-        # What the server stores when nobody can be named:
-        "attendeeIds": [],
+        # Named, rather than left to the household.
+        "attendeeIds": ["mem-2"],
     }
     aioclient_mock.post(EVENTS_URL, json={"id": "evt-new"}, status=201)
     aioclient_mock.get(HOUSEHOLD_URL, json=load_fixture("household.json"))
@@ -298,28 +271,85 @@ async def test_an_event_created_from_home_assistant_belongs_to_everybody(
     aioclient_mock.get(LISTS_URL, json={"lists": []})
     aioclient_mock.get(STREAM_URL, text="", headers={"Content-Type": "text/event-stream"})
 
-    household = hass.data["entity_components"]["calendar"].get_entity(ENTITY_ID)
-    await household.async_create_event(
-        summary="Dentist", dtstart=date(2026, 12, 1), dtend=date(2026, 12, 2)
+    robin = hass.data["entity_components"]["calendar"].get_entity(
+        "calendar.test_household_robin"
+    )
+    await robin.async_create_event(
+        summary="Physio", dtstart=date(2026, 12, 1), dtend=date(2026, 12, 2)
     )
     await hass.async_block_till_done()
 
-    # The request could not name anybody — the server rejects the field.
-    body = _bodies(aioclient_mock, "POST")[0]
-    assert "attendeeIds" not in body
-    assert "attendees" not in body
+    # The member is named in the request, taken from the entity rather than typed.
+    assert _bodies(aioclient_mock, "POST")[0]["attendeeIds"] == ["mem-2"]
 
-    # And the outcome: it is on every single member's calendar.
+    # And the outcome: on Robin's calendar and the household's, nobody else's.
     window = (
         datetime(2026, 11, 25, tzinfo=dt_util.UTC),
         datetime(2026, 12, 5, tzinfo=dt_util.UTC),
     )
-    for entity_id in (
-        "calendar.test_household",
-        "calendar.test_household_alex",
-        "calendar.test_household_robin",
-        "calendar.test_household_biscuit",
-    ):
+
+    async def uids(entity_id: str) -> set[str]:
         entity = hass.data["entity_components"]["calendar"].get_entity(entity_id)
-        uids = {e.uid for e in await entity.async_get_events(hass, *window)}
-        assert "evt-new:2026-12-01" in uids, f"{entity_id} should show a household event"
+        return {e.uid for e in await entity.async_get_events(hass, *window)}
+
+    assert "evt-new:2026-12-01" in await uids("calendar.test_household_robin")
+    assert "evt-new:2026-12-01" in await uids("calendar.test_household")
+    assert "evt-new:2026-12-01" not in await uids("calendar.test_household_alex")
+    assert "evt-new:2026-12-01" not in await uids("calendar.test_household_biscuit")
+
+
+async def test_the_household_calendar_still_omits_attendees(
+    hass: HomeAssistant, setup_calendar: MockConfigEntry, aioclient_mock: AiohttpClientMocker
+) -> None:
+    """Omitting and `[]` are not the same thing (§7), so the household omits.
+
+    Sending `[]` would be saying "everybody" deliberately. Omitting says nothing
+    and leaves the event with the household, which is what a create on the
+    household calendar means.
+    """
+    aioclient_mock.clear_requests()
+    aioclient_mock.post(EVENTS_URL, json={"id": "x"}, status=201)
+    _mock_reads(aioclient_mock)
+
+    household = hass.data["entity_components"]["calendar"].get_entity(ENTITY_ID)
+    await household.async_create_event(
+        summary="Bin day", dtstart=date(2027, 8, 11), dtend=date(2027, 8, 12)
+    )
+
+    assert "attendeeIds" not in _bodies(aioclient_mock, "POST")[0]
+
+
+async def test_editing_a_time_never_touches_the_roster(
+    hass: HomeAssistant, setup_calendar: MockConfigEntry, aioclient_mock: AiohttpClientMocker
+) -> None:
+    """§7: omitting `attendeeIds` leaves the roster alone — so never send it here.
+
+    On a recurring event `scope` decides how far a roster change reaches, so a
+    speculative `attendeeIds` on a per-occurrence time edit could rewrite who is
+    on the whole series.
+    """
+    aioclient_mock.clear_requests()
+    aioclient_mock.patch(f"{EVENTS_URL}/{OCCURRENCE}", json={
+        "id": "x", "scope": "this", "result": "changed"})
+    _mock_reads(aioclient_mock)
+
+    entity = hass.data["entity_components"]["calendar"].get_entity(ENTITY_ID)
+    await entity.async_update_event(
+        OCCURRENCE,
+        {"summary": "Piano", "dtstart": datetime(2026, 11, 4, 15, tzinfo=dt_util.UTC),
+         "dtend": datetime(2026, 11, 4, 16, tzinfo=dt_util.UTC)},
+        recurrence_id="2026-11-04", recurrence_range="",
+    )
+
+    assert "attendeeIds" not in _bodies(aioclient_mock, "PATCH")[0]
+
+
+async def test_member_calendars_can_create_again(
+    hass: HomeAssistant, setup_calendar: MockConfigEntry
+) -> None:
+    """The capability is back, now that it can be honoured."""
+    from homeassistant.components.calendar import CalendarEntityFeature
+
+    for entity_id in ("calendar.test_household", "calendar.test_household_robin"):
+        supported = hass.states.get(entity_id).attributes["supported_features"]
+        assert supported & CalendarEntityFeature.CREATE_EVENT
