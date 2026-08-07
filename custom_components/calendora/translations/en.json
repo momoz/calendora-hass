@@ -78,6 +78,11 @@
       "next_event": {
         "name": "{member} next event"
       }
+    },
+    "binary_sensor": {
+      "conflict_today": {
+        "name": "{member} has a clash today"
+      }
     }
   }
 }

@@ -4,6 +4,17 @@ All notable changes to this integration are recorded here. Versions match the
 `version` field in `custom_components/calendora/manifest.json` and the GitHub tag
 they were released under.
 
+## Unreleased
+
+### Added
+- **A clash warning for each person.** On when two of today's timed events
+  overlap, and it names both, so a notification can say *"swimming overlaps the
+  dentist"* rather than *"there's a clash"*. All-day events never count — a
+  school holiday is not a commitment to be somewhere at ten.
+- **A blueprint for the shopping trip.** Arrive at the shop and your list
+  arrives on your phone with a button next to each item; tapping one ticks it
+  off for everybody, while you are still in the aisle.
+
 ## 0.2.0 — 2026-08-07
 
 ### Added

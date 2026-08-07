@@ -17,6 +17,14 @@ moment you notice, in the same breath as the work it blocks. The failure mode is
 worded report; it is a need that arrives as a footnote at the end of a long one, or not at
 all.
 
+**Declining to build something is also a gap.** A capability you *chose* not to ship because
+the API cannot support it honestly is exactly as reportable as one you were blocked on.
+"I couldn't build this" and "I decided not to build this" produce the same silence upstream,
+and the silence is the failure — from inside this repo an API limitation reads as a fixed
+property of the world, so a closed-looking question never reaches the person who could
+reopen it. If you wrote a paragraph explaining why an entity does not exist, that paragraph
+is a gap entry. File it.
+
 **A labelled placeholder is not a workaround.** When you are blind to something and say so
 — visibly provisional artefact, disclosed everywhere it appears, replaced the moment the
 real thing arrives — that is the correct behaviour, and its gap entry reads

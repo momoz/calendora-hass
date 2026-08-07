@@ -1,0 +1,179 @@
+blueprint:
+  name: Calendora — shopping list when you arrive at the shop
+  description: >-
+    When somebody arrives at a shop, send them the list on their phone with a
+    button next to every item. Tapping one ticks it off in Calendora, so
+    everybody else's list updates while they are still standing in the aisle.
+
+
+    You need: a Calendora list, a person, and the Home Assistant Companion app
+    on their phone with notifications turned on.
+
+
+    Nothing is ticked off automatically — the notification is a reminder with
+    buttons, not an assistant that guesses.
+  domain: automation
+  source_url: https://github.com/momoz/calendora-hass/blob/main/blueprints/automation/calendora/shopping_list_on_arrival.yaml
+  homeassistant:
+    min_version: "2026.7.0"
+  input:
+    who:
+      name: Who
+      description: The person this applies to. They get the notification.
+      selector:
+        entity:
+          filter:
+            - domain: person
+    shop:
+      name: The shop
+      description: >-
+        The zone to watch. Create one in Settings → Areas & Zones if the shop is
+        not there yet.
+      selector:
+        entity:
+          filter:
+            - domain: zone
+    shopping_list:
+      name: The list
+      description: Which Calendora list to send.
+      selector:
+        entity:
+          filter:
+            - integration: calendora
+              domain: todo
+    notify_target:
+      name: Their phone
+      description: >-
+        The notification action for their phone — pick the one named after
+        their device.
+
+
+        This has to be the mobile-app action rather than a notify entity,
+        because only the action accepts the buttons this blueprint attaches.
+      selector:
+        action:
+    max_items:
+      name: How many items to show
+      description: >-
+        Phones limit how many buttons a notification can carry. Three is the
+        safe number on iOS; Android manages more.
+      default: 3
+      selector:
+        number:
+          min: 1
+          max: 10
+          mode: slider
+    quiet_hours:
+      name: Do not send between
+      description: >-
+        Leave this off unless late-night notifications are a problem. If the
+        shop is open at 11pm and somebody is in it, they probably do want the
+        list.
+      default: false
+      selector:
+        boolean:
+
+# `!input` is a YAML tag, not a template value: it cannot be used inside {{ }}.
+# Every input that a template needs is bound to a variable here first. Getting
+# this wrong is the single most common blueprint bug, and it fails at runtime
+# rather than at import.
+variables:
+  list_entity: !input shopping_list
+  person_entity: !input who
+  item_limit: !input max_items
+  respect_quiet_hours: !input quiet_hours
+  # A tag unique to this person and list, so two people shopping at once do not
+  # overwrite each other's notification, and arriving twice replaces rather
+  # than duplicates.
+  notification_tag: "calendora-{{ person_entity | replace('.', '-') }}-{{ list_entity | replace('.', '-') }}"
+
+mode: single
+max_exceeded: silent
+
+triggers:
+  # 2026.7 zone triggers, targeting the zone rather than the person's state.
+  # The removed `person` device triggers are not used here.
+  - trigger: zone
+    entity_id: !input who
+    zone: !input shop
+    event: enter
+    id: arrived
+
+  # The buttons come back as this event, carrying the item id we put in the
+  # action name. Home Assistant does not route it to the automation that sent
+  # the notification, so the tag check below is what keeps one household's
+  # notifications from ticking off another's items.
+  - trigger: event
+    event_type: mobile_app_notification_action
+    id: ticked
+
+conditions: []
+
+actions:
+  - choose:
+      # ---------------------------------------------------------------- arrival
+      - conditions:
+          - condition: trigger
+            id: arrived
+          - condition: template
+            value_template: >-
+              {{ not respect_quiet_hours
+                 or today_at('07:00') <= now() <= today_at('22:00') }}
+        sequence:
+          - variables:
+              # Only what is still outstanding. A list of ticked items is not
+              # worth a notification.
+              outstanding: >-
+                {{ (state_attr(list_entity, 'items') or [])
+                   | selectattr('status', 'eq', 'needs_action')
+                   | list }}
+          - condition: template
+            value_template: "{{ outstanding | count > 0 }}"
+          - variables:
+              showing: "{{ outstanding[:item_limit | int] }}"
+              remaining: "{{ (outstanding | count) - (item_limit | int) }}"
+          - action: !input notify_target
+            data:
+              title: >-
+                {{ state_attr(list_entity, 'friendly_name') or 'Shopping list' }}
+              message: >-
+                {{ showing | map(attribute='summary') | join(', ') }}
+                {%- if remaining > 0 %} and {{ remaining }} more{% endif %}
+              data:
+                tag: "{{ notification_tag }}"
+                # Replaces a previous notification for this person and list
+                # rather than stacking a second one.
+                group: calendora-shopping
+                actions: >-
+                  {{ showing | map(attribute='uid')
+                     | map('regex_replace', '^', 'CALENDORA_TICK|')
+                     | zip(showing | map(attribute='summary'))
+                     | map('list') | list
+                     | map('zip', ['action', 'title']) | map('list')
+                     | map('items2dict') | list }}
+
+      # ----------------------------------------------------------- button press
+      - conditions:
+          - condition: trigger
+            id: ticked
+          - condition: template
+            value_template: >-
+              {{ trigger.event.data.action is defined
+                 and trigger.event.data.action.startswith('CALENDORA_TICK|') }}
+          # Only respond to our own notification. Without this, every automation
+          # built from this blueprint reacts to every button press in the house.
+          - condition: template
+            value_template: >-
+              {{ trigger.event.data.tag | default('') == notification_tag }}
+        sequence:
+          - variables:
+              # The item id travels in the action name, because the event does
+              # not carry anything else we control.
+              item_id: >-
+                {{ trigger.event.data.action.split('|', 1)[1] }}
+          - action: todo.update_item
+            target:
+              entity_id: !input shopping_list
+            data:
+              item: "{{ item_id }}"
+              status: completed

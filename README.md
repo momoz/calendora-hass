@@ -37,6 +37,7 @@ Home Assistant. Without it everything still appears; only editing fails.
 | `calendar.<household>_<name>` | one person's events, **plus everything shared** |
 | `sensor.<household>_<name>_next_event` | when that person's next event starts |
 | `todo.<household>_<list>` | one of your Calendora lists, editable |
+| `binary_sensor.<household>_<name>_has_a_clash_today` | on when two of their events overlap today |
 
 Pets get a calendar too, if they are members of your household in Calendora —
 vet appointments are events like any other.
@@ -70,6 +71,24 @@ templating and an automation can compare them directly:
 Repeating events arrive already expanded, so a weekly swimming lesson triggers
 every week, an occurrence you skipped stays skipped, and one you moved shows at
 its new time.
+
+## The shopping-trip blueprint
+
+Arrive at the shop, your list arrives on your phone, and tapping an item ticks
+it off for everybody.
+
+Settings → Automations → Blueprints → **Import blueprint**, and paste:
+
+```
+https://github.com/momoz/calendora-hass/blob/main/blueprints/automation/calendora/shopping_list_on_arrival.yaml
+```
+
+You will need a zone for the shop, the Companion app on the phone, and one of
+your Calendora lists. Nothing is ticked automatically — the buttons are yours to
+press.
+
+**Three items by default.** iOS stops showing buttons past about three; Android
+manages more. The rest are counted in the message rather than dropped silently.
 
 ## Known limits
 
@@ -195,6 +214,39 @@ pytest
 The suite runs against a real Home Assistant, pinned by
 `requirements_test.txt`. CI runs it alongside `hassfest` and the HACS action;
 all three must be green before a release is tagged.
+
+### Before a release: install it into a real Home Assistant
+
+Tests prove the integration agrees with the API. They cannot tell you it
+**loads** — that the config flow completes, that entities appear, that a reload
+does not leave a subscription behind. Do this every release; perform it, do not
+reason about it.
+
+With a container runtime:
+
+```bash
+docker run --rm -p 8123:8123 \
+  -v "$PWD/custom_components/calendora:/config/custom_components/calendora:ro" \
+  -v "$(mktemp -d):/config" ghcr.io/home-assistant/home-assistant:stable
+```
+
+Without one, a Home Assistant installed from PyPI works, but note it needs
+`home-assistant-frontend` installed alongside it — **without the frontend
+package Home Assistant aborts start-up before it sets up any config entry**,
+which looks exactly like the integration failing to load and is not.
+
+What to check, in order:
+
+1. Settings → Devices & Services → Add Integration lists **Calendora**
+2. Pasting a key completes the flow and creates an entry in the `loaded` state
+3. Entities appear: one calendar per member plus the household, a next-event
+   sensor and a clash sensor per member, and one to-do list per active list
+4. Reload the entry three times. The entity count must be **identical** each
+   time and nothing may go unavailable — a climbing count means a subscription
+   is being leaked on unload
+5. The log carries no errors from this integration
+
+Use a throwaway Home Assistant, and never commit anything it produced.
 
 ### Checking the API against its documentation
 

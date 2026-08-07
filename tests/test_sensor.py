@@ -202,7 +202,11 @@ async def test_no_busy_binary_sensor_is_created(
     """
     await _setup(hass, aioclient_mock)
 
-    assert not hass.states.async_entity_ids("binary_sensor")
+    binary_sensors = hass.states.async_entity_ids("binary_sensor")
+    assert not [e for e in binary_sensors if "busy" in e]
+    # The clash sensor is a different thing and is expected: it reports
+    # something the calendar entity cannot, rather than restating its state.
+    assert [e for e in binary_sensors if "clash" in e]
     assert hass.states.get("calendar.test_household_alex") is not None
 
 

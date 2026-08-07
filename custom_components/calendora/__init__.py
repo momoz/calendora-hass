@@ -9,7 +9,12 @@ from homeassistant.core import HomeAssistant
 from .const import CONF_API_KEY, LOGGER
 from .coordinator import CalendoraDataUpdateCoordinator
 
-PLATFORMS: list[Platform] = [Platform.CALENDAR, Platform.SENSOR, Platform.TODO]
+PLATFORMS: list[Platform] = [
+    Platform.BINARY_SENSOR,
+    Platform.CALENDAR,
+    Platform.SENSOR,
+    Platform.TODO,
+]
 
 # State lives on the entry, not in hass.data[DOMAIN].
 type CalendoraConfigEntry = ConfigEntry[CalendoraDataUpdateCoordinator]
