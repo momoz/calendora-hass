@@ -4,6 +4,43 @@ All notable changes to this integration are recorded here. Versions match the
 `version` field in `custom_components/calendora/manifest.json` and the GitHub tag
 they were released under.
 
+## 0.4.0 — 2026-08-07
+
+**The shopping trip.** Arrive at a shop, and a couple of minutes later your
+list is on your phone — and on your watch, which is where it is meant to be
+read — with buttons to tick things off. Tapping one ticks it in Calendora, so
+everyone else's list updates while you are still in the aisle.
+
+### Added
+- **A blueprint for the shopping trip.** Import it once per person per shop:
+  Settings → Automations → Blueprints → Import blueprint.
+- **It waits before it fires.** Two minutes at the shop by default, so a red
+  light outside, a petrol stop next door or a drop-off in the car park never
+  set it off. Verified: arriving and leaving after thirty seconds never sends,
+  and stepping back outside restarts the clock rather than firing early.
+- **It knows when to say nothing.** An empty list, a list already ticked, a
+  second trip to the same shop within a couple of hours, anything outside
+  07:00–21:30, and anything at all after you tap **Not shopping** — which mutes
+  that shop until midnight.
+- **Each person opts in for themselves**, in the Calendora integration's
+  options. Nobody is included by default, and the automation checks before it
+  sends. A shopping list that follows you around is not a household decision.
+- **A clash warning per person** — on when two of today's timed events overlap,
+  naming both.
+- Your Calendora lists now expose which list they are, so the notification can
+  open the right one ready to tick.
+
+### Known limitations
+- **One message per trip, not batched by aisle.** A long list shows the first
+  few and counts the rest. Splitting a big shop into a message per section is
+  the next piece of work.
+- **You cannot reorder list items**, deliberately — Calendora's sections are
+  shops, and dragging in Home Assistant's flat list would move an item to a
+  different shop without saying so.
+- **On Android there is no quiet completion card.** Whether one automation can
+  write to two notification channels is untested for want of a device, and a
+  guess would be permanent on that phone.
+
 ## 0.3.0 — 2026-08-07
 
 ### Added
