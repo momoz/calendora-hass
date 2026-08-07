@@ -29,7 +29,12 @@ from pytest_homeassistant_custom_component.test_util.aiohttp import (
 )
 
 from custom_components.calendora.calendar import _as_calendar_event
-from custom_components.calendora.const import API_BASE_URL, CONF_API_KEY, DOMAIN
+from custom_components.calendora.const import (
+    API_BASE_URL,
+    CONF_API_KEY,
+    DOMAIN,
+    MAX_EVENT_RANGE_DAYS,
+)
 
 from .const import API_KEY, load_fixture
 
@@ -345,3 +350,45 @@ async def test_a_stream_change_invalidates_the_cache(
     await coordinator.async_fetch_window(*window)
 
     assert len(aioclient_mock.mock_calls) == 2
+
+
+async def test_a_window_clamped_to_the_maximum_is_accepted(
+    hass: HomeAssistant, setup_calendar: MockConfigEntry, aioclient_mock
+) -> None:
+    """The clamp must land on a range the API accepts, not one day past it.
+
+    `async_get_events` trims an over-long request to exactly
+    MAX_EVENT_RANGE_DAYS. If that boundary is off by one, the *only* code path
+    that handles a too-large window is itself always rejected — the failure mode
+    is a browse that errors instead of returning a trimmed answer, and no test
+    covered the boundary itself.
+    """
+    aioclient_mock.clear_requests()
+    aioclient_mock.get(EVENTS_URL, json={"occurrences": []})
+
+    entity = hass.data[DATA_INSTANCES]["calendar"].get_entity(ENTITY_ID)
+    await entity.async_get_events(
+        hass,
+        datetime(2026, 1, 1, tzinfo=dt_util.UTC),
+        datetime(2028, 1, 1, tzinfo=dt_util.UTC),  # ~730 days, well over the limit
+    )
+
+    query = aioclient_mock.mock_calls[0][1].query
+    span = (date.fromisoformat(query["to"]) - date.fromisoformat(query["from"])).days
+    assert span == MAX_EVENT_RANGE_DAYS
+
+
+async def test_the_client_accepts_a_range_of_exactly_the_maximum(
+    hass: HomeAssistant, setup_calendar: MockConfigEntry
+) -> None:
+    """Exactly MAX_EVENT_RANGE_DAYS is allowed; one more is a programming error."""
+    client = setup_calendar.runtime_data.client
+    start = date(2026, 1, 1)
+
+    # Must not raise.
+    await client.async_get_events(start, start + timedelta(days=MAX_EVENT_RANGE_DAYS))
+
+    with pytest.raises(ValueError, match="400"):
+        await client.async_get_events(
+            start, start + timedelta(days=MAX_EVENT_RANGE_DAYS + 1)
+        )

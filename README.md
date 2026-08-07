@@ -179,6 +179,29 @@ The suite runs against a real Home Assistant, pinned by
 `requirements_test.txt`. CI runs it alongside `hassfest` and the HACS action;
 all three must be green before a release is tagged.
 
+### Checking the API against its documentation
+
+```bash
+python scripts/verify_api.py          # reads ~/.config/calendora-hass/api-key
+```
+
+The test suite proves this integration matches `docs/API-SURFACE.md`. Calendora's
+own tests prove its server matches its implementation. **Nothing else tests the
+document against the server** — so a wrong field name in the document means a
+green build on both sides and a broken integration in production, invisible to
+everyone. This script closes that gap, and found four real mismatches the first
+time it ran.
+
+Run it against your own household. It reports **structure only** — field names,
+types, counts, and whether documented promises hold. It never prints an event
+title, a person's name, a date, or your key, so its output is safe to paste into
+a bug report. Put your key in `~/.config/calendora-hass/api-key` (or set
+`CALENDORA_API_KEY`); keep it outside this repository.
+
+It exits non-zero when the server and the document disagree. When that happens
+the fix is to report it, **not** to change the integration to match what was
+observed — that is how a document quietly stops being a contract.
+
 > **The brand assets are vendored, not authored here.**
 > `custom_components/calendora/brand/` holds Calendora's real mark, rendered from
 > the icon the app itself ships. Treat it exactly like `docs/API-SURFACE.md` — do

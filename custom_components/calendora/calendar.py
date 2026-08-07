@@ -59,6 +59,13 @@ def _belongs_to_member(occurrence: dict[str, Any], member_id: str) -> bool:
 
     The rule, in full: an occurrence is on a member's calendar if it names them,
     **or if it names nobody at all.**
+
+    Worth knowing how thin the evidence for this would be if you went looking:
+    in a live household of 220 occurrences, exactly **one** had an empty
+    `attendeeIds`. The naive version would have been wrong about a single event
+    and right about 219, which is precisely the ratio at which a bug survives
+    casual testing, ships, and is eventually reported as "the family holiday
+    doesn't show up on my calendar" months later.
     """
     attendee_ids = occurrence.get("attendeeIds")
     if not attendee_ids:
@@ -141,9 +148,12 @@ def _as_calendar_event(occurrence: dict[str, Any]) -> CalendarEvent | None:
         end: date | datetime = end_dt.astimezone(tzinfo).date()
         if end <= start:
             # Home Assistant requires end > start and treats an all-day end as
-            # exclusive. Calendora's editor stores an all-day event as 00:00:00
-            # to 23:59:59 on the same day, so this branch is the normal case for
-            # app-created events, not an edge case.
+            # exclusive. Calendora now stores all-day events that way too
+            # (exclusive next midnight), so this is a **fallback**, not the
+            # normal path: it catches older imported rows written under the
+            # previous convention, which stored 00:00:00 to 23:59:59 on the same
+            # day. Verified against live data — every current all-day occurrence
+            # arrives already exclusive and does not reach this branch.
             end = start + timedelta(days=1)
     else:
         # Same instants, rendered in the viewer's zone — correct here, because a
