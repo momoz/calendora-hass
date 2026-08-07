@@ -4,7 +4,7 @@ All notable changes to this integration are recorded here. Versions match the
 `version` field in `custom_components/calendora/manifest.json` and the GitHub tag
 they were released under.
 
-## Unreleased
+## 0.4.1 — 2026-08-07
 
 ### Fixed
 - **Adding an event to one person's calendar no longer adds it for everybody.**

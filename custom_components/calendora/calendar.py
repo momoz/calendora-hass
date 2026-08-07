@@ -464,6 +464,11 @@ class CalendoraMemberCalendar(CalendoraCalendar):
     act on an event that already exists and do not need to say whose it is.
     """
 
+    # When `POST /events` gains an attendee field this becomes a one-line
+    # change: restore CREATE_EVENT here, send the member id from
+    # `self._member_id`, and flip
+    # `test_an_event_created_from_home_assistant_belongs_to_everybody` from
+    # "appears on every member's calendar" to "appears only on this member's".
     _attr_supported_features = (
         CalendarEntityFeature.UPDATE_EVENT | CalendarEntityFeature.DELETE_EVENT
     )
