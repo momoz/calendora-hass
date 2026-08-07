@@ -519,3 +519,18 @@ async def test_a_second_conflict_is_reported_rather_than_looped(
         )
 
     assert len([c for c in aioclient_mock.mock_calls if c[0] == "PATCH"]) == 2
+
+
+async def test_the_list_id_is_readable_by_an_automation(
+    hass: HomeAssistant, setup_todo: MockConfigEntry
+) -> None:
+    """A blueprint needs the Calendora list id to build the deep link.
+
+    It is otherwise only inside `unique_id`, which an automation cannot read —
+    and the deep link is the iPhone's primary action, not a convenience.
+    """
+    attributes = hass.states.get(SHOPPING).attributes
+
+    assert attributes["list_id"] == "lst-1"
+    assert attributes["list_type"] == "shopping"
+    assert attributes["section_count"] == 2

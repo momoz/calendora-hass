@@ -18,6 +18,11 @@ API_BASE_URL: Final = "https://calendora.app"
 
 CONF_API_KEY: Final = "api_key"
 
+# Which members take part in shop-arrival notifications. Opt-in is per member
+# and not per household (design §1): one person wanting the shopping list on
+# their wrist is not consent for everybody else's phone.
+CONF_SHOP_MEMBERS: Final = "shop_members"
+
 # The stream is the update path; this is only the safety net for a stream that
 # died without telling us. Deliberately slow — a push integration that polls
 # every minute is a polling integration with extra steps.

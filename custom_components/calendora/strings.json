@@ -90,5 +90,19 @@
         "name": "{member} has a clash today"
       }
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Shop-arrival notifications",
+        "description": "Choose who takes part. When one of these people has been at a shop for a couple of minutes, the shopping-list automation can send them the list.\n\nThis is per person on purpose — one person wanting their list on their wrist is not a decision for everybody else's phone.",
+        "data": {
+          "shop_members": "Who takes part"
+        },
+        "data_description": {
+          "shop_members": "Leave empty and nobody is included. You can change this at any time."
+        }
+      }
+    }
   }
 }

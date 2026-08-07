@@ -242,6 +242,21 @@ because it was expensive to learn and easy to assume.
 | Locked phone with an Apple Watch nearby | delivery goes to the **watch**; the phone stays silent |
 | Locked phone, previews off (the default) | content is hidden until the user authenticates — the card is effectively blank |
 
+**Verified since, and worth recording precisely:**
+
+- **The push rate limit is 500 per device per day**, resetting at a fixed UTC
+  time, counted per phone and separately per platform. Read from the Companion
+  app under App Configuration → Notifications → Rate limits. A shopping trip
+  capped at eight pushes spends under 2% of a day, so the budget is not a
+  design constraint. It did not need a log level raised on a production
+  instance to answer, which is worth remembering next time.
+- **An Apple Watch long look does NOT inherit the phone's hidden-previews
+  setting** — with previews hidden on a locked phone the lock-screen card is
+  unreadable while the watch shows the full content. **Caveat: watchOS has its
+  own notification privacy setting, so this verifies one configuration rather
+  than the default for every user.** Design as though it holds; do not state it
+  as universal.
+
 **Not verified, and must not be assumed:** whether one automation can write to
 two Android notification channels with different importance. No working Android
 device was available when the rest was tested. The intended design — a normal

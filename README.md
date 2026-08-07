@@ -90,21 +90,20 @@ press.
 **Three items by default.** iOS stops showing buttons past about three; Android
 manages more. The rest are counted in the message rather than dropped silently.
 
-## Before the shopping notification will look right on an iPhone
+## The shopping notification on a phone and a watch
 
-Two iOS behaviours will make this feature look broken when it isn't. Both are
-worth checking before you decide it doesn't work.
+**If you wear an Apple Watch, this is designed for your wrist.** With the phone
+locked and a paired watch nearby, iOS delivers to the watch and the phone stays
+silent — which is the right surface anyway: the buttons appear on a scroll with
+no gesture that can fail, and a shopper with a trolley in one hand is exactly
+the person wearing one.
 
-**Turn on notification previews for Home Assistant.** By default iOS hides the
-contents of a notification on a locked phone — you get the app name and nothing
-else until you unlock. The shopping list is *entirely* content, so without this
-it arrives as a blank card. On the phone: **Settings → Notifications → Home
-Assistant → Show Previews → Always**.
-
-**If you wear an Apple Watch, the notification goes there, not to your phone.**
-With the phone locked and a paired watch nearby, iOS delivers to the watch and
-the phone stays silent. That is normal, and it is the usual reason someone says
-"it never arrived" while standing in the shop with it on their wrist.
+**On a locked iPhone the card may show no content.** iOS hides notification
+previews on a locked phone by default. We deliberately do not ask you to change
+that: the setting is per app, and the app is Home Assistant — turning previews on
+for a shopping list would also put every door sensor, camera alert and alarm
+message on your lock screen in front of whoever is standing next to you. The
+list is one unlock away, and on a watch it is readable without one.
 
 ## Known limits
 

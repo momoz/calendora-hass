@@ -6,9 +6,19 @@ from collections.abc import Mapping
 from typing import Any
 
 import voluptuous as vol
-from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlowWithReload,
+)
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.core import callback
 from homeassistant.helpers.selector import (
+    SelectOptionDict,
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
     TextSelector,
     TextSelectorConfig,
     TextSelectorType,
@@ -20,7 +30,7 @@ from .api import (
     CalendoraError,
     CalendoraForbiddenError,
 )
-from .const import CONF_API_KEY, DOMAIN, LOGGER
+from .const import CONF_API_KEY, CONF_SHOP_MEMBERS, DOMAIN, LOGGER
 
 API_KEY_SCHEMA = vol.Schema(
     {
@@ -142,4 +152,55 @@ class CalendoraConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="reconfigure", data_schema=API_KEY_SCHEMA, errors=errors
+        )
+
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry: ConfigEntry) -> CalendoraOptionsFlow:
+        """Return the options flow."""
+        return CalendoraOptionsFlow()
+
+
+class CalendoraOptionsFlow(OptionsFlowWithReload):
+    """Who takes part in shop-arrival notifications.
+
+    Per member, not per household (design §1). One person wanting their
+    shopping list on their wrist is not consent for everybody else's phone, and
+    a household-wide switch would make it one.
+
+    `OptionsFlowWithReload` reloads the entry on save, so a change takes effect
+    without the user restarting anything.
+    """
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Choose the members who opt in."""
+        if user_input is not None:
+            return self.async_create_entry(data=user_input)
+
+        coordinator = self.config_entry.runtime_data
+        members = [
+            SelectOptionDict(value=member["id"], label=member.get("name") or "Unknown")
+            for member in coordinator.data.members
+            if member.get("id")
+        ]
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        CONF_SHOP_MEMBERS,
+                        default=self.config_entry.options.get(CONF_SHOP_MEMBERS, []),
+                    ): SelectSelector(
+                        SelectSelectorConfig(
+                            options=members,
+                            multiple=True,
+                            mode=SelectSelectorMode.LIST,
+                        )
+                    )
+                }
+            ),
         )

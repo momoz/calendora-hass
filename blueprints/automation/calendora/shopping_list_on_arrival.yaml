@@ -17,14 +17,14 @@ blueprint:
   homeassistant:
     min_version: "2026.7.0"
   input:
-    who:
+    person:
       name: Who
       description: The person this applies to. They get the notification.
       selector:
         entity:
           filter:
             - domain: person
-    shop:
+    shop_zone:
       name: The shop
       description: >-
         The zone to watch. Create one in Settings → Areas & Zones if the shop is
@@ -33,7 +33,7 @@ blueprint:
         entity:
           filter:
             - domain: zone
-    shopping_list:
+    todo_entity:
       name: The list
       description: Which Calendora list to send.
       selector:
@@ -41,7 +41,7 @@ blueprint:
           filter:
             - integration: calendora
               domain: todo
-    notify_target:
+    notify_service:
       name: Their phone
       description: >-
         The notification action for their phone — pick the one named after
@@ -52,7 +52,7 @@ blueprint:
         because only the action accepts the buttons this blueprint attaches.
       selector:
         action:
-    max_items:
+    batch_size:
       name: How many items to show
       description: >-
         Phones limit how many buttons a notification can carry. Three is the
@@ -63,25 +63,48 @@ blueprint:
           min: 1
           max: 10
           mode: slider
-    quiet_hours:
-      name: Do not send between
+    dwell_minutes:
+      name: How long they must stay
       description: >-
-        Leave this off unless late-night notifications are a problem. If the
-        shop is open at 11pm and somebody is in it, they probably do want the
-        list.
-      default: false
+        Sends only once somebody has been at the shop this long, rather than the
+        moment they arrive. Two minutes is enough that a red light outside, a
+        petrol stop next door and a drop-off in the car park never trigger it.
+
+
+        Verified: arriving and leaving again after thirty seconds never sends,
+        and stepping outside restarts the clock rather than firing early.
+      default: 2
       selector:
-        boolean:
+        number:
+          min: 1
+          max: 15
+          unit_of_measurement: minutes
+          mode: slider
+    quiet_from:
+      name: Quiet from
+      description: Nothing is sent after this time.
+      default: "21:30:00"
+      selector:
+        time:
+    quiet_until:
+      name: Quiet until
+      description: >-
+        Nothing is sent before this time. A shop open at midnight is a shop you
+        are at on purpose.
+      default: "07:00:00"
+      selector:
+        time:
 
 # `!input` is a YAML tag, not a template value: it cannot be used inside {{ }}.
 # Every input that a template needs is bound to a variable here first. Getting
 # this wrong is the single most common blueprint bug, and it fails at runtime
 # rather than at import.
 variables:
-  list_entity: !input shopping_list
-  person_entity: !input who
-  item_limit: !input max_items
-  respect_quiet_hours: !input quiet_hours
+  list_entity: !input todo_entity
+  person_entity: !input person
+  item_limit: !input batch_size
+  quiet_from: !input quiet_from
+  quiet_until: !input quiet_until
   # A tag unique to this person and list, so two people shopping at once do not
   # overwrite each other's notification, and arriving twice replaces rather
   # than duplicates.
@@ -114,10 +137,19 @@ max_exceeded: silent
 triggers:
   # 2026.7 zone triggers, targeting the zone rather than the person's state.
   # The removed `person` device triggers are not used here.
-  - trigger: zone
-    entity_id: !input who
-    zone: !input shop
-    event: enter
+  # The 2026.7 purpose-specific trigger, because it is the only one that takes
+  # `for` — the legacy `zone` trigger rejects it outright. Verified on a real
+  # Home Assistant: the dwell suppresses a drive-past, and re-entry restarts the
+  # clock rather than firing early. It does NOT survive a restart: a restart
+  # mid-dwell cancels the timer silently and the person must arrive again.
+  - trigger: zone.entered
+    target:
+      entity_id: !input person
+    options:
+      zone: !input shop_zone
+      for: >-
+        {{ dwell_minutes }}
+      behavior: each
     id: arrived
 
   # The buttons come back as this event, carrying the item id we put in the
@@ -136,10 +168,12 @@ actions:
       - conditions:
           - condition: trigger
             id: arrived
-          - condition: template
-            value_template: >-
-              {{ not respect_quiet_hours
-                 or today_at('07:00') <= now() <= today_at('22:00') }}
+          # Outside these hours nothing is sent at all. An automation that
+          # wakes a household at midnight gets switched off and never switched
+          # back on.
+          - condition: time
+            after: !input quiet_until
+            before: !input quiet_from
         sequence:
           - variables:
               # Only what is still outstanding. A list of ticked items is not
@@ -153,7 +187,7 @@ actions:
           - variables:
               showing: "{{ outstanding[:item_limit | int] }}"
               remaining: "{{ (outstanding | count) - (item_limit | int) }}"
-          - action: !input notify_target
+          - action: !input notify_service
             data:
               title: >-
                 {{ state_attr(list_entity, 'friendly_name') or 'Shopping list' }}
@@ -197,7 +231,7 @@ actions:
                 {{ trigger.event.data.action.split('|', 1)[1] }}
           - action: todo.update_item
             target:
-              entity_id: !input shopping_list
+              entity_id: !input todo_entity
             data:
               item: "{{ item_id }}"
               status: completed

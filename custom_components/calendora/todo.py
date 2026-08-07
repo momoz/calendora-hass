@@ -207,6 +207,22 @@ class CalendoraTodoList(CoordinatorEntity[CalendoraDataUpdateCoordinator], TodoL
         return super().available and self._list_id in self.coordinator.data.lists
 
     @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Expose the Calendora list id.
+
+        A blueprint needs it to build the deep link into shopping mode, and it
+        is otherwise only present inside `unique_id`, which an automation cannot
+        read. `list_type` comes along because the batching design treats a
+        shopping list differently from a checklist.
+        """
+        row = self._row().get("list") or {}
+        return {
+            "list_id": self._list_id,
+            "list_type": row.get("type"),
+            "section_count": len(self._row().get("sections") or []),
+        }
+
+    @property
     def todo_items(self) -> list[TodoItem] | None:
         """Return the list's items.
 
