@@ -1,16 +1,20 @@
 <!-- Third-party API contract, extracted from momoz/calendora docs/05-API-SURFACE.md
-     on 2026-08-07 (response bodies added same day). This is an EXTRACT, not the whole document — the internal doc contains
+     on 2026-08-09. This is an EXTRACT, not the whole document — the internal doc contains
      the route inventory, sync-protocol internals and open security questions, none of which
      are part of the third-party contract and none of which are published here.
-     Do not edit here; re-extract from source. -->
+     Do not edit here; re-extract from source.
+
+     SUPERSEDES the 2026-08-07 copy. That copy was two days stale and caused two false
+     findings in a live verification. Changes: writes SHIPPED; `dueAt` replaced by `due`;
+     a types table added; the 400-day boundary corrected. -->
 
 # Calendora — third-party API contract
 
 This is the **entire** interface available to this integration. If something you need is not
-in this document, it is not part of the contract — **file a gap**. Do not infer endpoints,
-do not probe, do not use anything you find that is not written here.
+here, it is not part of the contract — **file a gap**. Do not infer endpoints, do not probe,
+do not use anything you find that is not written here.
 
-**Status: `/api/v1` reads are live** (v2608.0134/0135). Writes are not built yet.
+**Status: reads and writes are both live.**
 
 ---
 
@@ -20,16 +24,8 @@ do not probe, do not use anything you find that is not written here.
 https://calendora.app
 ```
 
-Every `/api/v1/...` path is relative to it.
-
-**There is no issuer field on a key and no discovery endpoint.** Hardcode this value as a
-single constant. Do not offer it as a config field — a deployment model that does not exist
-is not worth a form field every user has to skip past.
-
-Self-hosted deployments would need their own host, and nothing supports that today: there is
-no tenancy model and no way for a key to name its own origin. If it becomes real it will
-appear here as a documented field first. **Never guess a host, and never derive one from a
-key.**
+Hardcode it as one constant. There is no issuer field on a key and no discovery endpoint.
+Never guess a host and never derive one from a key.
 
 ## 2. Authentication
 
@@ -37,22 +33,17 @@ key.**
 Authorization: Bearer cal_…
 ```
 
-Keys are issued by the user in Calendora settings, scoped to **exactly one household**, and
-revocable. Scopes are exact — **`calendar:write` does not imply `calendar:read`.** There is
-no wildcard.
+Scoped to **exactly one household**, revocable. Scopes are exact — **`calendar:write` does
+not imply `calendar:read`.** No wildcard.
 
 `calendar:read` · `calendar:write` · `lists:read` · `lists:write` · `household:read` ·
 `presence:write`
 
-A key is **not a member**. Changes made with it are attributed to the integration, never to
-a person, and nothing it creates carries a member's colour or appears authored by them.
+**There is no household parameter on any route**, because a key names one.
 
-**There is no household parameter on any route**, because a key names exactly one household
-and a client that could name a household could name somebody else's.
+A key is **not a member**. See §8.
 
 ## 3. Errors
-
-Every route answers the same shape:
 
 ```json
 { "error": "human sentence", "code": "unauthenticated" }
@@ -60,19 +51,17 @@ Every route answers the same shape:
 
 | `code` | Status | Means |
 |---|---|---|
-| `unauthenticated` | 401 | No key, unknown key, revoked, or expired — **deliberately indistinguishable** |
-| `forbidden` | 403 | Valid key, missing scope. Names the scope, because that is actionable |
+| `unauthenticated` | 401 | No key, unknown, revoked, or expired — **deliberately indistinguishable** |
+| `forbidden` | 403 | Valid key, missing scope. Names the scope |
 | `not_found` | 404 | No such thing — **or it belongs to another household** |
 | `bad_request` | 400 | Says which parameter |
 | `server_error` | 500 | Ours |
 
-On **401**, raise `ConfigEntryAuthFailed` so Home Assistant starts a reauth flow. Never
-retry a 401, never fail silently.
+On **401**, raise `ConfigEntryAuthFailed`. Never retry a 401, never fail silently.
 
-A resource from another household answers **404, not 403** — "that exists but is not yours"
-is how ids get enumerated. Do not treat 404 as evidence an id is invalid.
+A 404 can mean "not yours" — **do not treat it as proof an id is invalid.**
 
-## 4. The routes
+## 4. Reads
 
 ```
 GET /api/v1/household                    household:read
@@ -81,92 +70,53 @@ GET /api/v1/people                       household:read
 GET /api/v1/events?from=&to=&member=     calendar:read
 GET /api/v1/lists                        lists:read
 GET /api/v1/lists/{id}/items             lists:read
-GET /api/v1/stream                       household:read    # SSE
+GET /api/v1/stream                       household:read   # SSE
 ```
-
-### Events are occurrences
-
-One object per occurrence, **not per rule**. The server expands recurrence; do not
-re-derive it. `id` is `{eventId}:{occurrenceKey}` and is stable, and `eventId` groups them.
-
-`attendeeIds` is resolved **per occurrence** — somebody who dropped out of one Tuesday is
-absent from that Tuesday and present on the others.
-
-A range longer than **400 days is rejected, not truncated**. A client that asked for five
-years and got one would believe the calendar was empty after that.
-
-### Dates are days, not instants
-
-`from` and `to` are `YYYY-MM-DD`, resolved in the key owner's timezone. **An instant is
-rejected**, because it would silently mean a different day depending on the zone it was
-written in.
-
-There is no household timezone — it is a per-person preference. `GET /api/v1/household`
-reports `{ timezone: { value, source: "key-owner" } }`, named as whose it is rather than as
-the household's.
-
-All-day events and birthdays are **date-only** and must never become instants. Birthdays
-stay strings, including the year-less `--MM-DD` form.
-
-### `GET /api/v1/stream`
-
-Server-sent events. `event: ready` on connect, `event: changed` when something in the
-household changes, and a `: keep-alive` comment every 25 seconds.
-
-**The payload is always `{}`.** It says *that* something changed, never what. On `changed`,
-re-read whatever you care about. Drive `coordinator.async_set_updated_data()` from it and
-keep a slow poll only as a fallback.
-
-No household parameter — the key names one.
-
-## 4a. Response bodies
-
-Generated from the handlers, not from intent.
 
 ### `GET /api/v1/household`
 ```json
 { "household": { "id", "name", "description", "color" },
   "timezone":  { "value": "Europe/London", "source": "key-owner" } }
 ```
-**`household.id` is what your config entry's `unique_id` should be.**
+`household.id` is your config entry's `unique_id`.
 
 ### `GET /api/v1/members`
 ```json
 { "members": [ { "id", "name", "kind", "color", "role", "avatarId", "personId" } ] }
 ```
-`name` is **already resolved** — a display-name override beats the stored name server-side.
-Do not re-derive it. `kind` is `person | pet | other`. `personId` links to `/people`, and is
-reported from this side only. No email, no user id, no sign-in state — deliberately.
+`name` is **already resolved** server-side, including a display-name override. Do not
+re-derive it. No email, no user id, no sign-in state.
 
 ### `GET /api/v1/people`
 ```json
 { "people": [ { "id", "name", "firstName", "lastName", "kind",
                 "relationship", "birthday", "color" } ] }
 ```
-`birthday` is a **date string, never an instant**, and may be the year-less `--MM-DD` form.
-`firstName` / `lastName` may be null — a pet has no surname.
 
 ### `GET /api/v1/events`
 ```json
 { "occurrences": [ {
     "id": "{eventId}:{occurrenceKey}", "eventId", "occurrenceKey",
-    "title", "description", "location", "icon",
-    "isAllDay": false,
+    "title", "description", "location", "icon", "isAllDay",
     "start": "2026-08-07T09:00:00.000Z", "end": "…", "timezone": "Europe/London",
-    "repeats": true, "importance", "travelMinutes",
-    "attendeeIds": ["membershipId", …]
-} ] }
+    "repeats": true, "importance", "travelMinutes", "attendeeIds": [] } ] }
 ```
-Arrives sorted by `start`. `repeats` is a boolean — the RRULE is never exposed.
+Sorted by `start`. One object **per occurrence, not per rule** — the server expands
+recurrence; do not re-derive it. `repeats` is a boolean; the RRULE is never exposed.
 
 **`start` and `end` are always instants, including when `isAllDay` is true**, and `timezone`
-is the event's own authored zone. Home Assistant requires an all-day `CalendarEvent` to carry
-`date` objects and a timed one to carry `datetime` — both ends the same type. **Derive the
-all-day date using the event's `timezone`, never the viewer's and never UTC.** Converting in
-the wrong zone is exactly how a birthday moves a day.
+is the event's own authored zone. Derive an all-day date **in that zone** — never the
+viewer's, never UTC.
 
-**An occurrence with an empty `attendeeIds` belongs to the whole household** and is never
+**An all-day `end` is exclusive**: a one-day event on the 11th ends `2026-08-12`.
+
+**An occurrence with empty `attendeeIds` belongs to the whole household** and is never
 filtered out by `?member=`.
+
+**`from` and `to` are both inclusive**, `YYYY-MM-DD`, resolved in the key owner's timezone.
+An instant is rejected. **`to = from + 400 days` is accepted; `+401` is not; `from = to` is a
+single day.** *(Corrected 2026-08-08 — the server previously compared elapsed time and
+refused exactly 400. Found by live verification.)*
 
 ### `GET /api/v1/lists`
 ```json
@@ -178,61 +128,152 @@ filtered out by `?member=`.
 { "listId",
   "sections": [ { "id", "name", "position" } ],
   "items": [ { "id", "text", "quantity", "notes", "isChecked",
-               "sectionId", "position", "dueAt", "assignedMembershipId" } ] }
+               "sectionId", "position", "due", "assignedMembershipId" } ] }
 ```
-Both arrays arrive **pre-sorted by `position`, which is a fractional index — a STRING.**
-Compare it as a string; parsing it as a number gives an order nobody arranged. `sectionId` is
-null for an item not in a section. `dueAt` is an ISO instant or null.
+Pre-sorted by `position` — **a fractional index, a STRING.** Compare as a string; never parse
+it as a number.
 
+**`due` replaced `dueAt` on 2026-08-08. Breaking, and deliberate** — it closes GAP-002. The
+form carries the meaning:
 
-## 5. Unknown fields are rejected, not ignored
+| Value | Means |
+|---|---|
+| `"2026-08-11"` | due that **day** |
+| `"2026-08-11T18:00:00.000Z"` | due at that **moment** |
+| `null` | no due date |
 
-Send a field that is unknown or not writable and you get **400 naming the field**.
+There is no separate boolean, because a boolean beside the value has a state where the two
+disagree.
 
-This differs from Calendora's internal protocol, which silently drops them. A silent drop is
-invisible to a third party — it looks like a successful save and the user reports it against
-the wrong project.
+### `GET /api/v1/stream`
+SSE. `event: ready` on connect, `event: changed` when something changes, `: keep-alive` every
+25s. **Payload is always `{}`** — it says *that* something changed, never what. Re-read on
+`changed`. No household parameter.
 
-**Do not send fields speculatively.** Send what the endpoint documents.
+## 5. Types
 
-## 6. What these routes deliberately do not carry
+| Field | Type | Notes |
+|---|---|---|
+| every id, `attendeeIds[]` | `string` | Opaque. Do not parse |
+| `name`, `title`, `text` | `string` | Never null, never empty |
+| `description`, `location`, `notes`, `quantity`, `icon`, `color`, `relationship`, `firstName`, `lastName` | `string \| null` | Null means not set |
+| `kind` | `"person" \| "pet" \| "other"` | |
+| `role` | `"owner" \| "admin" \| "member" \| "guest"` | |
+| `type` (lists) | `"shopping" \| "todo" \| "packing" \| "checklist" \| "custom"` | |
+| `isAllDay`, `repeats`, `isChecked`, `isArchived` | `boolean` | Never null |
+| `importance` | `integer 1–10 \| null` | **Null is not zero and not "normal"** |
+| `travelMinutes` | `integer ≥ 0 \| null` | Whole minutes |
+| `start`, `end` | `string` | ISO instant, always — even when `isAllDay` |
+| `timezone` | `string` | IANA name |
+| `birthday` | `string \| null` | `YYYY-MM-DD` **or** year-less `--MM-DD`. Never an instant |
+| `due` | `string \| null` | Date **or** instant — the form is the meaning |
+| `position` | `string` | Fractional index. **Never parse as a number** |
 
-- **No email, user id or sign-in state** on `/members`
-- **No `notes`** on `/people` — free text a family writes about a person has no integration
-  use and is only ever read by accident once it is on a wire
+## 6. Write semantics — read this before any write
 
-If you find yourself wanting either, that is a gap, not an oversight to work around.
+> **Partial. An omitted field is untouched. An explicit `null` clears.
+> Never read-merge-write.**
 
-## 7. Not built yet
+RFC 7386 JSON Merge Patch. Consequences you must know:
 
-- **Writes** — events and list items. Coming; do not design around their absence permanently.
-- **`GET /api/v1/events/{id}/leave-by`**
-- **`POST /api/v1/presence`** — designed, and **blocked pending a product decision** on
-  retention, syncability and per-member opt-out. It is the most sensitive data Calendora
-  will ever hold. Building it before those are settled is a contract violation, not
-  initiative.
+- **Send only what you are changing.** Sending a field back unchanged is not harmful, but it
+  makes your write authoritative over it — so a concurrent edit by somebody else loses.
+- **`null` is a value, not an absence.** `{"location": null}` clears it; `{}` leaves it alone.
+- **An unknown field is a 400 that names it.** Unknown is an error; absent is "no change".
+  The two are never confused. **Do not send fields speculatively.**
+- **A `PATCH` body of `{}` is a 400.** A well-formed request that changes nothing is
+  indistinguishable from success.
+- **`PATCH` on a row that does not exist is a 404**, not an insert.
+- **`updatedAt` is the server's, always.** You cannot backdate a write to win a conflict.
 
-## 8. Not available, and not coming
+## 7. Writes
 
-Do not ask for, infer, probe for, or build against:
+`position`, `creatorId`, `actor` and the RRULE **never appear in a write body.**
 
-- **The sync protocol** (`/api/sync/*`). First-party clients only. It is replication, not an
-  API, and it is explicitly out of bounds.
-- **Identity** — sessions, passkeys, invitation tokens.
-- **Impersonation and support tooling.**
-- **The personal Second Brain.** Private is a *retrieval* rule; a third-party API is a
-  retrieval path. No scope grants it, now or ever.
-- **The household activity log.** Server-only by design, never synced, and the
-  household-level view is server-rendered HTML. If you need it, **file a gap. Do not scrape
-  it.**
-- **The ICS feed** (`/api/feeds/{token}`). Superseded by these routes and now a prohibited
-  surface.
+### `POST /api/v1/lists/{id}/items` → `201 {"id"}`
+```json
+{ "id": "optional", "text": "Milk", "quantity": "2", "notes": null,
+  "isChecked": false, "due": "2026-09-03" | "2026-09-03T14:30:00.000Z" | null,
+  "sectionId": null, "assignedMembershipId": null }
+```
+**Send an `id`.** It is honoured when present. A request that times out cannot be
+distinguished from a lost reply, and a retry without an id creates the item twice.
 
-## 9. Security expectations of this integration
+`position` is **computed here and rejected if sent.**
 
-- The API key is a secret. Not in logs, not in diagnostics, not in issue templates, not in
-  debug output. Redact it from any config-entry diagnostics you implement.
-- The Home Assistant webhook id, if you register one, **is itself a credential** — generate
-  it with `webhook.async_generate_id()` and never derive it from a household id, a user id,
-  or anything else guessable.
-- No real household data in screenshots, test fixtures, or example YAML in this public repo.
+A day-form `due` is anchored at **9am** in the caller's zone, not midnight — "due Thursday"
+means during Thursday.
+
+### `PATCH /api/v1/lists/{id}/items/{itemId}` → `200 {"id"}`
+Same fields minus `id`. `{}` is a 400.
+
+Setting `isChecked` stamps `checkedAt` with it. **Both ids are checked against each other** —
+an item that exists but is on a different list answers 404.
+
+### `DELETE /api/v1/lists/{id}/items/{itemId}` → `200 {"id","deleted":true}`
+A tombstone, never a hard delete.
+
+### `POST /api/v1/events` → `201 {"id"}`
+```json
+{ "id": "optional", "title": "Bin day",
+  "start": "2026-08-11" | "2026-08-11T07:00:00.000Z",
+  "end":   "2026-08-12" | "2026-08-11T07:15:00.000Z",
+  "timezone": "Europe/London", "isAllDay": true,
+  "description": null, "location": null, "icon": null,
+  "importance": 5, "travelMinutes": 20 }
+```
+**`start` and `end` say whether they are days or moments by their FORM.** A date is a day, an
+instant is a moment. Mixing the two is a 400. Send `isAllDay` only if you want it checked — a
+value disagreeing with the form is a 400, not a silent choice.
+
+This closes a trap: a client meaning "all day on the 11th" naturally sends
+`2026-08-11T00:00:00Z`, which in a New York event's own zone is the evening of the **tenth**.
+A date has no such reading.
+
+An all-day `end` is exclusive. An end at or before the start is nudged up a day.
+`title` cannot be empty. `importance` is 1–10.
+
+### `PATCH /api/v1/events/{id}` → `200 {"id"}`
+Same fields minus `id`. `{}` is a 400.
+
+**`{id}` is the SERIES id. An occurrence id is refused by name.** `GET` hands you
+`{eventId}:{occurrenceKey}`, so PATCHing what you were given is the obvious move — and taking
+it to mean the series would move every Tuesday of somebody's year. **Editing one occurrence
+of a repeat is not exposed here.**
+
+### `DELETE /api/v1/events/{id}` → `200 {"id","deleted":true}`
+A tombstone. **A repeating event is refused, 400** — the scope description promises it cannot
+delete a whole series, and that has to stay true.
+
+## 8. Attribution
+
+Every write is attributed to the **integration**, never to the person who connected it. The
+key's own label is the name: *"Added by Home Assistant, connected by Mike"*.
+
+A behaviour worth knowing: **the person who connected the integration is notified about its
+writes.** They set up an automation; they did not add this event.
+
+## 9. Reordering is a deliberate non-goal
+
+**There is no move endpoint, there will not be one, and `position` never appears in a write
+body.** Home Assistant's list is flat; Calendora's sections are shops. A drag either silently
+changes which shop an item is bought at, or snaps back — and reordering is the only
+capability whose absence costs a user nothing they can see.
+
+Order comes back already sorted. Render it; do not compute it.
+
+## 10. Not available, and not coming
+
+The sync protocol (`/api/sync/*`) · identity, sessions, passkeys, invitation tokens ·
+impersonation · the personal Second Brain · the household activity log (**file a gap, do not
+scrape**) · the ICS feed (`/api/feeds/{token}`) — superseded and prohibited.
+
+**`POST /api/v1/presence`** remains designed and **blocked** pending a decision on retention,
+syncability and per-member opt-out.
+
+## 11. Security expectations
+
+The API key is a secret: not in logs, diagnostics, issue templates or debug output. A Home
+Assistant webhook id **is itself a credential** — `webhook.async_generate_id()`, never
+derived from anything guessable. No real household data in screenshots, fixtures or example
+YAML in this public repo.
