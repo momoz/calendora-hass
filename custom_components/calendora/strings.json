@@ -60,5 +60,12 @@
     "unexpected_response": {
       "message": "Calendora returned data in an unexpected shape. This is a bug — please report it at the issue tracker."
     }
+  },
+  "entity": {
+    "sensor": {
+      "next_event": {
+        "name": "{member} next event"
+      }
+    }
   }
 }

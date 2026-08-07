@@ -1,0 +1,7 @@
+{
+  "members": [
+    { "id": "mem-1", "name": "Alex", "kind": "person", "color": "#1e6a8c", "role": "adult", "avatarId": null, "personId": "per-1" },
+    { "id": "mem-2", "name": "Robin", "kind": "person", "color": "#8c1e6a", "role": "child", "avatarId": null, "personId": "per-2" },
+    { "id": "mem-3", "name": "Biscuit", "kind": "pet", "color": "#6a8c1e", "role": null, "avatarId": null, "personId": "per-3" }
+  ]
+}

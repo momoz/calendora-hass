@@ -24,16 +24,122 @@ needs permission to read your household and your calendar.
 > support chat. If it ever gets out, revoke it in Calendora and use
 > **Reconfigure** here to enter a new one.
 
+## What you get
+
+**A calendar for the household, and one for each person in it.**
+
+| Entity | What it shows |
+|---|---|
+| `calendar.<household>` | everything the household has on |
+| `calendar.<household>_<name>` | one person's events, **plus everything shared** |
+| `sensor.<household>_<name>_next_event` | when that person's next event starts |
+
+Pets get a calendar too, if they are members of your household in Calendora —
+vet appointments are events like any other.
+
+Use them like any other Home Assistant calendar. Put one on a dashboard, or
+trigger an automation:
+
+```yaml
+automation:
+  - triggers:
+      - trigger: calendar
+        entity_id: calendar.our_house_robin
+        event: start
+        offset: "-00:30:00"
+    actions:
+      - action: notify.mobile_app_robins_phone
+        data:
+          message: "Starting in half an hour: {{ trigger.calendar_event.summary }}"
+```
+
+The next-event sensors are timestamps, so a countdown card works with no
+templating and an automation can compare them directly:
+
+```yaml
+      - condition: template
+        value_template: >
+          {{ 0 < (states('sensor.our_house_alex_next_event') | as_datetime
+                  - now()).total_seconds() < 3600 }}
+```
+
+Repeating events arrive already expanded, so a weekly swimming lesson triggers
+every week, an occurrence you skipped stays skipped, and one you moved shows at
+its new time.
+
 ## Known limits
+
+Worth knowing before you build automations on this, rather than discovering
+later as flakiness.
+
+### Shared events appear on everybody's calendar
+
+Deliberate, and it surprises people. In Calendora, an event with nobody
+specifically attached belongs to the whole household — the bin collection, the
+school holidays, a family trip. Those appear on **every** person's calendar as
+well as the household one.
+
+There is no "only Robin's own events" calendar, on purpose: the alternative
+silently hides half of family life from each person's view. If you need to tell
+them apart, a shared event shows `shared_with_household: true` on that person's
+next-event sensor.
+
+### It is read-only
+
+Nothing here can create, edit or delete an event, because Calendora's API has no
+way to write one yet. Home Assistant knows, and hides the edit button rather than
+offering one that fails on save. To-do lists are missing for the same reason.
+
+### Changes usually arrive in seconds, occasionally in half an hour
+
+Home Assistant holds a live connection to Calendora, so a change made on
+someone's phone normally shows up within seconds. If that connection drops it
+reconnects on its own, waiting longer between attempts up to five minutes.
+Underneath it all there is a slow check every 30 minutes as a safety net — so in
+the worst case, where the live connection is broken and cannot re-establish, you
+are looking at data up to half an hour old rather than at nothing.
+
+If you are timing something tightly, build on the calendar trigger rather than
+on polling a sensor.
+
+### The next-event sensor skips what is already happening
+
+`next_event` is the next event to **start**. An event already under way is not
+upcoming, so it is not reported — otherwise a countdown card would count upward.
+For "what is on right now", use the calendar entity, which is `on` during an
+event.
+
+### How much calendar is loaded
+
+Roughly the last month and the next year are kept ready. Browse further out in
+the UI and that window is fetched on demand, up to 400 days per request —
+Calendora refuses a longer range outright rather than quietly returning part of
+it and letting you believe the rest is empty.
+
+### Removing someone from your household
+
+Their calendar and sensor become **unavailable** rather than vanishing. If an
+automation names an entity, a silent disappearance becomes a confusing error
+much later. Delete them yourself from Settings → Devices & Services → Entities
+once you are sure nothing depends on them.
+
+### Updates arrive on HACS's schedule
+
+HACS checks custom repositories for new versions roughly every **48 hours**, and
+nothing changes until you apply one. Assume you may be a version behind for a
+couple of days.
+
+### Phone presence, if you automate on arrival
 
 **iOS monitors a maximum of 20 geofences.** The Home Assistant Companion App
 registers one for every zone you have defined. Past roughly twenty, iOS stops
 monitoring the extras and arrival detection degrades — silently, with no error
-anywhere. If you rely on zone-based automations, keep the zone count small and
-delete ones you no longer use.
+anywhere. A family app tempts you into a lot of zones; keep the count small and
+delete the ones you no longer use.
 
-**There is no CarPlay or Bluetooth-connection sensor on iOS.** That sensor is
-Android-only. Use `sensor.<device>_activity` == `Automotive` to detect driving.
+**There is no CarPlay or Bluetooth-connection sensor on iOS.** That one is
+Android-only. Use `sensor.<device>_activity` == `Automotive` to tell that
+somebody is driving.
 
 **Background location is coarse.** iOS significant-location-change updates are
 roughly every 500 metres or 15 minutes. Precise arrival timing needs a real zone

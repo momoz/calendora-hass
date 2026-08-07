@@ -45,6 +45,12 @@ if TYPE_CHECKING:
 STREAM_RETRY_INITIAL = timedelta(seconds=5)
 STREAM_RETRY_MAX = timedelta(minutes=5)
 
+# Long enough to collapse the burst of identical requests one dashboard render
+# produces across several calendar entities; short enough to never be the reason
+# somebody sees an old event.
+WINDOW_CACHE_SECONDS = 15
+WINDOW_CACHE_MAX = 32
+
 
 @dataclass(slots=True)
 class CalendoraData:
@@ -56,6 +62,9 @@ class CalendoraData:
 
     household_id: str
     household_name: str
+    # §4a: `name` is already resolved server-side — a display-name override beats
+    # the stored name. Never re-derive it from /people.
+    members: list[dict[str, Any]]
     # The key owner's zone, not the household's — §4 is explicit that there is
     # no household timezone, only a per-person preference reported as whose it
     # is. It is used to turn a requested window into the days the API wants.
@@ -79,6 +88,8 @@ class CalendoraDataUpdateCoordinator(DataUpdateCoordinator[CalendoraData]):
             name=DOMAIN,
             update_interval=FALLBACK_POLL_INTERVAL,
         )
+        self._window_cache: dict[tuple[date, date], tuple[float, list[dict[str, Any]]]] = {}
+        self._window_lock = asyncio.Lock()
         self._api_key: str = config_entry.data.get(CONF_API_KEY, "")
         self.client = CalendoraClient(async_get_clientsession(hass), self._api_key)
 
@@ -104,8 +115,9 @@ class CalendoraDataUpdateCoordinator(DataUpdateCoordinator[CalendoraData]):
 
         date_from, date_to = self._window()
         try:
-            household, events = await asyncio.gather(
+            household, members, events = await asyncio.gather(
                 self.client.async_get_household(),
+                self.client.async_get_members(),
                 self.client.async_get_events(date_from, date_to),
             )
         except CalendoraAuthError as err:
@@ -139,7 +151,11 @@ class CalendoraDataUpdateCoordinator(DataUpdateCoordinator[CalendoraData]):
                 translation_key="cannot_connect",
             ) from err
 
-        if not isinstance(household, dict) or not isinstance(events, dict):
+        if (
+            not isinstance(household, dict)
+            or not isinstance(members, dict)
+            or not isinstance(events, dict)
+        ):
             # §4a fixes both shapes as objects. Anything else means the server
             # changed under us, and a clear failure beats an AttributeError
             # surfacing from a dict access three lines later.
@@ -154,9 +170,39 @@ class CalendoraDataUpdateCoordinator(DataUpdateCoordinator[CalendoraData]):
         return CalendoraData(
             household_id=household_data.get("id", ""),
             household_name=household_data.get("name") or "Calendora",
+            members=members.get("members") or [],
             key_owner_timezone=household.get("timezone", {}).get("value") or "UTC",
             occurrences=events.get("occurrences") or [],
         )
+
+    async def async_fetch_window(
+        self, date_from: date, date_to: date
+    ) -> list[dict[str, Any]]:
+        """Fetch occurrences for an arbitrary window, shared between entities.
+
+        Home Assistant asks every calendar entity for the same window at the same
+        moment when a dashboard renders, so without this a household of five
+        makes five identical requests for one month view. Entries are held very
+        briefly — long enough to collapse one render, short enough that nobody is
+        looking at stale data.
+        """
+        key = (date_from, date_to)
+        async with self._window_lock:
+            cached = self._window_cache.get(key)
+            now = self.hass.loop.time()
+            if cached is not None and now - cached[0] < WINDOW_CACHE_SECONDS:
+                return cached[1]
+
+            occurrences = (
+                await self.client.async_get_events(date_from, date_to)
+            ).get("occurrences") or []
+
+            # Bounded so that a user scrubbing through a year of months cannot
+            # grow this without limit.
+            if len(self._window_cache) >= WINDOW_CACHE_MAX:
+                self._window_cache.clear()
+            self._window_cache[key] = (now, occurrences)
+            return occurrences
 
     async def async_run_stream(self) -> None:
         """Hold the stream open and refresh on every `changed`.
@@ -178,6 +224,8 @@ class CalendoraDataUpdateCoordinator(DataUpdateCoordinator[CalendoraData]):
                     delay = STREAM_RETRY_INITIAL
 
                     if event_name == "changed":
+                        async with self._window_lock:
+                            self._window_cache.clear()
                         # The payload is always `{}`; it says something changed,
                         # never what. Re-read rather than trying to be clever.
                         await self.async_request_refresh()

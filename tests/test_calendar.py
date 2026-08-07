@@ -33,6 +33,7 @@ from .const import API_KEY, load_fixture
 ENTITY_ID = "calendar.test_household"
 
 HOUSEHOLD_URL = f"{API_BASE_URL}/api/v1/household"
+MEMBERS_URL = f"{API_BASE_URL}/api/v1/members"
 EVENTS_URL = f"{API_BASE_URL}/api/v1/events"
 STREAM_URL = f"{API_BASE_URL}/api/v1/stream"
 
@@ -46,6 +47,7 @@ async def setup_calendar_fixture(
 ) -> MockConfigEntry:
     """Load the integration against the synthetic household."""
     aioclient_mock.get(HOUSEHOLD_URL, json=load_fixture("household.json"))
+    aioclient_mock.get(MEMBERS_URL, json=load_fixture("members.json"))
     aioclient_mock.get(EVENTS_URL, json=load_fixture("events.json"))
     aioclient_mock.get(STREAM_URL, text="", headers={"Content-Type": "text/event-stream"})
 
@@ -145,6 +147,7 @@ async def test_all_day_date_is_the_events_zone_not_the_viewers(
     await hass.config.async_set_time_zone(time_zone)
 
     aioclient_mock.get(HOUSEHOLD_URL, json=load_fixture("household.json"))
+    aioclient_mock.get(MEMBERS_URL, json=load_fixture("members.json"))
     aioclient_mock.get(EVENTS_URL, json=load_fixture("events.json"))
     aioclient_mock.get(STREAM_URL, text="", headers={"Content-Type": "text/event-stream"})
     entry = MockConfigEntry(

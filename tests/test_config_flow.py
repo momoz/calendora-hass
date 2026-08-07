@@ -15,6 +15,7 @@ from custom_components.calendora.const import API_BASE_URL, CONF_API_KEY, DOMAIN
 from .const import API_KEY
 
 HOUSEHOLD_URL = f"{API_BASE_URL}/api/v1/household"
+MEMBERS_URL = f"{API_BASE_URL}/api/v1/members"
 EVENTS_URL = f"{API_BASE_URL}/api/v1/events"
 STREAM_URL = f"{API_BASE_URL}/api/v1/stream"
 
@@ -29,6 +30,7 @@ def _entry(key: str = API_KEY) -> MockConfigEntry:
 
 def _mock_ok(aioclient_mock: AiohttpClientMocker) -> None:
     aioclient_mock.get(HOUSEHOLD_URL, json={"timezone": {"value": "UTC"}})
+    aioclient_mock.get(MEMBERS_URL, json={"members": []})
     aioclient_mock.get(EVENTS_URL, json=[])
     aioclient_mock.get(STREAM_URL, text="", headers={"Content-Type": "text/event-stream"})
 

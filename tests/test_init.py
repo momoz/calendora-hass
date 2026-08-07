@@ -14,6 +14,7 @@ from custom_components.calendora.const import API_BASE_URL, CONF_API_KEY, DOMAIN
 from .const import API_KEY
 
 HOUSEHOLD_URL = f"{API_BASE_URL}/api/v1/household"
+MEMBERS_URL = f"{API_BASE_URL}/api/v1/members"
 EVENTS_URL = f"{API_BASE_URL}/api/v1/events"
 STREAM_URL = f"{API_BASE_URL}/api/v1/stream"
 
@@ -34,6 +35,7 @@ def _mock_ok(aioclient_mock: AiohttpClientMocker, stream: str = "") -> None:
             "timezone": {"value": "UTC", "source": "key-owner"},
         },
     )
+    aioclient_mock.get(MEMBERS_URL, json={"members": []})
     aioclient_mock.get(
         EVENTS_URL, json={"occurrences": [{"id": "e1:o1", "eventId": "e1"}]}
     )
@@ -90,6 +92,7 @@ async def test_revoked_key_starts_reauth_and_does_not_retry(
     aioclient_mock.get(
         HOUSEHOLD_URL, status=401, json={"error": "no", "code": "unauthenticated"}
     )
+    aioclient_mock.get(MEMBERS_URL, status=401, json={"error": "no", "code": "unauthenticated"})
     aioclient_mock.get(EVENTS_URL, status=401, json={"error": "no", "code": "unauthenticated"})
     aioclient_mock.get(STREAM_URL, status=401, json={"error": "no", "code": "unauthenticated"})
 
@@ -115,6 +118,7 @@ async def test_missing_scope_retries_rather_than_asking_for_a_new_key(
         status=403,
         json={"error": "missing scope: calendar:read", "code": "forbidden"},
     )
+    aioclient_mock.get(MEMBERS_URL, status=403, json={"error": "missing scope: calendar:read", "code": "forbidden"})
     aioclient_mock.get(EVENTS_URL, status=403, json={"error": "missing scope: calendar:read", "code": "forbidden"})
     aioclient_mock.get(STREAM_URL, status=403, json={"error": "nope", "code": "forbidden"})
 
@@ -212,6 +216,7 @@ async def test_setup_failure_never_logs_the_key(
 ) -> None:
     """The failure paths a user is most likely to screenshot must be clean."""
     aioclient_mock.get(HOUSEHOLD_URL, **kwargs)
+    aioclient_mock.get(MEMBERS_URL, **kwargs)
     aioclient_mock.get(EVENTS_URL, **kwargs)
     aioclient_mock.get(STREAM_URL, **kwargs)
 

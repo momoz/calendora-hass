@@ -4,6 +4,24 @@ All notable changes to this integration are recorded here. Versions match the
 `version` field in `custom_components/calendora/manifest.json` and the GitHub tag
 they were released under.
 
+## Unreleased
+
+### Added
+- **A calendar for each member of your household**, alongside the household one.
+  A person's calendar shows their own events *and* everything shared with the
+  whole household — the family trip is on everybody's calendar, not just on the
+  household one where nobody looks.
+- **`sensor.<household>_<name>_next_event`** for each member: when their next
+  event starts, as a timestamp, so a countdown card needs no templating.
+- The README's known-limits section now covers the things worth knowing before
+  you build automations, rather than after.
+
+### Notes
+- Pets get a calendar and a sensor, if they are members in Calendora.
+- There is no "leave by" sensor. The route that would give a real answer is not
+  built, and deriving one from an event's travel time would produce a number
+  that looks authoritative and is not.
+
 ## 0.1.0 — 2026-08-07
 
 Moved to Calendora's API. **You now sign in with an API key instead of a calendar
