@@ -39,6 +39,7 @@ from .const import API_KEY, load_fixture
 HOUSEHOLD_URL = f"{API_BASE_URL}/api/v1/household"
 MEMBERS_URL = f"{API_BASE_URL}/api/v1/members"
 EVENTS_URL = f"{API_BASE_URL}/api/v1/events"
+LISTS_URL = f"{API_BASE_URL}/api/v1/lists"
 STREAM_URL = f"{API_BASE_URL}/api/v1/stream"
 
 HOUSEHOLD_CALENDAR = "calendar.test_household"
@@ -55,6 +56,7 @@ WINDOW = (
 def _mock_all(aioclient_mock: AiohttpClientMocker) -> None:
     aioclient_mock.get(HOUSEHOLD_URL, json=load_fixture("household.json"))
     aioclient_mock.get(MEMBERS_URL, json=load_fixture("members.json"))
+    aioclient_mock.get(LISTS_URL, json={"lists": []})
     aioclient_mock.get(EVENTS_URL, json=load_fixture("events.json"))
     aioclient_mock.get(STREAM_URL, text="", headers={"Content-Type": "text/event-stream"})
 
@@ -68,6 +70,7 @@ async def setup_members_fixture(
     entry = MockConfigEntry(
         domain=DOMAIN, title="Calendora", data={CONF_API_KEY: API_KEY}, version=2
     )
+    aioclient_mock.get(LISTS_URL, json={"lists": []})
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
@@ -203,12 +206,14 @@ async def test_a_member_added_later_gets_a_calendar(
     """A new child in Calendora should not need a Home Assistant restart."""
     aioclient_mock.get(HOUSEHOLD_URL, json=load_fixture("household.json"))
     aioclient_mock.get(MEMBERS_URL, json={"members": load_fixture("members.json")["members"][:1]})
+    aioclient_mock.get(LISTS_URL, json={"lists": []})
     aioclient_mock.get(EVENTS_URL, json=load_fixture("events.json"))
     aioclient_mock.get(STREAM_URL, text="", headers={"Content-Type": "text/event-stream"})
 
     entry = MockConfigEntry(
         domain=DOMAIN, title="Calendora", data={CONF_API_KEY: API_KEY}, version=2
     )
+    aioclient_mock.get(LISTS_URL, json={"lists": []})
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
@@ -234,6 +239,7 @@ async def test_a_removed_member_goes_unavailable_rather_than_vanishing(
     aioclient_mock.clear_requests()
     aioclient_mock.get(HOUSEHOLD_URL, json=load_fixture("household.json"))
     aioclient_mock.get(MEMBERS_URL, json={"members": load_fixture("members.json")["members"][:2]})
+    aioclient_mock.get(LISTS_URL, json={"lists": []})
     aioclient_mock.get(EVENTS_URL, json=load_fixture("events.json"))
 
     await setup_members.runtime_data.async_refresh()

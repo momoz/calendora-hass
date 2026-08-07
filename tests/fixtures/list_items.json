@@ -1,0 +1,17 @@
+{
+  "listId": "lst-1",
+  "sections": [
+    { "id": "sec-1", "name": "Greengrocer", "position": "a0" },
+    { "id": "sec-2", "name": "Chemist", "position": "a1" }
+  ],
+  "items": [
+    { "id": "itm-1", "text": "Apples", "quantity": "6", "notes": null, "isChecked": false,
+      "sectionId": "sec-1", "position": "a0", "due": null, "assignedMembershipId": "mem-1" },
+    { "id": "itm-2", "text": "Toothpaste", "quantity": null, "notes": "the mint one",
+      "isChecked": true, "sectionId": "sec-2", "position": "a1", "due": "2026-09-03",
+      "assignedMembershipId": null },
+    { "id": "itm-3", "text": "Collect prescription", "quantity": null, "notes": null,
+      "isChecked": false, "sectionId": "sec-2", "position": "a2",
+      "due": "2026-09-04T14:30:00.000Z", "assignedMembershipId": null }
+  ]
+}

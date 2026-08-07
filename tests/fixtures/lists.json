@@ -1,0 +1,7 @@
+{
+  "lists": [
+    { "id": "lst-1", "name": "Shopping", "description": null, "type": "shopping", "color": "#1e6a8c", "icon": null, "isArchived": false },
+    { "id": "lst-2", "name": "Packing", "description": null, "type": "packing", "color": "#8c1e6a", "icon": null, "isArchived": false },
+    { "id": "lst-old", "name": "Last year", "description": null, "type": "todo", "color": null, "icon": null, "isArchived": true }
+  ]
+}

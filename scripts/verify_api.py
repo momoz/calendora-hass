@@ -61,7 +61,7 @@ DOCUMENTED = {
     "sections": {"id", "name", "position"},
     "items": {
         "id", "text", "quantity", "notes", "isChecked", "sectionId", "position",
-        "dueAt", "assignedMembershipId",
+        "due", "assignedMembershipId",
     },
 }
 

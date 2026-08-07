@@ -7,6 +7,13 @@ they were released under.
 ## Unreleased
 
 ### Added
+- **Your Calendora lists, and you can change them from Home Assistant.** Tick
+  something off, add "milk", rename an item, set a due date, clear the completed
+  ones. Changes go straight to Calendora and show up on everyone's phone.
+- *"Add milk to the shopping list"* works through Assist with no setup from you,
+  because Home Assistant's built-in list voice commands work on any to-do list.
+- Due dates keep their meaning: "due Thursday" stays a day, "due Thursday at
+  half two" stays a time.
 - **A calendar for each member of your household**, alongside the household one.
   A person's calendar shows their own events *and* everything shared with the
   whole household — the family trip is on everybody's calendar, not just on the
@@ -17,6 +24,14 @@ they were released under.
   you build automations, rather than after.
 
 ### Notes
+- **Ticking an item changes only whether it is ticked.** Home Assistant does not
+  know about an item's quantity, which shop it belongs to, or who it is assigned
+  to — so the integration sends only the fields you actually changed and leaves
+  everything else alone. Two people editing one list do not overwrite each other.
+- **You cannot drag items into a different order**, and that is deliberate. In
+  Calendora a list's sections are shops; dragging in Home Assistant's flat list
+  would either move an item to a different shop without saying so, or snap back.
+- Archived lists are not shown.
 - Pets get a calendar and a sensor, if they are members in Calendora.
 - There is no "leave by" sensor. The route that would give a real answer is not
   built, and deriving one from an event's travel time would produce a number

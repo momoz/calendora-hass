@@ -43,6 +43,7 @@ ENTITY_ID = "calendar.test_household"
 HOUSEHOLD_URL = f"{API_BASE_URL}/api/v1/household"
 MEMBERS_URL = f"{API_BASE_URL}/api/v1/members"
 EVENTS_URL = f"{API_BASE_URL}/api/v1/events"
+LISTS_URL = f"{API_BASE_URL}/api/v1/lists"
 STREAM_URL = f"{API_BASE_URL}/api/v1/stream"
 
 AMSTERDAM = ZoneInfo("Europe/Amsterdam")
@@ -56,12 +57,14 @@ async def setup_calendar_fixture(
     """Load the integration against the synthetic household."""
     aioclient_mock.get(HOUSEHOLD_URL, json=load_fixture("household.json"))
     aioclient_mock.get(MEMBERS_URL, json=load_fixture("members.json"))
+    aioclient_mock.get(LISTS_URL, json={"lists": []})
     aioclient_mock.get(EVENTS_URL, json=load_fixture("events.json"))
     aioclient_mock.get(STREAM_URL, text="", headers={"Content-Type": "text/event-stream"})
 
     entry = MockConfigEntry(
         domain=DOMAIN, title="Calendora", data={CONF_API_KEY: API_KEY}, version=2
     )
+    aioclient_mock.get(LISTS_URL, json={"lists": []})
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
@@ -156,11 +159,13 @@ async def test_all_day_date_is_the_events_zone_not_the_viewers(
 
     aioclient_mock.get(HOUSEHOLD_URL, json=load_fixture("household.json"))
     aioclient_mock.get(MEMBERS_URL, json=load_fixture("members.json"))
+    aioclient_mock.get(LISTS_URL, json={"lists": []})
     aioclient_mock.get(EVENTS_URL, json=load_fixture("events.json"))
     aioclient_mock.get(STREAM_URL, text="", headers={"Content-Type": "text/event-stream"})
     entry = MockConfigEntry(
         domain=DOMAIN, title="Calendora", data={CONF_API_KEY: API_KEY}, version=2
     )
+    aioclient_mock.get(LISTS_URL, json={"lists": []})
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()

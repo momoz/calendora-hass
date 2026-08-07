@@ -65,6 +65,8 @@ class CalendoraData:
     # §4a: `name` is already resolved server-side — a display-name override beats
     # the stored name. Never re-derive it from /people.
     members: list[dict[str, Any]]
+    # {list: {…}, items: [...], sections: [...]} keyed by list id.
+    lists: dict[str, dict[str, Any]]
     # The key owner's zone, not the household's — §4 is explicit that there is
     # no household timezone, only a per-person preference reported as whose it
     # is. It is used to turn a requested window into the days the API wants.
@@ -115,10 +117,22 @@ class CalendoraDataUpdateCoordinator(DataUpdateCoordinator[CalendoraData]):
 
         date_from, date_to = self._window()
         try:
-            household, members, events = await asyncio.gather(
+            household, members, events, lists = await asyncio.gather(
                 self.client.async_get_household(),
                 self.client.async_get_members(),
                 self.client.async_get_events(date_from, date_to),
+                self.client.async_get_lists(),
+            )
+            # One request per list, in parallel. Sequential would make a
+            # household with six lists six round trips deep on every refresh,
+            # and the stream refreshes on every change anybody makes.
+            list_rows = [
+                row
+                for row in (lists.get("lists") or [])
+                if not row.get("isArchived")
+            ]
+            item_payloads = await asyncio.gather(
+                *(self.client.async_get_list_items(row["id"]) for row in list_rows)
             )
         except CalendoraAuthError as err:
             # §3: never retry a 401, never fail silently. This hands the user a
@@ -155,6 +169,7 @@ class CalendoraDataUpdateCoordinator(DataUpdateCoordinator[CalendoraData]):
             not isinstance(household, dict)
             or not isinstance(members, dict)
             or not isinstance(events, dict)
+            or not isinstance(lists, dict)
         ):
             # §4a fixes both shapes as objects. Anything else means the server
             # changed under us, and a clear failure beats an AttributeError
@@ -171,6 +186,14 @@ class CalendoraDataUpdateCoordinator(DataUpdateCoordinator[CalendoraData]):
             household_id=household_data.get("id", ""),
             household_name=household_data.get("name") or "Calendora",
             members=members.get("members") or [],
+            lists={
+                row["id"]: {
+                    "list": row,
+                    "items": payload.get("items") or [],
+                    "sections": payload.get("sections") or [],
+                }
+                for row, payload in zip(list_rows, item_payloads, strict=True)
+            },
             key_owner_timezone=household.get("timezone", {}).get("value") or "UTC",
             occurrences=events.get("occurrences") or [],
         )

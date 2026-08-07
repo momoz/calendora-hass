@@ -16,6 +16,7 @@ from .const import API_KEY
 HOUSEHOLD_URL = f"{API_BASE_URL}/api/v1/household"
 MEMBERS_URL = f"{API_BASE_URL}/api/v1/members"
 EVENTS_URL = f"{API_BASE_URL}/api/v1/events"
+LISTS_URL = f"{API_BASE_URL}/api/v1/lists"
 STREAM_URL = f"{API_BASE_URL}/api/v1/stream"
 
 SSE_HEADERS = {"Content-Type": "text/event-stream"}
@@ -36,9 +37,11 @@ def _mock_ok(aioclient_mock: AiohttpClientMocker, stream: str = "") -> None:
         },
     )
     aioclient_mock.get(MEMBERS_URL, json={"members": []})
+    aioclient_mock.get(LISTS_URL, json={"lists": []})
     aioclient_mock.get(
         EVENTS_URL, json={"occurrences": [{"id": "e1:o1", "eventId": "e1"}]}
     )
+    aioclient_mock.get(LISTS_URL, json={"lists": []})
     aioclient_mock.get(STREAM_URL, text=stream, headers=SSE_HEADERS)
 
 
@@ -93,6 +96,7 @@ async def test_revoked_key_starts_reauth_and_does_not_retry(
         HOUSEHOLD_URL, status=401, json={"error": "no", "code": "unauthenticated"}
     )
     aioclient_mock.get(MEMBERS_URL, status=401, json={"error": "no", "code": "unauthenticated"})
+    aioclient_mock.get(LISTS_URL, status=401, json={"error": "no", "code": "unauthenticated"})
     aioclient_mock.get(EVENTS_URL, status=401, json={"error": "no", "code": "unauthenticated"})
     aioclient_mock.get(STREAM_URL, status=401, json={"error": "no", "code": "unauthenticated"})
 
@@ -107,6 +111,7 @@ async def test_revoked_key_starts_reauth_and_does_not_retry(
         flow["context"]["source"] == "reauth"
         for flow in hass.config_entries.flow.async_progress()
     )
+    aioclient_mock.get(LISTS_URL, json={"lists": []})
 
 
 async def test_missing_scope_retries_rather_than_asking_for_a_new_key(
@@ -119,6 +124,7 @@ async def test_missing_scope_retries_rather_than_asking_for_a_new_key(
         json={"error": "missing scope: calendar:read", "code": "forbidden"},
     )
     aioclient_mock.get(MEMBERS_URL, status=403, json={"error": "missing scope: calendar:read", "code": "forbidden"})
+    aioclient_mock.get(LISTS_URL, status=403, json={"error": "missing scope: calendar:read", "code": "forbidden"})
     aioclient_mock.get(EVENTS_URL, status=403, json={"error": "missing scope: calendar:read", "code": "forbidden"})
     aioclient_mock.get(STREAM_URL, status=403, json={"error": "nope", "code": "forbidden"})
 
@@ -184,6 +190,7 @@ async def test_migration_from_the_feed_entry_drops_the_url(
     entry = _entry(
         version=1, data={"feed_url": "https://calendora.app/api/feeds/old-token"}
     )
+    aioclient_mock.get(LISTS_URL, json={"lists": []})
     entry.add_to_hass(hass)
 
     assert not await hass.config_entries.async_setup(entry.entry_id)
@@ -217,6 +224,7 @@ async def test_setup_failure_never_logs_the_key(
     """The failure paths a user is most likely to screenshot must be clean."""
     aioclient_mock.get(HOUSEHOLD_URL, **kwargs)
     aioclient_mock.get(MEMBERS_URL, **kwargs)
+    aioclient_mock.get(LISTS_URL, **kwargs)
     aioclient_mock.get(EVENTS_URL, **kwargs)
     aioclient_mock.get(STREAM_URL, **kwargs)
 

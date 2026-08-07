@@ -33,6 +33,7 @@ needs permission to read your household and your calendar.
 | `calendar.<household>` | everything the household has on |
 | `calendar.<household>_<name>` | one person's events, **plus everything shared** |
 | `sensor.<household>_<name>_next_event` | when that person's next event starts |
+| `todo.<household>_<list>` | one of your Calendora lists, editable |
 
 Pets get a calendar too, if they are members of your household in Calendora —
 vet appointments are events like any other.
@@ -84,11 +85,24 @@ silently hides half of family life from each person's view. If you need to tell
 them apart, a shared event shows `shared_with_household: true` on that person's
 next-event sensor.
 
-### It is read-only
+### Calendars are read-only; lists are not
 
-Nothing here can create, edit or delete an event, because Calendora's API has no
-way to write one yet. Home Assistant knows, and hides the edit button rather than
-offering one that fails on save. To-do lists are missing for the same reason.
+You can add, tick, rename and delete **list** items from Home Assistant, and
+*"add milk to the shopping list"* works through Assist with no setup.
+
+**Calendar events cannot be changed from here.** Calendora can edit an event
+series through its API, but not a single occurrence of a repeating event — and
+Home Assistant hands an integration the occurrence you clicked on. Wiring those
+together would mean "change this Tuesday" silently moving every Tuesday of the
+year. So no editing capability is declared, and Home Assistant hides the button
+rather than offering one that does something you did not ask for.
+
+### You cannot reorder list items
+
+Deliberate. In Calendora, a list's sections are shops. Home Assistant's list is
+flat, so dragging an item would either move it to a different shop without
+telling you or snap back to where it was. Order comes from Calendora, already
+sorted.
 
 ### Changes usually arrive in seconds, occasionally in half an hour
 

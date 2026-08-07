@@ -59,6 +59,18 @@
     },
     "unexpected_response": {
       "message": "Calendora returned data in an unexpected shape. This is a bug — please report it at the issue tracker."
+    },
+    "item_not_found": {
+      "message": "That item is no longer on the list."
+    },
+    "create_failed": {
+      "message": "Calendora would not add that item: {detail}"
+    },
+    "update_failed": {
+      "message": "Calendora would not save that change: {detail}"
+    },
+    "delete_failed": {
+      "message": "Calendora would not remove that item: {detail}"
     }
   },
   "entity": {

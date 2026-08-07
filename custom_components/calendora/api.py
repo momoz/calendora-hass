@@ -125,20 +125,28 @@ class CalendoraClient:
         """
         return {"Authorization": f"Bearer {self._api_key}", "Accept": accept}
 
-    async def _async_request(
-        self, path: str, params: dict[str, str] | None = None
+    async def _async_send(
+        self,
+        method: str,
+        path: str,
+        *,
+        params: dict[str, str] | None = None,
+        json: dict[str, Any] | None = None,
+        expect: int = HTTPStatus.OK,
     ) -> Any:
-        """Perform one GET and return decoded JSON.
+        """Perform one request and return decoded JSON.
 
         Every failure becomes a `CalendoraError` subclass, and no message raised
         from here contains the key: messages reach logs, and logs reach public
         issue trackers.
         """
         try:
-            response = await self._session.get(
+            response = await self._session.request(
+                method,
                 f"{API_BASE_URL}{path}",
                 headers=self._build_headers(),
                 params=params,
+                json=json,
                 timeout=REQUEST_TIMEOUT,
             )
         except aiohttp.ClientError as err:
@@ -147,7 +155,7 @@ class CalendoraClient:
             raise CalendoraConnectionError("Calendora timed out") from err
 
         async with response:
-            if response.status != HTTPStatus.OK:
+            if response.status != expect:
                 code, message = await self._async_read_error(response)
                 raise _error_for(response.status, code, message)
 
@@ -157,6 +165,12 @@ class CalendoraClient:
                 raise CalendoraResponseError(
                     "Calendora returned something that was not JSON"
                 ) from err
+
+    async def _async_request(
+        self, path: str, params: dict[str, str] | None = None
+    ) -> Any:
+        """Perform one GET and return decoded JSON."""
+        return await self._async_send("GET", path, params=params)
 
     @staticmethod
     async def _async_read_error(
@@ -228,6 +242,54 @@ class CalendoraClient:
         if member_id is not None:
             params["member"] = member_id
         return await self._async_request("/api/v1/events", params)
+
+    # --- writes -------------------------------------------------------------
+    #
+    # §6 is the rule these all obey: **partial, omitted untouched, explicit null
+    # clears, never read-merge-write.** None of these methods takes a "full
+    # item" — they take only what is changing, because a field sent back
+    # unchanged still makes this client authoritative over it and loses somebody
+    # else's concurrent edit.
+
+    async def async_create_list_item(
+        self, list_id: str, item_id: str, fields: dict[str, Any]
+    ) -> Any:
+        """`POST /api/v1/lists/{id}/items` — requires `lists:write`.
+
+        The caller supplies `item_id`. §7 is explicit about why: a request that
+        times out cannot be told apart from a lost reply, and a retry without an
+        id creates the item twice. A client-chosen id makes the retry idempotent.
+
+        `position` is computed server-side and **rejected if sent** (§7), so it
+        is not accepted here at all.
+        """
+        return await self._async_send(
+            "POST",
+            f"/api/v1/lists/{list_id}/items",
+            json={"id": item_id, **fields},
+            expect=HTTPStatus.CREATED,
+        )
+
+    async def async_update_list_item(
+        self, list_id: str, item_id: str, changes: dict[str, Any]
+    ) -> Any:
+        """`PATCH /api/v1/lists/{id}/items/{itemId}` — requires `lists:write`.
+
+        `changes` must contain **only** what is being changed. An empty body is a
+        400 by design (§6) — a well-formed request that changes nothing is
+        indistinguishable from success — so callers must not send one.
+        """
+        if not changes:
+            raise ValueError("a PATCH with no changes is rejected by the API")
+        return await self._async_send(
+            "PATCH", f"/api/v1/lists/{list_id}/items/{item_id}", json=changes
+        )
+
+    async def async_delete_list_item(self, list_id: str, item_id: str) -> Any:
+        """`DELETE /api/v1/lists/{id}/items/{itemId}` — requires `lists:write`."""
+        return await self._async_send(
+            "DELETE", f"/api/v1/lists/{list_id}/items/{item_id}"
+        )
 
     async def async_stream(self) -> AsyncIterator[str]:
         """Yield event names from `GET /api/v1/stream` — requires `household:read`.

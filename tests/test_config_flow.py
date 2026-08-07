@@ -17,6 +17,7 @@ from .const import API_KEY
 HOUSEHOLD_URL = f"{API_BASE_URL}/api/v1/household"
 MEMBERS_URL = f"{API_BASE_URL}/api/v1/members"
 EVENTS_URL = f"{API_BASE_URL}/api/v1/events"
+LISTS_URL = f"{API_BASE_URL}/api/v1/lists"
 STREAM_URL = f"{API_BASE_URL}/api/v1/stream"
 
 NEW_KEY = "cal_test_replacement_key_111111111111111111"
@@ -31,6 +32,7 @@ def _entry(key: str = API_KEY) -> MockConfigEntry:
 def _mock_ok(aioclient_mock: AiohttpClientMocker) -> None:
     aioclient_mock.get(HOUSEHOLD_URL, json={"timezone": {"value": "UTC"}})
     aioclient_mock.get(MEMBERS_URL, json={"members": []})
+    aioclient_mock.get(LISTS_URL, json={"lists": []})
     aioclient_mock.get(EVENTS_URL, json=[])
     aioclient_mock.get(STREAM_URL, text="", headers={"Content-Type": "text/event-stream"})
 
@@ -44,6 +46,7 @@ async def test_user_flow(
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
+    aioclient_mock.get(LISTS_URL, json={"lists": []})
     assert result["type"] is FlowResultType.FORM
     assert result["step_id"] == "user"
 
