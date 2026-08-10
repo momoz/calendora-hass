@@ -77,11 +77,30 @@ its new time.
 Arrive at the shop, your list arrives on your phone, and tapping an item ticks
 it off for everybody.
 
-Settings → Automations → Blueprints → **Import blueprint**, and paste:
+> **Installing Calendora does not set this up.** The blueprint ships inside this
+> integration, but Home Assistant does not know a blueprint exists until you
+> import it yourself, and it does nothing until you build an automation from it.
+> Three separate steps, and the integration can only do the first one for you.
+>
+> This is worth spelling out because for three releases nobody had done steps 2
+> and 3 anywhere, so a blueprint that could not load went unnoticed. Calendora
+> now raises a notice under **Settings → System → Repairs** if it finds the
+> blueprint missing — which you can dismiss if you do not want the shopping
+> notification.
+
+**1. Import it.** Settings → Automations & scenes → Blueprints →
+**Import blueprint**, and paste:
 
 ```
 https://github.com/momoz/calendora-hass/blob/main/blueprints/automation/calendora/shopping_list_on_arrival.yaml
 ```
+
+**2. Create an automation from it** — one per person per shop. Importing a
+blueprint only makes it available; nothing runs until an automation exists.
+
+**3. Check it is enabled**, under Settings → Automations & scenes. An automation
+Home Assistant refuses to load is not listed at all, and the only sign is one
+line in the log — which is exactly how the 0.4.0–0.4.2 breakage stayed invisible.
 
 You will need a zone for the shop, the Companion app on the phone, and one of
 your Calendora lists. Nothing is ticked automatically — the buttons are yours to

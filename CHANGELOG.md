@@ -4,32 +4,39 @@ All notable changes to this integration are recorded here. Versions match the
 `version` field in `custom_components/calendora/manifest.json` and the GitHub tag
 they were released under.
 
-## 0.5.0 — unreleased
+## 0.4.3 — 2026-08-10
 
-Prepared and not tagged. Everything below is on `main` and CI is green; the
-release itself is waiting on a word from Mike, because it carries two features
-he has not seen working yet alongside a fix that everybody needs.
+**Get this one.** Every previous version shipped a shopping blueprint that Home
+Assistant refused to load. Nothing about it worked, anywhere.
+
+Numbered `0.4.3` rather than `0.5.0` on Mike's call: the point of this release is
+to put the fix where HACS can deliver it, and a patch number says that better
+than a minor one, even though two features ride along with it.
 
 ### Fixed
 
-- **The shopping automation never ran at all.** If you imported the shopping
-  blueprint on 0.4.0, 0.4.1 or 0.4.2, arriving at the shop did nothing, and
-  there was no sign of why — Home Assistant rejected the automation when it
-  loaded and wrote a single line about it to the log. Re-import the blueprint
-  from this version and it works.
+- **The shopping automation never ran at all.** On 0.4.0, 0.4.1 and 0.4.2,
+  arriving at the shop did nothing and there was no sign of why — Home Assistant
+  rejected the automation when it loaded and wrote a single line about it to the
+  log. Import the blueprint again from this version and it works.
 
   You will be asked for the dwell time as a duration now rather than a number of
   minutes; two minutes is still the default, and the setting means the same
   thing.
 - **The "confirm when the list is done" switch is named correctly.** If you had
-  turned it on, turn it on again after re-importing. Renaming it costs nothing
-  today only because the automation it belongs to never ran; it would have
-  broken working automations later.
+  turned it on, turn it on again after importing. Renaming it costs nothing today
+  and would have broken working automations later.
 - **"Got these" could tick nothing and say nothing.** On a phone that does not
   send the item list back with the button press, the tap failed silently instead
   of falling back to the items on the card. It now ticks what the card showed.
 
 ### Added
+- **Calendora now tells you if the shopping blueprint was never set up.** A
+  notice appears under Settings → System → Repairs with the address to paste.
+  Installing this integration has never installed the blueprint — Home Assistant
+  only knows about one once you import it by hand — and nothing said so, which is
+  how a blueprint that could not load went unnoticed through three releases.
+  Dismiss it if you do not want the shopping notification.
 - **A tap now gets an answer.** Tick items off from the notification and a fresh
   card comes straight back with what is left, instead of the card simply
   disappearing and leaving you to open the app to find out whether the tap
@@ -79,7 +86,7 @@ list is on your phone — and on your watch, which is where it is meant to be
 read — with buttons to tick things off. Tapping one ticks it in Calendora, so
 everyone else's list updates while you are still in the aisle.
 
-> **None of this worked.** Found on 2026-08-09 and fixed in 0.5.0: the
+> **None of this worked.** Found on 2026-08-09 and fixed in 0.4.3: the
 > automation was rejected by Home Assistant when it loaded, in 0.4.0, 0.4.1 and
 > 0.4.2 alike, so arriving at a shop did nothing at all. The claim below that the
 > dwell was verified on a real Home Assistant was not true of this blueprint.

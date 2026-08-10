@@ -38,9 +38,8 @@ and it becomes a gap.
 
 ## Where things stand
 
-`0.4.2` is the last release, 2026-08-07. **`main` is ahead of it and `0.5.0` is
-prepared but deliberately untagged** — the release decision is Mike's, and the
-case for it is on card #156. 303 tests.
+**`0.4.3`, released 2026-08-10** — the release that makes the shop-arrival
+blueprint work for the first time. 309 tests.
 
 Working: household and per-member calendars, next-event and clash sensors,
 to-do lists with write-back, calendar write-back with `scope`, per-member opt-in.
@@ -50,8 +49,14 @@ Found 2026-08-09: `for: "{{ dwell_minutes }}"` on the arrival trigger meant Home
 Assistant rejected the whole automation when it loaded, in 0.4.0, 0.4.1 and 0.4.2
 alike. Anything you read anywhere describing how the shopping notification
 behaves in a released version is describing something that never ran. Full
-account in `docs/SHOP-ARRIVAL-BUILD-LOG.md`; **anybody testing on a phone must
-re-import the blueprint from `main` first.**
+account in `docs/SHOP-ARRIVAL-BUILD-LOG.md`.
+
+**And it had never been imported into any household** — verified against Mike's
+live Home Assistant on 2026-08-10: 11 automation blueprints installed, none of
+them Calendora's. A HACS integration does not register its own blueprint, so
+there was no step at which anybody would have found out it was broken. Importing
+it is a **first** import, not a re-import, and the integration now raises a
+Repairs notice when it finds the blueprint absent.
 
 Built since: the replacement card on your own tap, and the completion card when
 the list empties.
@@ -97,11 +102,12 @@ the list empties.
 watch, and whether the count is right after a tap are all untested, and the
 design is more exposed on them than on anything in the test suite.
 
-**And until 2026-08-09 it could not have been done.** The automation never
-loaded, so a trip would have produced nothing — most likely read as the zone or
-the dwell being wrong, or the design being wrong, rather than as a bug. Three
+**And until `0.4.3` it could not have been done.** The blueprint had never been
+imported into the household, and the automation it builds could not have loaded
+if it had been. A trip would have produced nothing — most likely read as the zone
+or the dwell being wrong, or the design being wrong, rather than as a bug. Three
 sessions treated this as "nobody has got round to it". It was not runnable.
-Re-import from `main` before going.
+Update in HACS, restart, then import the blueprint before going.
 
 ## Working rhythm that earned its place
 

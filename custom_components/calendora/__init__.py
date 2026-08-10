@@ -6,6 +6,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
+from .blueprint_check import async_check_blueprint_is_imported
 from .const import CONF_API_KEY, LOGGER
 from .coordinator import CalendoraDataUpdateCoordinator
 
@@ -35,6 +36,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: CalendoraConfigEntry) ->
     entry.async_create_background_task(
         hass, coordinator.async_run_stream(), name="calendora stream"
     )
+
+    # Installing this integration does not install its blueprint, and until
+    # 2026-08-10 nothing said so anywhere — which is why three releases shipped
+    # a blueprint that had never been imported into any household and therefore
+    # could not have been noticed to be broken. See `blueprint_check`.
+    await async_check_blueprint_is_imported(hass)
 
     return True
 

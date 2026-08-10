@@ -1,5 +1,18 @@
-<!-- Vendored design spec, from the shop-arrival design package on 2026-08-07.
-     Do not edit here; re-copy from the design source. -->
+<!-- This repository's own document. Edit it here.
+
+     It arrived on 2026-08-07 as a vendored copy of a shop-arrival design
+     package, and carried a header saying to re-copy from
+     `HomeAssistantNotify v2.dc.html` rather than edit it. That file exists
+     nowhere reachable — checked 2026-08-09 across `calendora/docs/design/` and
+     every repository under ~/dev — which made the instruction unenforceable and
+     the document permanently uncorrectable: nobody could edit it, and nobody
+     could replace it either.
+
+     Relabelled by Mike's ruling on 2026-08-10. The design is this repo's now.
+     Build status still does NOT belong here — that is
+     `docs/SHOP-ARRIVAL-BUILD-LOG.md`, and the split stands for its own reason:
+     a specification and a record of what was built from it have different
+     lifetimes. -->
 
 > ## Two places this document is superseded
 >

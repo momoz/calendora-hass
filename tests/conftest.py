@@ -13,6 +13,7 @@ config dir does.
 
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 
 import pytest
@@ -50,3 +51,35 @@ _link_integration_into_test_config()
 def auto_enable_custom_integrations(enable_custom_integrations: None) -> None:
     """Let Home Assistant see this integration in every test."""
     return
+
+
+_TEST_CONFIG_BLUEPRINTS = (
+    Path(pytest_homeassistant_custom_component.__file__).parent
+    / "testing_config"
+    / "blueprints"
+    / "automation"
+    / "calendora"
+)
+
+
+@pytest.fixture(autouse=True)
+def clean_blueprint_directory():
+    """Leave no blueprint behind, and start from none.
+
+    `hass.config.path()` under pytest points into
+    pytest-homeassistant-custom-component's own `testing_config`, which is a
+    **real directory inside site-packages that survives the test run.** A test
+    that installs the blueprint there to exercise it leaves it installed — for
+    every later test in the session, and for every future session on the same
+    machine.
+
+    That matters more than ordinary tidiness here, because the control this
+    repository just gained is *"is the blueprint absent?"*. Litter from one test
+    makes that check answer "present" in a test written to prove it can say
+    "absent" — a false pass on the exact assertion that would have caught the
+    three-release failure. It showed up immediately, which is the only reason
+    this is a fixture rather than a bug.
+    """
+    shutil.rmtree(_TEST_CONFIG_BLUEPRINTS, ignore_errors=True)
+    yield
+    shutil.rmtree(_TEST_CONFIG_BLUEPRINTS, ignore_errors=True)

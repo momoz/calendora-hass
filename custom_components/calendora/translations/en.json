@@ -104,5 +104,11 @@
         }
       }
     }
+  },
+  "issues": {
+    "shopping_blueprint_not_imported": {
+      "title": "The shopping blueprint has not been imported",
+      "description": "Calendora ships a blueprint that sends your shopping list to your phone when you arrive at a shop, but installing this integration does not install it — Home Assistant only knows about a blueprint once you import it yourself.\n\nTo set it up: **Settings → Automations & scenes → Blueprints → Import blueprint**, and paste this address:\n\n{url}\n\nThen create an automation from it, one per person per shop.\n\nIf you do not want the shopping notification, you can safely ignore this."
+    }
   }
 }
