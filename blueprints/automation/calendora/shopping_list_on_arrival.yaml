@@ -87,6 +87,22 @@ blueprint:
       # `notify_leaving_zone.yaml`: pick the device, and use the mobile_app
       # device action, which resolves the notify service from the device's
       # webhook. Exact rather than guessed, and no name to mistype.
+      #
+      # ---------------------------------------------------------------------
+      # THE KEY WAS RENAMED HERE, from `notify_service`, and §0 calls input
+      # keys permanent. **This is not a precedent. Do not read it as one.**
+      #
+      # Home Assistant stores a blueprint automation's answers BY KEY, so a
+      # rename silently breaks every automation built on the old one. It was
+      # free exactly once: saving was the step that failed, so no automation
+      # using `notify_service` could exist in any household, anywhere. That
+      # window shut the moment 0.4.4 worked.
+      #
+      # If you are considering renaming an input key, the question is not
+      # "was one renamed before". It is: **could any household have saved an
+      # automation using the current key?** If the blueprint can be saved at
+      # all, the answer is yes and the answer to the rename is no.
+      # ---------------------------------------------------------------------
       selector:
         device:
           filter:
