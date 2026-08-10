@@ -8,6 +8,21 @@ they were released under.
 
 No tag and no release for this yet — it is on `main` awaiting sign-off.
 
+### Fixed
+
+- **The shopping automation never ran at all.** If you imported the shopping
+  blueprint on 0.4.0, 0.4.1 or 0.4.2, arriving at the shop did nothing, and
+  there was no sign of why — Home Assistant rejected the automation when it
+  loaded and wrote a single line about it to the log. Re-import the blueprint
+  from this version and it works.
+
+  You will be asked for the dwell time as a duration now rather than a number of
+  minutes; two minutes is still the default, and the setting means the same
+  thing.
+- **"Got these" could tick nothing and say nothing.** On a phone that does not
+  send the item list back with the button press, the tap failed silently instead
+  of falling back to the items on the card. It now ticks what the card showed.
+
 ### Added
 - **A tap now gets an answer.** Tick items off from the notification and a fresh
   card comes straight back with what is left, instead of the card simply

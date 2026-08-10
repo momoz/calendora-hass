@@ -595,6 +595,37 @@ goes silent on exactly the long ones the batching question is about. What stays
 open is §5's *shape*: whether a batch should be a section of the shop rather
 than the next five in list order.
 
+### The feature had never run — found 2026-08-09
+
+**Everything above described a blueprint that Home Assistant refused to load.**
+Two bugs, both shipped in 0.4.0–0.4.2, both invisible to a test suite that read
+the YAML rather than running it:
+
+1. **`for: "{{ dwell_minutes }}"` on the arrival trigger.** `for` is validated
+   with `cv.positive_time_period` — a duration, and no template, ever. The
+   automation failed config validation and was discarded, so the symptom was not
+   a wrong dwell but nothing ever happening, which is indistinguishable from
+   nobody having been to a shop yet. Fixed by making the input a duration and
+   passing `!input` straight through.
+2. **`trigger.event.data.action_data.item_ids | default(...)`.** With no
+   `action_data` on the event, the attribute lookup raises before `default` is
+   reached and the whole branch aborts — so the fallback written for the case
+   where the platform omits `action_data` was broken by that exact case. A tap
+   would tick nothing and send nothing. Fixed with `.get(...).get(...)`.
+
+**The lesson is about the tests, not the bugs.** Every guard on this blueprint
+asserted things about the parsed YAML, and a file can be perfectly well-formed
+and still be one Home Assistant will not run.
+`tests/test_shop_blueprint_behaviour.py` now builds the automation inside Home
+Assistant, walks a person into a zone, waits out the dwell and taps the buttons.
+Both fixes are mutation-tested against the exact line that was wrong.
+
+**This also revises what §9 records as device-verified.** The dwell note in the
+blueprint claimed arriving and leaving after thirty seconds never sends and that
+stepping outside restarts the clock. Whatever was verified, it was not this
+blueprint, because this blueprint did not load. Treat the dwell as verified in a
+Home Assistant test and unverified on a phone.
+
 ### Step 3, first half: BUILT 2026-08-09 — the replacement on your own tap
 
 The tap dismissed the card, so something comes back: the same card, against the

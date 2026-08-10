@@ -88,16 +88,20 @@ blueprint:
         petrol stop next door and a drop-off in the car park never trigger it.
 
 
-        Verified on a real Home Assistant: arriving and leaving after thirty
-        seconds never sends, and stepping outside restarts the clock rather than
-        firing early.
-      default: 2
+        Two minutes is the default. Leaving and coming back restarts the clock.
+      # A duration rather than a number of minutes, and this is not cosmetic:
+      # the trigger's `for` is validated with `cv.positive_time_period`, which
+      # takes a duration and NOT a template. A number would be read as seconds.
+      # See the trigger below for what this cost.
+      #
+      # The input KEY is unchanged, so §0's frozen interface is intact — the
+      # same latitude `calendora_member` took when its selector moved from a
+      # text box to an entity picker.
+      default:
+        minutes: 2
       selector:
-        number:
-          min: 1
-          max: 15
-          unit_of_measurement: minutes
-          mode: slider
+        duration:
+          enable_day: false
     revisit_hours:
       name: Don't send again for
       description: >-
@@ -203,7 +207,25 @@ triggers:
       entity_id: !input person
     options:
       zone: !input shop_zone
-      for: "{{ dwell_minutes }}"
+      # `!input` directly, NOT `{{ dwell_minutes }}`.
+      #
+      # This line read `for: "{{ dwell_minutes }}"` from the day the blueprint
+      # was written until 2026-08-09, and in that form **the whole automation
+      # failed to load** — not the dwell, the automation. `for` is validated
+      # with `cv.positive_time_period`, which accepts a duration and no
+      # template at all, so the string was rejected at config validation and
+      # Home Assistant discarded the automation with one line in the log.
+      #
+      # The comment above `variables:` warns that an input a template needs
+      # must be bound to a variable first. That is true and it is not enough:
+      # a trigger cannot see `variables:` either, and this field could not have
+      # taken a template even if it could. There was no version of the template
+      # approach that worked here.
+      #
+      # It went unnoticed because nothing executed the blueprint — every test
+      # read the YAML. `tests/test_shop_blueprint_behaviour.py` now builds the
+      # automation inside Home Assistant, which is what found this.
+      for: !input dwell_minutes
       behavior: each
     id: arrived
 
@@ -393,11 +415,21 @@ actions:
               # the card was built from. That fallback is correct while one
               # message carries the whole list; it stops being correct when
               # batching lands, which is why the payload needs a device test.
+              #
+              # `.get('action_data', {}).get('item_ids')` rather than
+              # `.action_data.item_ids | default(...)`. The dotted form looks
+              # equivalent and is not: with no `action_data` on the event, the
+              # attribute lookup raises before `default` is ever reached, the
+              # whole branch aborts, and a tap ticks NOTHING and sends nothing.
+              # So the fallback that exists for the case where the platform
+              # omits `action_data` was itself broken by that exact case —
+              # written 2026-08-07, found 2026-08-09 by the first test that ran
+              # the blueprint instead of reading it.
               ticking: >-
                 {% if trigger.event.data.action == 'CALENDORA_SHOP_GOT_ALL' %}
                   {{ outstanding | map(attribute='uid') | list }}
                 {% else %}
-                  {{ trigger.event.data.action_data.item_ids
+                  {{ trigger.event.data.get('action_data', {}).get('item_ids')
                      | default(showing | map(attribute='uid') | list, true) }}
                 {% endif %}
 
