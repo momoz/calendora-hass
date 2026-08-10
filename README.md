@@ -87,8 +87,24 @@ You will need a zone for the shop, the Companion app on the phone, and one of
 your Calendora lists. Nothing is ticked automatically — the buttons are yours to
 press.
 
-**Three items by default.** iOS stops showing buttons past about three; Android
-manages more. The rest are counted in the message rather than dropped silently.
+**Five items by default**, adjustable when you import it. The rest are counted in
+the message rather than dropped silently — a long list does not fit a watch face.
+
+**Four buttons, always the same four, in the same order.** On iPhone and Apple
+Watch you get all four; **Android caps at three and drops "Open list"**, which is
+the one you need least there because tapping the card itself already opens it.
+
+**Tell it when the last thing is ticked.** Off by default. Switch on *"Confirm
+when the list is done"* and a single quiet card closes the trip out, instead of
+the list card simply disappearing on your last tap and leaving you unsure it
+took. No buttons, no sound, and it will not wake your watch.
+
+**Leave that one off on Android.** It has no way to arrive quietly there — the
+low-importance notification channel it would need has its importance fixed the
+first time it is created, and cannot be corrected afterwards — so it would buzz
+to tell you the shop is over. That is worse than no card. The blueprint cannot
+tell which kind of phone it is sending to, which is why it defaults to off for
+everybody rather than guessing.
 
 ## The shopping notification on a phone and a watch
 
@@ -223,6 +239,7 @@ stale. It will never keep retrying a rejected key.
 | `custom_components/calendora/` | the integration |
 | `tests/` | the test suite, run by CI on every push |
 | `AGENTS.md` | standing rules for anyone — human or agent — working here |
+| `docs/HANDOVER.md` | where things stand, what is deliberately unbuilt, what is blocked |
 | `CHANGELOG.md` | what changed in each release |
 | `docs/API-SURFACE.md` | the Calendora API surface this integration is allowed to use |
 
