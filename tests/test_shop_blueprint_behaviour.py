@@ -96,7 +96,7 @@ async def _setup(hass: HomeAssistant, *, completion_card: bool = False) -> None:
                         "shop_zone": "zone.the_shop",
                         "todo_entity": TODO_ENTITY,
                         "notify_service": NOTIFY_SERVICE,
-                        "completion_card": completion_card,
+                        "send_completion_card": completion_card,
                     },
                 }
             }

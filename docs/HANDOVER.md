@@ -31,6 +31,7 @@ and it becomes a gap.
 | What the API promises | `docs/API-SURFACE.md` (vendored, do not edit) |
 | Request/response pairs to test against | `fixtures/` (vendored, do not edit) |
 | The shop-arrival design | `docs/DESIGN-shop-arrival.md` (vendored; **carries a supersession note — read it**) |
+| What was built of it, and what was found | `docs/SHOP-ARRIVAL-BUILD-LOG.md` — build status lives here, **not** in the vendored design |
 | What Home Assistant's todo platform needs | `docs/TODO-PLATFORM-REQUIREMENTS.md` |
 | What shipped and when | `CHANGELOG.md` |
 | Device-verified notification facts | the header comment in the blueprint |

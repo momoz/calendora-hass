@@ -114,7 +114,7 @@ blueprint:
           max: 12
           unit_of_measurement: hours
           mode: slider
-    completion_card:
+    send_completion_card:
       name: Confirm when the list is done (iPhone and Apple Watch)
       description: >-
         Sends one silent card when the last item is ticked off, so the trip ends
@@ -132,6 +132,17 @@ blueprint:
 
         Off by default for that reason: the default has to be the one that is
         safe on a phone this blueprint cannot identify.
+      # The key is `send_completion_card` because that is what §0's PERMANENT
+      # table names, and input keys are a public API — an automation built on
+      # the wrong one breaks when it is corrected. This shipped as
+      # `completion_card` and was renamed on 2026-08-09, which cost nothing
+      # only because the blueprint had never loaded in anybody's house. There
+      # was no working automation to break. That window is now closed.
+      #
+      # The DEFAULT differs from §0's `true`, and defaults are explicitly not
+      # permanent. §10.3 is why: there is no completion card on Android, a
+      # blueprint cannot tell which phone it is sending to, and defaulting this
+      # on would hand an Android household the one send that section forbids.
       default: false
       selector:
         boolean:
@@ -189,7 +200,7 @@ variables:
   shop_entity: !input shop_zone
   item_limit: !input batch_size
   revisit_window: !input revisit_hours
-  send_completion_card: !input completion_card
+  send_completion_card: !input send_completion_card
   # One tag for the whole trip, so a shopper never has more than one of these in
   # the shade and every send replaces the last.
   notification_tag: "calendora_shop_{{ person_entity.split('.')[1] }}"

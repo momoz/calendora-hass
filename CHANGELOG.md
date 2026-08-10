@@ -4,9 +4,11 @@ All notable changes to this integration are recorded here. Versions match the
 `version` field in `custom_components/calendora/manifest.json` and the GitHub tag
 they were released under.
 
-## Unreleased
+## 0.5.0 — unreleased
 
-No tag and no release for this yet — it is on `main` awaiting sign-off.
+Prepared and not tagged. Everything below is on `main` and CI is green; the
+release itself is waiting on a word from Mike, because it carries two features
+he has not seen working yet alongside a fix that everybody needs.
 
 ### Fixed
 
@@ -19,6 +21,10 @@ No tag and no release for this yet — it is on `main` awaiting sign-off.
   You will be asked for the dwell time as a duration now rather than a number of
   minutes; two minutes is still the default, and the setting means the same
   thing.
+- **The "confirm when the list is done" switch is named correctly.** If you had
+  turned it on, turn it on again after re-importing. Renaming it costs nothing
+  today only because the automation it belongs to never ran; it would have
+  broken working automations later.
 - **"Got these" could tick nothing and say nothing.** On a phone that does not
   send the item list back with the button press, the tap failed silently instead
   of falling back to the items on the card. It now ticks what the card showed.

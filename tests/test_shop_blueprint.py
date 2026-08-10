@@ -99,8 +99,12 @@ def test_the_completion_card_is_off_by_default(blueprint: dict) -> None:
     at the end of a shop — without ever having chosen it.
     """
     inputs = blueprint["blueprint"]["input"]
-    assert "completion_card" in inputs, "the completion card input is gone"
-    assert inputs["completion_card"]["default"] is False, (
+    assert "send_completion_card" in inputs, (
+        "the completion card input is gone, or is not called what §0's PERMANENT "
+        "table calls it. Input keys are a public API: an automation built on one "
+        "name breaks the day it is corrected."
+    )
+    assert inputs["send_completion_card"]["default"] is False, (
         "the completion card must default to OFF — see DESIGN-shop-arrival.md "
         "§10.3. On Android this card cannot be sent silently, and a buzz to "
         "announce that a shop is over is worse than no card at all."
@@ -291,7 +295,7 @@ async def test_the_anchor_survives_home_assistant_s_own_loader(hass) -> None:
         "dwell_minutes": {"minutes": 2},
         "batch_size": 5,
         "revisit_hours": 2,
-        "completion_card": True,
+        "send_completion_card": True,
         "quiet_from": "21:30:00",
         "quiet_until": "07:00:00",
     }
