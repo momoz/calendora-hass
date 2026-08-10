@@ -582,6 +582,50 @@ next five → tap → next five. **That is the batching experience**, whatever i
 called, and it needs the same product answer rather than only the absence of a
 device test. What is genuinely separable is the *terminal* case below.
 
+**Decided, 2026-08-09 (Mike).** The split is approved. Build the replacement on
+your own tap; leave batching open on the card rather than letting one unanswered
+question park the half that has an answer.
+
+**And the correction above stands as written.** On a list longer than
+`batch_size` the replacement does produce tap → next five → tap → next five, and
+that is the batching experience arriving under another name. It ships that way
+knowingly, because the alternative — a replacement that only fires when the
+remaining list happens to fit one card — is a loop that works on short lists and
+goes silent on exactly the long ones the batching question is about. What stays
+open is §5's *shape*: whether a batch should be a section of the shop rather
+than the next five in list order.
+
+### Step 3, first half: BUILT 2026-08-09 — the replacement on your own tap
+
+The tap dismissed the card, so something comes back: the same card, against the
+list as it stands after the tap, immediately and with no debounce (§6).
+
+**It is one card sent twice, not two cards.** The blueprint sends a YAML anchor,
+`&shop_card`, and the ticking branch aliases it. That is not a tidiness
+preference — two payloads written separately pass every check on the day they
+are written and drift on the first edit that touches one of them, and the drift
+surfaces as a shopper mid-trip tapping a button that the replacement does not
+carry. `tests/test_shop_blueprint.py` asserts the two sends are the *same node*,
+and both halves of that are mutation-tested: removing the replacement fails, and
+expanding the alias into a valid copy fails.
+
+- The ticking branch rebinds `outstanding`, `showing` and `remaining` by
+  subtracting what the tap ticked, then sends the anchor. Same reasoning as the
+  completion card: re-reading the list entity races the state machine.
+- **Not gated on quiet hours.** §7 exists to stop this making a noise for
+  something the person did not do; a replacement answers a tap made a second
+  ago. A shopper still in the shop at 21:31 has not stopped shopping.
+- `interruption-level: active`, per §8 — the list card is active, the completion
+  card is passive.
+
+**Not built with it, and now more load-bearing than before:** §6's trip-stop
+conditions. Nothing implements the 8-push cap or the 90-minute expiry. Every
+replacement is caused by the shopper's own tap, so the loop is bounded by taps
+rather than unbounded — but §6 states a hard stop at eight and there is none.
+Filed rather than built, because a counter needs state a blueprint cannot hold
+without asking the household for a helper entity, and that is a product
+decision.
+
 ### Step 4, first half: BUILT 2026-08-08 — the completion card
 
 **Shipped ahead of step 3, which inverts the build order deliberately.** When a

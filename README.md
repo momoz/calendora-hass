@@ -94,6 +94,12 @@ the message rather than dropped silently — a long list does not fit a watch fa
 Watch you get all four; **Android caps at three and drops "Open list"**, which is
 the one you need least there because tapping the card itself already opens it.
 
+**Every tap gets an answer.** Tapping a button ticks the items off and dismisses
+the card, so a fresh one comes straight back with whatever is still on the list —
+you never have to open the app to find out whether the tap worked. It replaces
+the card you just cleared rather than stacking beside it, so there is only ever
+one of these waiting for you, and the buttons stay where your thumb expects them.
+
 **Tell it when the last thing is ticked.** Off by default. Switch on *"Confirm
 when the list is done"* and a single quiet card closes the trip out, instead of
 the list card simply disappearing on your last tap and leaving you unsure it

@@ -9,6 +9,14 @@ they were released under.
 No tag and no release for this yet — it is on `main` awaiting sign-off.
 
 ### Added
+- **A tap now gets an answer.** Tick items off from the notification and a fresh
+  card comes straight back with what is left, instead of the card simply
+  disappearing and leaving you to open the app to find out whether the tap
+  worked. Nothing to turn on — this is how the shopping notification works now.
+
+  It arrives on the same card as before rather than stacking up a new one, so
+  there is never more than one shopping notification waiting for you, and the
+  buttons are in the same places every time.
 - **The shop now ends with an answer.** Tick the last thing off your list and a
   single quiet card confirms it, instead of the list card simply vanishing and
   leaving you wondering whether the tap took. No buttons, no sound, and on a
