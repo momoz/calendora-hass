@@ -79,6 +79,14 @@ list is on your phone — and on your watch, which is where it is meant to be
 read — with buttons to tick things off. Tapping one ticks it in Calendora, so
 everyone else's list updates while you are still in the aisle.
 
+> **None of this worked.** Found on 2026-08-09 and fixed in 0.5.0: the
+> automation was rejected by Home Assistant when it loaded, in 0.4.0, 0.4.1 and
+> 0.4.2 alike, so arriving at a shop did nothing at all. The claim below that the
+> dwell was verified on a real Home Assistant was not true of this blueprint.
+> Left standing rather than rewritten, because what was believed at the time is
+> part of the record — but do not read the rest of this section as describing
+> something that ran.
+
 ### Added
 - **A blueprint for the shopping trip.** Import it once per person per shop:
   Settings → Automations → Blueprints → Import blueprint.
