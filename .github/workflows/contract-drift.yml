@@ -1,0 +1,49 @@
+name: Contract drift
+
+# `validate.yml` proves this integration matches `docs/API-SURFACE.md`. Calendora's
+# own build proves the server matches its implementation. **Neither proves the
+# document still matches the server** — and the vendored copy here is a snapshot
+# that goes stale silently, in the direction that looks fine: a green build
+# asserting a contract nobody is offering any more.
+#
+# `scripts/verify_api.py` closes that by asking the live server. It is read-only
+# unless `--writes` is passed, and it reports structure only — field names, types,
+# counts, documented invariants — never a title, a name, a date or a key, so its
+# output is safe in a public log.
+#
+# Deliberately NOT part of `validate.yml`: a push must not fail because somebody
+# else's server is briefly down, and a contributor's fork has no key. This runs on
+# a schedule, and skips cleanly wherever the secret is absent.
+
+on:
+  schedule:
+    # Mondays, an hour after the weekly validate run, so a drift report lands
+    # next to a known-good build rather than competing with it.
+    - cron: "0 5 * * 1"
+  workflow_dispatch:
+
+jobs:
+  drift:
+    name: does the document still match the server
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - run: pip install aiohttp
+
+      - name: Check the live API against the vendored document
+        env:
+          # Absent on forks and on any clone that has not been given one. The
+          # step below turns that into a skip rather than a failure, because a
+          # red cross that only means "no key here" trains everybody to ignore
+          # this workflow.
+          CALENDORA_API_KEY: ${{ secrets.CALENDORA_API_KEY }}
+        run: |
+          if [ -z "${CALENDORA_API_KEY}" ]; then
+            echo "::notice::No CALENDORA_API_KEY configured — skipping the drift check."
+            echo "This is expected on forks. See docs/API-SURFACE.md §10."
+            exit 0
+          fi
+          python scripts/verify_api.py

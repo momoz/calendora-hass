@@ -15,6 +15,11 @@ config/
 # Agent tooling — local, not part of the integration
 .claude/
 
+# Local secrets
+.env
+.env.*
+!.env.example
+
 # Internal process docs. These stay on disk and are worked from locally; they
 # describe a private repository's roadmap and working arrangement, and are not
 # this project's business to publish.
