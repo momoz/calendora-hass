@@ -38,21 +38,38 @@ and it becomes a gap.
 
 ## Where things stand
 
-`0.4.2`, released 2026-08-07. Roughly 280 tests.
+`0.4.2` is the last release, 2026-08-07. **`main` is ahead of it and `0.5.0` is
+prepared but deliberately untagged** — the release decision is Mike's, and the
+case for it is on card #156. 303 tests.
 
 Working: household and per-member calendars, next-event and clash sensors,
-to-do lists with write-back, calendar write-back with `scope`, per-member opt-in,
-and the shop-arrival blueprint through its arrival send.
+to-do lists with write-back, calendar write-back with `scope`, per-member opt-in.
+
+**The shop-arrival blueprint did not work in any released version and now does.**
+Found 2026-08-09: `for: "{{ dwell_minutes }}"` on the arrival trigger meant Home
+Assistant rejected the whole automation when it loaded, in 0.4.0, 0.4.1 and 0.4.2
+alike. Anything you read anywhere describing how the shopping notification
+behaves in a released version is describing something that never ran. Full
+account in `docs/SHOP-ARRIVAL-BUILD-LOG.md`; **anybody testing on a phone must
+re-import the blueprint from `main` first.**
+
+Built since: the replacement card on your own tap, and the completion card when
+the list empties.
 
 ## Not built, each for a reason worth keeping
 
-- **Batching** (design §5, "step 3"). Stopped deliberately: nobody knows yet
-  whether a fifteen-item list across four buttons is a real problem. **Blocked
-  anyway** on a device test — see below.
-- **Android low-importance completion channel.** Unverified for want of a
-  working Android device. Channel importance is frozen at creation, so a wrong
-  guess is permanent on that phone. Design says: if it cannot be silent, do not
-  send it on Android at all.
+- **Batching** (design §5, "step 3"). Stopped on a product question: whether a
+  fifteen-item list across four buttons is a problem this household has. The
+  *replacement loop* was split out of that step and shipped; what is open is
+  §5's shape — a batch as a section of the shop rather than the next five.
+- **Android low-importance completion channel.** Closed **by decision, not by
+  test**: Android is out of scope, there is no completion card there, and an
+  Android device turning up does not reopen it. On iOS the card is
+  `interruption-level: passive`, which is per notification and needs no channel.
+- **The trip's own stop conditions.** §6 names an 8-push cap and a 90-minute
+  expiry and neither exists; §0 declares a `max_pushes` input that was never
+  built. Card #151, waiting on Mike — the count needs state a blueprint cannot
+  hold without asking for a helper entity.
 - **`MOVE_TODO_ITEM`.** Never. Calendora's list sections are *shops*; dragging in
   Home Assistant's flat list would silently change where something is bought.
 - **Presence.** Blocked on unmade product decisions, and the scope is not
@@ -65,12 +82,14 @@ and the shop-arrival blueprint through its arrival send.
 ## Blocked on a physical phone, not on effort
 
 1. **Does per-action `action_data` come back on a tap?** The blueprint sends item
-   ids that way per the design. If the platform does not return them, the tick
-   path falls back to re-reading the list — which is correct while one message
-   carries the whole list and **stops being correct the moment batching lands**.
-   Test before step 3, not after.
-2. **Can one automation write to two Android notification channels with
-   different importance?** One test on any working Android phone closes it.
+   ids that way. If the platform omits them the tick falls back to the slice the
+   card showed — which is correct while one message carries the whole list and
+   **stops being correct the moment batching lands**. Note that this fallback was
+   itself broken until 2026-08-09: it raised instead of falling back, so a tap on
+   such a phone ticked nothing and sent nothing. Fixed and tested; still
+   unanswered on a device.
+2. ~~Two Android notification channels from one automation.~~ **Closed by
+   decision**, not by test. Android is out of scope; see above.
 
 ## The most valuable thing nobody has done
 
@@ -78,15 +97,27 @@ and the shop-arrival blueprint through its arrival send.
 watch, and whether the count is right after a tap are all untested, and the
 design is more exposed on them than on anything in the test suite.
 
+**And until 2026-08-09 it could not have been done.** The automation never
+loaded, so a trip would have produced nothing — most likely read as the zone or
+the dwell being wrong, or the design being wrong, rather than as a bug. Three
+sessions treated this as "nobody has got round to it". It was not runnable.
+Re-import from `main` before going.
+
 ## Working rhythm that earned its place
 
 - **Verify, never recall.** Read the installed Home Assistant source rather than
   remembering its API; probe the live server rather than assuming. Anything that
   cannot be checked gets labelled unverified in the report *and* in the code.
-- **Two verification layers beyond the unit tests**, and each has found bugs
-  fixtures cannot: `scripts/verify_api.py` against the live API, and installing
-  into a real Home Assistant before every release. The install check found a
-  debounce bug no unit test could see.
+- **Three verification layers beyond the unit tests**, and each has found bugs
+  fixtures cannot: `scripts/verify_api.py` against the live API; installing into
+  a real Home Assistant before every release; and **executing rather than reading
+  anything Home Assistant interprets**. The install check found a debounce bug no
+  unit test could see. The third layer is newer and has the best hit rate so far
+  — `tests/test_shop_blueprint_behaviour.py` found two shipped bugs on its first
+  run, after every YAML-reading test had passed over both.
+- **A structural test on a document proves it is the document you meant to
+  write.** Only running it proves Home Assistant agrees. That distinction cost
+  three releases.
 - **A declined capability is a gap.** Choosing not to build something because
   the API cannot support it honestly is exactly as reportable as being blocked.
   Both produce the same silence upstream, and the silence is the failure.
