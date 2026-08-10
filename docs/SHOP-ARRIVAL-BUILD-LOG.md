@@ -10,13 +10,30 @@ people amend stops being a vendored copy — it disagrees with its source silent
 which is the failure the whole contract exists to prevent, pointed at a design
 doc instead of a register. Build status goes here from 2026-08-09.
 
-> **Outstanding, and it needs somebody with access to the design source.** The
-> annotations added to `DESIGN-shop-arrival.md` before this file existed are
-> still in it, and they cannot be removed from this side: restoring a vendored
-> copy means re-copying it, and this repository does not have the original. A
-> fresh copy of the design package would let the vendored file go back to being
-> a vendored file, with everything below staying here. Requested rather than
-> done.
+> **Outstanding, and it is a question for Mike rather than a task for anybody.**
+> The annotations added to `DESIGN-shop-arrival.md` before this file existed are
+> still in it. The obvious repair — re-copy the vendored file from its source —
+> **cannot be done, because the source does not appear to exist.** The file's
+> header says to re-copy from the shop-arrival design package, and it names
+> `HomeAssistantNotify v2.dc.html`; `calendora/docs/design/` holds `desktop/`,
+> `ios/`, a README and two unrelated `.dc.html` files, and neither that filename
+> nor any other shop-arrival design is anywhere under `~/dev`. Checked
+> 2026-08-09.
+>
+> That makes the header **unenforceable rather than merely stale**, and following
+> it literally means the document can never be corrected by anyone — a worse
+> outcome than the annotations it was written to prevent.
+>
+> So the question is not "who can supply a fresh copy". It is: does the design
+> package exist somewhere unreachable from this machine — Mike's own files, a
+> design tool, a conversation — or is `DESIGN-shop-arrival.md` **this
+> repository's own document wearing a header that no longer describes it**? If
+> the latter, it should be relabelled, so the next reader stops treating an
+> orphan as a mirror of something.
+>
+> Either way, build status stays here. Status and specification have different
+> lifetimes and belong in different files regardless of where the specification
+> lives.
 
 ---
 
