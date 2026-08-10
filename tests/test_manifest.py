@@ -83,3 +83,46 @@ def test_no_translation_string_contains_a_url() -> None:
         _load("translations/en.json"), "en"
     )
     assert not offenders, "URLs in translation strings: " + "; ".join(offenders)
+
+
+def test_every_key_the_config_flow_emits_exists_in_strings() -> None:
+    """`strings.json` is a document Home Assistant interprets, like the blueprint.
+
+    Nothing here compared it against the code. A missing key does not raise: the
+    user is shown the raw identifier — `missing_scope` — in place of a sentence,
+    and the flow otherwise works, so it survives every test that checks the flow
+    reaches the right step. The existing translation test compares `en.json` to
+    `strings.json`, which keeps two documents in step with each other and says
+    nothing about whether either matches the code.
+
+    Checked 2026-08-09 with nothing missing. Kept for the next error key, which
+    is the one that will be added without a string.
+    """
+    import json
+    import re
+
+    root = Path(__file__).resolve().parents[1] / "custom_components" / "calendora"
+    strings = json.loads((root / "strings.json").read_text(encoding="utf-8"))
+    source = (root / "config_flow.py").read_text(encoding="utf-8")
+
+    def _declared(section: str) -> set[str]:
+        return set(strings.get("config", {}).get(section, {})) | set(
+            strings.get("options", {}).get(section, {})
+        )
+
+    emitted = {
+        "error": set(re.findall(r'errors\[[^\]]*\]\s*=\s*"([a-z_]+)"', source)),
+        "step": set(re.findall(r'step_id="([a-z_]+)"', source)),
+        "abort": set(re.findall(r'reason="([a-z_]+)"', source)),
+    }
+    assert emitted["error"] and emitted["step"], (
+        "found no keys in config_flow.py — the patterns above have gone stale "
+        "and this test is passing while checking nothing"
+    )
+
+    for section, keys in emitted.items():
+        missing = sorted(keys - _declared(section))
+        assert not missing, (
+            f"config_flow.py emits {section} {missing} with no text in "
+            f"strings.json — the user is shown the raw identifier instead"
+        )
