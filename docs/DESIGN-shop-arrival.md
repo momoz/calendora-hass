@@ -215,12 +215,15 @@ Four identifiers, fixed labels, same order every send, on every state including
 the failure card. **Labels never name their contents** — the body does that —
 which is what keeps the set stable while the batch changes.
 
+Listed in shipped order, because the order is part of the contract — the table
+previously read `OPEN_LIST` third and said "fourth slot" two lines later.
+
 | id | Label | Icon | Does |
 |---|---|---|---|
 | `GOT_BATCH` | Got these | `sfsymbols:checkmark` | Ticks the items named in the body |
 | `GOT_ALL` | Got the rest | `sfsymbols:checkmark.circle.fill` | Ticks everything outstanding, ends the trip |
-| `OPEN_LIST` | Open list | `sfsymbols:list.bullet` | Deep link into shopping mode. **iOS only**, fourth slot |
 | `STOP` | Not shopping | `sfsymbols:xmark` | Ends the trip, suppresses this zone for this person until midnight. Ticks nothing |
+| `OPEN_LIST` | Open list | `sfsymbols:list.bullet` | Deep link into shopping mode. **iOS only**, fourth slot |
 
 Android shows the first three; it caps at 3 and drops `OPEN_LIST`, because
 tapping the body already does that and a third of three visible buttons is too
@@ -376,10 +379,11 @@ would cost a quarter of the title to answer a question nobody is asking.
 - `group` and `tag` per person per trip.
 - Importance is fixed at channel creation. Pick it once; changing it later
   requires deleting the channel.
-- **Completion card, unconfirmed.** Intent is a second low-importance channel so
-  it makes no sound. If one automation cannot write to two channels, **do not
-  send it on Android at all.** Silent or nothing — never a compromise at normal
-  importance.
+- **Completion card: not sent on Android. Decided 2026-08-08, not degraded into.**
+  The intent was a second low-importance channel so it makes no sound. That was
+  never verified, Android is out of scope for months, and §10.3 is now the
+  decision rather than the fallback. Silent or nothing — and on Android it is
+  nothing. **Never a compromise at normal importance with quieter copy.**
 
 ### iOS and watchOS
 
@@ -416,17 +420,13 @@ is using. Design for the restricted state; let the unrestricted one be a bonus.
 
 ## 9. Open
 
-1. **Two Android channels from one automation.** Unverified — test device
-   broken. Design degrades by dropping the completion card on Android (§10.3).
-   One test closes it.
-2. **Do real lists carry sections?** §5 leans on it. If the proportion is low,
+**Android is out of scope — weeks to months out, not a target platform (decided
+2026-08-08).** Design for iOS and the watch. Where a decision has an Android
+branch and an iOS branch, **the iOS branch is the product and the Android branch
+is a note for later.** Nothing here waits on an Android device any more.
+
+1. **Do real lists carry sections?** §5 leans on it. If the proportion is low,
    flag before building — the body wants rewriting, not degrading.
-3. **Does the watch long look show content when the phone has previews hidden?**
-   watchOS has its own privacy setting. If it inherits the phone's, §8 gets
-   considerably worse and the wrist stops being the answer.
-4. **The rate limit number.** Eight per trip is comfortable under anything in the
-   low hundreds. Worth knowing what a household of four at three shops a week
-   actually spends.
 
 ### Settled on device — closed
 
@@ -434,6 +434,27 @@ Action buttons dismiss the notification. A same-tag replacement re-alerts and
 updates in place rather than stacking. `sfsymbols:` icons render on iOS actions
 and are not cached. A locked phone with a watch present routes to the watch and
 leaves the phone silent. iOS hides previews on a locked phone by default.
+
+**The push rate limit is 500 per device per day**, resetting at a fixed UTC time,
+counted per phone and separately per platform. A trip capped at eight spends
+under 2% of a day, so the budget is not a design constraint. *(Was open question
+4. Answered without raising a log level on a production instance, which is worth
+remembering next time.)*
+
+**The watch long look does NOT inherit the phone's hidden-previews setting** —
+with previews hidden on a locked phone, the lock-screen card is unreadable while
+the watch shows full content, so the wrist remains the answer §8 relies on.
+**Caveat, and it is the whole of what is unverified here:** watchOS carries its
+own notification privacy setting, so this verifies one configuration rather than
+the default for every user. Design as though it holds; do not state it as
+universal. *(Was open question 3.)*
+
+### Closed by decision, not by test
+
+**Two Android channels from one automation.** Never verified, and now moot:
+Android is out of scope, and §10.3 is adopted as the decision rather than kept as
+a fallback. No completion card on Android. This does not reopen if an Android
+device appears — reopening it is a product decision, not a test result.
 
 ---
 
@@ -485,21 +506,23 @@ one line long.
 `dwell_minutes` is a blueprint input, so a household that finds 2 too twitchy
 can raise it without us shipping anything.
 
-### 10.3 If the Android quiet channel doesn't work
+### 10.3 No completion card on Android
 
-**Unverified. Do not build as though it is confirmed.**
+**Decision, taken 2026-08-08. This is no longer a fallback held in reserve
+against a test — it is what the product does.** Android is out of scope for
+months, the quiet channel was never verified, and a permanent, unverifiable
+guess at a channel importance is not worth carrying.
 
 The completion card is the one send the shopper did not ask for. It exists only
 because the alternative is the card silently vanishing after the last tap and
 the shopper wondering whether it took. That is worth a silent card. It is not
 worth a sound.
 
-**If `calendora_shopping_list_quiet` cannot be written to by the same
-automation, or arrives at normal importance with a sound: do not send the
-completion card on Android at all.** Set `send_completion_card` to false for
-Android targets and ship it that way.
+**Do not send the completion card on Android at all.** `send_completion_card` is
+false for Android targets, and that is the shipped configuration rather than a
+degraded one.
 
-The degradation is acceptable because Android's shade keeps the trip card
+The absence is acceptable because Android's shade keeps the trip card
 visible throughout — the Android shopper has been watching the count go down in
 place, so the absence of a card is a weaker signal there than it would be on
 iOS. A buzz at the end of a shop to announce that the shop is over is precisely
@@ -509,11 +532,14 @@ the notification that gets this feature switched off in week two.
 **do not** fold the confirmation into the last list card — that card is dismissed
 by the tap that completes the list, so there is nothing to fold it into.
 
-iOS is unaffected: interruption level `passive` does the same job, is per
-notification rather than per channel, and needs no verification.
+**iOS is where the completion card lives, and it is unblocked.** Interruption
+level `passive` does the same job the quiet channel was for, is set **per
+notification rather than per channel**, and needs no device verification — so
+nothing about the completion card is waiting on hardware any more. It is
+unbuilt only because it is step 4 (§11).
 
-**One test closes this**, on any working Android phone: fire two notifications
-from one automation to two channel ids and confirm the second is silent.
+**No test is pending against this.** It was closed by decision, not by
+measurement; if an Android device turns up, that does not reopen it.
 
 ---
 
@@ -528,4 +554,51 @@ from one automation to two channel ids and confirm the second is silent.
 5. Shared-list attribution and the added-item push (§2, §6).
 6. Android channel, icon and colour; iOS thread id and passive level (§8).
 
-Steps 1–2 are shippable to one household on their own.
+Steps 1–2 are shippable to one household on their own, and are what ships today.
+
+### Step 3 bundles two things with different blockers — split it
+
+**The replacement loop is not blocked; batching is.** They were written as one
+step and they are not one piece of work:
+
+- **Batching (§5)** is stopped on a product question — whether fifteen items
+  across four buttons is a problem this household actually has — and its
+  correctness depends on the `action_data` device test, because "re-read the
+  list" stops meaning "the items on the card you tapped" once more than one card
+  is in flight.
+- **The replacement on your own tap (§6)** depends on neither. The automation
+  already recomputes `outstanding` from the list on every branch, so a
+  replacement rebuilds from current state and never needs the tap's payload. It
+  is the line §6 calls load-bearing — *the tap dismissed the card; something has
+  to come back* — and today, after a tick, nothing does.
+
+Splitting them makes step 4's completion card reachable too: on iOS it is
+`interruption-level: passive` and needs no verification (§10.3).
+
+**Correction, 2026-08-08.** The split above is real in terms of *blockers* and
+overstated in terms of *outcome*. The arrival card already slices to
+`batch_size` and appends "Then N more", so adding the replacement means tap →
+next five → tap → next five. **That is the batching experience**, whatever it is
+called, and it needs the same product answer rather than only the absence of a
+device test. What is genuinely separable is the *terminal* case below.
+
+### Step 4, first half: BUILT 2026-08-08 — the completion card
+
+**Shipped ahead of step 3, which inverts the build order deliberately.** When a
+tap empties the list — any list that fits one card, and any "Got the rest" on a
+list that does not — the trip is over and something has to come back. That case
+needs no batching decision and no device.
+
+- `interruption-level: passive`, no buttons (§6), no Android channel (§10.3).
+- **Off by default.** A blueprint cannot detect the platform, and defaulting it
+  on would hand an Android household the exact send §10.3 forbids.
+- Computed as `outstanding` minus what this tap ticked, rather than re-reading
+  the list entity. Re-reading races the state machine, and a completion card
+  that fires *sometimes* is worse than one that never fires.
+
+`tests/test_shop_blueprint.py` holds the decisions mechanically: the default is
+off, the card is passive, it carries no buttons, and no second Android channel
+exists anywhere in the blueprint. Each guard was mutation-tested against the
+edit it exists to catch.
+
+**Still unbuilt from step 4:** the failure card (a tick that did not save).

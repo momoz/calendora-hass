@@ -110,6 +110,27 @@ blueprint:
           max: 12
           unit_of_measurement: hours
           mode: slider
+    completion_card:
+      name: Confirm when the list is done (iPhone and Apple Watch)
+      description: >-
+        Sends one silent card when the last item is ticked off, so the trip ends
+        with an answer rather than the list card simply vanishing. No buttons,
+        no sound, no wake — on iOS it arrives at interruption level `passive`,
+        which is set per notification and does not need a channel.
+
+
+        **Leave this off on Android.** Android's equivalent is a second
+        notification channel at low importance, an importance that is frozen
+        when the channel is first created and cannot be corrected afterwards.
+        Without it this card would arrive with a sound, and a buzz at the end of
+        a shop to announce that the shop is over is worse than no card at all.
+
+
+        Off by default for that reason: the default has to be the one that is
+        safe on a phone this blueprint cannot identify.
+      default: false
+      selector:
+        boolean:
     quiet_from:
       name: Quiet from
       description: Nothing is sent after this time.
@@ -140,14 +161,19 @@ blueprint:
 #   - Ticking an already-ticked item is a no-op, not an error. Verified against
 #     the server, because two shoppers tapping the same thing is ordinary.
 #
-# NOT verified: whether one automation can write to two Android notification
-# channels with different importance. Do not add a low-importance completion
-# channel as though it were confirmed.
+# DECIDED, not verified: there is no completion card on Android. Android is out
+# of scope (2026-08-08) and the two-channel question is closed by decision
+# rather than by test — see DESIGN-shop-arrival.md §10.3. Do not add a
+# low-importance completion channel; an Android device turning up does not
+# reopen this. On iOS the completion card is `interruption-level: passive`,
+# which is per notification rather than per channel and needs no verification.
 #
 # NOT verified: whether per-action `action_data` comes back on the tap event.
 # The tick path falls back to re-reading the list when it does not, which is
 # correct while one message carries the whole list. It stops being correct once
-# batching lands, so it needs a device test before then.
+# batching lands, so it needs a device test before then. The replacement card
+# (§6) does NOT depend on it — a replacement rebuilds from `outstanding`, which
+# is recomputed on every branch.
 
 # `!input` is a YAML tag, not a template value: it cannot be used inside {{ }}.
 # Every input a template needs is bound to a variable first. Getting this wrong
@@ -159,6 +185,7 @@ variables:
   shop_entity: !input shop_zone
   item_limit: !input batch_size
   revisit_window: !input revisit_hours
+  send_completion_card: !input completion_card
   # One tag for the whole trip, so a shopper never has more than one of these in
   # the shade and every send replaces the last.
   notification_tag: "calendora_shop_{{ person_entity.split('.')[1] }}"
@@ -267,6 +294,11 @@ actions:
                 # somebody's Focus.
                 push:
                   interruption-level: active
+                  # §8: one thread per person per trip, so a shop does not
+                  # interleave with the door sensor and the washing machine in
+                  # the notification centre. iOS and watchOS only; Android
+                  # groups on `group` below.
+                  thread-id: "{{ notification_tag }}"
                 # On Android the channel is the mute switch, and that is the
                 # point: a family can silence this without silencing their
                 # smart home.
@@ -368,3 +400,58 @@ actions:
                   data:
                     item: "{{ repeat.item }}"
                     status: completed
+
+          # ------------------------------------------------- the trip is over
+          #
+          # DESIGN-shop-arrival.md §10.3. This is the one send the shopper did
+          # not ask for, and it exists for a single reason: the tap DISMISSED
+          # the card. Without this, the last tap of a shop is followed by
+          # nothing at all, and the shopper is left wondering whether it took.
+          # That is worth a silent card. It is not worth a sound.
+          #
+          # Derived from `outstanding` minus what this tap ticked, rather than
+          # re-reading the entity. Re-reading would race the state machine: the
+          # `todo.update_item` calls above have returned, but there is no
+          # guarantee the list entity has settled, and a completion card that
+          # fires only sometimes is worse than one that never fires. Subtracting
+          # is exact for the shopper's own tap, which is the only tap this
+          # branch handles.
+          #
+          # Another shopper ticking concurrently makes this optimistic, never
+          # wrong in the other direction — and §6 already says somebody else's
+          # tick rides your next replacement rather than pushing on its own.
+          - variables:
+              still_outstanding: >-
+                {{ outstanding | rejectattr('uid', 'in', ticking) | list }}
+
+          - if:
+              - condition: template
+                value_template: >-
+                  {{ send_completion_card and still_outstanding | count == 0 }}
+            then:
+              - action: !input notify_service
+                data:
+                  # The whole message is the title, because the title is the
+                  # whole short look on a watch and this card has nothing below
+                  # it worth expanding for.
+                  title: "{{ shop_name }} — that's the lot"
+                  message: "{{ list_name }} is clear."
+                  data:
+                    # Same tag as the trip card, so this REPLACES whatever is
+                    # left in the shade rather than stacking beside it. A
+                    # shopper never has more than one of these.
+                    tag: "{{ notification_tag }}"
+                    subtitle: "{{ list_name }}"
+                    push:
+                      # What the Android quiet channel was for, done per
+                      # notification instead of per channel — no channel to
+                      # create, no importance frozen at creation, nothing to
+                      # verify on a device. §10.3.
+                      interruption-level: passive
+                      # §8: these stack apart from every other Home Assistant
+                      # notification, per person per trip.
+                      thread-id: "{{ notification_tag }}"
+                  # No `actions:` and no `channel:`, both deliberate. §6 —
+                  # "List cleared: one card, no buttons, silent." There is
+                  # nothing left to tick, so a button could only be a way to
+                  # get this wrong.

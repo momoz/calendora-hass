@@ -4,6 +4,27 @@ All notable changes to this integration are recorded here. Versions match the
 `version` field in `custom_components/calendora/manifest.json` and the GitHub tag
 they were released under.
 
+## Unreleased
+
+No tag and no release for this yet — it is on `main` awaiting sign-off.
+
+### Added
+- **The shop now ends with an answer.** Tick the last thing off your list and a
+  single quiet card confirms it, instead of the list card simply vanishing and
+  leaving you wondering whether the tap took. No buttons, no sound, and on a
+  watch it does not raise the screen.
+
+  **Off by default, and on purpose.** Turn it on in the blueprint's options if
+  the phone is an iPhone. On Android this card cannot be sent silently — the
+  quiet notification channel it would need has an importance that is fixed the
+  first time the channel is created and cannot be corrected afterwards — so the
+  card would arrive with a buzz to announce that the shop is over, which is
+  worse than no card at all. The blueprint cannot tell which phone it is
+  sending to, so the default is the one that is safe on either.
+- **Shopping notifications now keep to their own thread on iPhone and Apple
+  Watch**, so a trip does not interleave with the door sensor and the washing
+  machine in your notification centre.
+
 ## 0.4.2 — 2026-08-07
 
 ### Added
