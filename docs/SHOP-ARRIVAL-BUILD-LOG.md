@@ -3,39 +3,90 @@
 What was built, what was found, and what is still not true. This file belongs to
 this repository.
 
-**Why it exists.** `docs/DESIGN-shop-arrival.md` is a vendored copy and its first
-line says *"do not edit here; re-copy from the design source"*. Sessions of this
-agent have been recording build status inside it anyway, and a vendored copy that
-people amend stops being a vendored copy — it disagrees with its source silently,
-which is the failure the whole contract exists to prevent, pointed at a design
-doc instead of a register. Build status goes here from 2026-08-09.
+**Why it exists.** Build status and specification have different lifetimes and
+belong in different files. `docs/DESIGN-shop-arrival.md` says what the shop
+notification should be; this says what was built, what was found, and what is
+still not true.
 
-> **Outstanding, and it is a question for Mike rather than a task for anybody.**
-> The annotations added to `DESIGN-shop-arrival.md` before this file existed are
-> still in it. The obvious repair — re-copy the vendored file from its source —
-> **cannot be done, because the source does not appear to exist.** The file's
-> header says to re-copy from the shop-arrival design package, and it names
-> `HomeAssistantNotify v2.dc.html`; `calendora/docs/design/` holds `desktop/`,
-> `ios/`, a README and two unrelated `.dc.html` files, and neither that filename
-> nor any other shop-arrival design is anywhere under `~/dev`. Checked
-> 2026-08-09.
->
-> That makes the header **unenforceable rather than merely stale**, and following
-> it literally means the document can never be corrected by anyone — a worse
-> outcome than the annotations it was written to prevent.
->
-> So the question is not "who can supply a fresh copy". It is: does the design
-> package exist somewhere unreachable from this machine — Mike's own files, a
-> design tool, a conversation — or is `DESIGN-shop-arrival.md` **this
-> repository's own document wearing a header that no longer describes it**? If
-> the latter, it should be relabelled, so the next reader stops treating an
-> orphan as a mirror of something.
->
-> Either way, build status stays here. Status and specification have different
-> lifetimes and belong in different files regardless of where the specification
-> lives.
+It began for a sharper reason: that file arrived as a vendored copy whose first
+line said *"do not edit here; re-copy from the design source"*, sessions of this
+agent were recording build status inside it anyway, and a vendored copy people
+amend stops being a vendored copy. **That is resolved.** The named source
+(`HomeAssistantNotify v2.dc.html`) exists nowhere reachable — checked across
+`calendora/docs/design/` and every repository under `~/dev` on 2026-08-09 — which
+made the instruction unenforceable and the document permanently uncorrectable.
+Mike relabelled it on 2026-08-10: it is this repository's own document now, and
+its header says so.
+
+The split stands regardless, for the reason in the first paragraph rather than
+because anything forbids editing the design.
 
 ---
+
+## 2026-08-10 — it loaded and could not be configured
+
+`0.4.3` fixed loading. A real household then filled the form in, pressed save,
+and Home Assistant answered:
+
+```
+Message malformed: value should be a string for dictionary value
+  @ data['actions'][1]['choose'][0]['sequence'][0]['action']
+```
+
+**Reproduced locally with an exact string match** on the same path and wording,
+by substituting three shapes and validating each through Home Assistant's
+automation schema: an action-sequence list fails, a bare dict fails, a plain
+service-name string passes.
+
+**The mechanism, and it is worse than a type mismatch.** `notify_service` used
+`selector: action:`. In `homeassistant/helpers/selector.py`, `ActionSelector` is
+*"Selector of an action sequence (script syntax)"* and its validator is
+`return data` — **it validates nothing**, so it accepts any shape and hands it
+straight through. The first thing that objects is the automation schema, at save
+time, in front of the user. Do not assume a selector checks its own output.
+
+**And no selector yields a service name.** All 43 registered types were listed —
+`action addon app area … target template text theme time trigger` — and none is
+service-shaped. So this was never fixable by swapping selectors: `text` produces
+the right type and is forbidden, rightly, because a mistyped service fails
+silently at send time.
+
+**The fix is Home Assistant's own**, from `notify_leaving_zone.yaml`: a `device`
+selector filtered to `integration: mobile_app`, invoked as a **device action**
+(`domain: mobile_app`, `type: notify`, `device_id:`). `mobile_app/device_action.py`
+accepts `message`, optional `title` and optional `data` (`cv.template_complex`),
+and resolves the notify service from the device's webhook — so the rich payload
+survives and there is no name to mistype. Applied at all three call sites; the
+`&shop_card` anchor covers only one of them, and the other two were changed
+explicitly rather than assumed covered.
+
+### The gate that did not exist, and why the one that did was useless
+
+A substitution test **already existed** —
+`test_shop_blueprint.py::test_the_anchor_survives_home_assistant_s_own_loader`,
+written the day before — and it passed throughout. It passed because the values
+were chosen by the person who wrote the code: `notify_service:
+"notify.mobile_app_test_iphone"`, a plain string, the shape the code wants.
+
+**A judge fed by the defendant.** The author is the one participant guaranteed to
+supply inputs the code already handles. The `action` selector produces a list,
+and no test had ever fed it one, because nobody who believed it was a service
+name would think to.
+
+`tests/test_blueprint_configures.py` is the repair. Its rule: **input values are
+derived from the selector each input declares**, never written by hand — and an
+input whose selector it does not recognise **fails** rather than being skipped.
+It validates through `async_validate_config_item`, the same call the UI makes on
+save, so a failure is the message the user would have seen.
+
+It needed a real `mobile_app` device in the registry and seven extra test
+dependencies, listed in `requirements_test.txt` with the reason: without them,
+device-action validation fails with *"Integration 'mobile_app' does not support
+device automation actions"*, which reads like a Home Assistant limitation and is
+actually a missing import.
+
+**Mutation-tested both ways.** Restoring `action: !input` fails the gate with the
+household's own error text.
 
 ## 2026-08-09 — the feature had never run
 

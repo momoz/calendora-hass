@@ -30,7 +30,7 @@
 >
 > **§0's `calendora_member` selector is `text`; the implementation uses an
 > entity picker.** The row directly beneath it forbids `text` for
-> `notify_service` because a typo fails silently at send time — and that
+> `notify_device` because a typo fails silently at send time — and that
 > reasoning is stronger here, not weaker. A mistyped notify target sends to
 > nobody; a mistyped member id resolves to somebody else's opt-in, so a person
 > who declined gets a location-triggered shopping list. The key name is
@@ -81,7 +81,7 @@ the first release.
 | `person` | `entity` (person) | The household member's HA identity. Never inferred |
 | `calendora_member` | `text` | The Calendora member id the person maps to. Mapping is a user decision made once, per `docs/24-HOME-ASSISTANT.md` §4 |
 | `shop_zone` | `entity` (zone) | One blueprint instance per shop |
-| `notify_service` | `action` | Not `text`. A text field invites a typo that fails silently at send time, hours after it was saved; the action selector only offers services that exist. Do not restore it to `text` |
+| `notify_device` | `device` (mobile_app) | Was `notify_service` with an `action` selector until 0.4.4, and that could never work: `ActionSelector` yields an action *sequence*, not a service name, and validates nothing — so the blueprint could not be saved at all. **No Home Assistant selector produces a service name**; all 43 were checked. `text` stays forbidden for the original reason (a typo fails silently at send time). The device action resolves the service from the device's webhook, so there is no name to mistype |
 | `todo_entity` | `entity` (todo) | The shared list |
 | `dwell_minutes` | `number` 1–15 | Default 2 |
 | `quiet_from` / `quiet_until` | `time` | Defaults 21:30 / 07:00 |

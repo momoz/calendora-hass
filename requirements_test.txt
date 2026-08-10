@@ -2,3 +2,22 @@
 # Home Assistant version it tests against, so an unpinned bump would silently
 # change what CI is proving. Raise both together when moving to a new HA.
 pytest-homeassistant-custom-component==0.13.354
+
+# Validating the shopping blueprint means validating a `mobile_app` DEVICE
+# ACTION, and Home Assistant will not validate one without loading the
+# mobile_app integration — which pulls in the voice/media stack behind it.
+# Without these, device-action validation fails with "Integration 'mobile_app'
+# does not support device automation actions", which reads like a Home Assistant
+# limitation and is actually a missing import. That misleading message is the
+# reason they are listed with a comment instead of discovered again later.
+#
+# Unpinned on purpose: they are transitive dependencies of whichever Home
+# Assistant `pytest-homeassistant-custom-component` pins above, so pinning them
+# here would be a second opinion about a version that file already decides.
+PyTurboJPEG
+ha-ffmpeg
+hassil
+home_assistant_intents
+mutagen
+pymicro_vad
+pyspeex_noise

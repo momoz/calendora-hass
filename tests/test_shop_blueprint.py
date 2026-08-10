@@ -64,7 +64,13 @@ def blueprint() -> dict:
 
 
 def _notify_calls(node, found=None) -> list[dict]:
-    """Every `action: <notify service>` call anywhere in the automation.
+    """Every mobile_app notify anywhere in the automation.
+
+    A DEVICE ACTION rather than a service call since 0.4.4 — `domain`, `type`
+    and `device_id` at the step's top level, with `title`, `message` and `data`
+    beside them rather than nested under `data:`. See the blueprint's
+    `notify_device` input for why: no selector in Home Assistant yields a
+    service-name string, so `action: !input …` could never have worked.
 
     Walks the tree instead of indexing a known path, because the shape of
     `choose`/`if`/`repeat` changes as the design grows and a hard-coded path
@@ -72,8 +78,7 @@ def _notify_calls(node, found=None) -> list[dict]:
     """
     found = [] if found is None else found
     if isinstance(node, dict):
-        action = node.get("action")
-        if isinstance(action, InputRef) and action.name == "notify_service":
+        if node.get("domain") == "mobile_app" and node.get("type") == "notify":
             found.append(node)
         for value in node.values():
             _notify_calls(value, found)
@@ -116,14 +121,14 @@ def test_the_completion_card_is_passive_and_has_no_buttons(blueprint: dict) -> N
     passive = [
         call
         for call in _notify_calls(blueprint)
-        if call.get("data", {}).get("data", {}).get("push", {}).get("interruption-level")
+        if call.get("data", {}).get("push", {}).get("interruption-level")
         == "passive"
     ]
     assert len(passive) == 1, (
         f"expected exactly one passive send (the completion card), found {len(passive)}"
     )
 
-    card = passive[0]["data"]["data"]
+    card = passive[0]["data"]
     assert "actions" not in card, (
         "the completion card must carry no buttons (§6) — nothing is left to tick"
     )
@@ -141,7 +146,7 @@ def test_no_second_android_channel_anywhere(blueprint: dict) -> None:
     future edit adding one would be permanent on every device that received it.
     """
     channels = {
-        call.get("data", {}).get("data", {}).get("channel")
+        call.get("data", {}).get("channel")
         for call in _notify_calls(blueprint)
     }
     channels.discard(None)
@@ -167,7 +172,7 @@ def test_the_replacement_is_the_arrival_card_and_not_a_copy(blueprint: dict) -> 
     cards = [
         call
         for call in _notify_calls(blueprint)
-        if call.get("data", {}).get("data", {}).get("actions")
+        if call.get("data", {}).get("actions")
     ]
     assert len(cards) == 2, (
         f"expected the list card to be sent twice — on arrival and as the "
@@ -250,9 +255,9 @@ def test_every_send_that_can_wake_a_phone_declares_its_interruption_level(
     default is the one thing that changes underneath you when an OS updates.
     """
     for call in _notify_calls(blueprint):
-        card = call.get("data", {}).get("data", {})
+        card = call.get("data", {})
         # The clear-notification call carries no content and cannot alert.
-        if call.get("data", {}).get("message") == "clear_notification":
+        if call.get("message") == "clear_notification":
             continue
         level = card.get("push", {}).get("interruption-level")
         assert level in {"active", "passive"}, (
@@ -285,13 +290,13 @@ async def test_the_anchor_survives_home_assistant_s_own_loader(hass) -> None:
         expected_domain="automation",
         schema=BLUEPRINT_SCHEMA,
     )
-    notify_service = "notify.mobile_app_test_iphone"
+    notify_service = "0123456789abcdef0123456789abcdef"  # a device id now
     substitutions = {
         "todo_entity": "todo.shopping",
         "person": "person.test",
         "calendora_member": "sensor.calendora_member_test",
         "shop_zone": "zone.the_shop",
-        "notify_service": notify_service,
+        "notify_device": notify_service,
         "dwell_minutes": {"minutes": 2},
         "batch_size": 5,
         "revisit_hours": 2,
@@ -321,12 +326,16 @@ async def test_the_anchor_survives_home_assistant_s_own_loader(hass) -> None:
         "an `!input` survived substitution — the aliased node was not resolved"
     )
 
-    sends = [node for node in nodes if node.get("action") == notify_service]
+    sends = [
+        node
+        for node in nodes
+        if node.get("domain") == "mobile_app" and node.get("type") == "notify"
+    ]
     assert len(sends) == 4, (
         f"expected four sends after substitution — arrival, clear, replacement, "
         f"completion — found {len(sends)}"
     )
-    with_buttons = [s for s in sends if s.get("data", {}).get("data", {}).get("actions")]
+    with_buttons = [s for s in sends if s.get("data", {}).get("actions")]
     assert len(with_buttons) == 2, "the replacement lost its buttons in substitution"
     assert with_buttons[0]["data"] == with_buttons[1]["data"], (
         "the arrival and the replacement came out of substitution differing"

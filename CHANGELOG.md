@@ -4,6 +4,24 @@ All notable changes to this integration are recorded here. Versions match the
 `version` field in `custom_components/calendora/manifest.json` and the GitHub tag
 they were released under.
 
+## 0.4.4 — 2026-08-10
+
+**0.4.3 could be installed and imported, and then could not be saved.** Filling
+in the shopping blueprint and pressing save gave `Message malformed: value should
+be a string`. This fixes that. Nothing else about 0.4.3 was wrong; you just could
+not get past the form.
+
+### Fixed
+
+- **You can now actually create the shopping automation.** The field that asks
+  which phone to notify was the wrong kind of field — it collected a whole action
+  rather than naming a phone, and Home Assistant rejected the result when you
+  pressed save.
+
+  **It is now a device picker**, listing the phones running the Companion app.
+  If you had got as far as filling the old form in, you will be asked for the
+  phone again; nothing else you chose has changed.
+
 ## 0.4.3 — 2026-08-10
 
 **Get this one.** Every previous version shipped a shopping blueprint that Home

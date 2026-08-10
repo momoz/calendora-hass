@@ -62,13 +62,35 @@ blueprint:
           filter:
             - integration: calendora
               domain: todo
-    notify_service:
+    notify_device:
       name: Their phone
       description: >-
-        The notification action for their phone. If they wear an Apple Watch,
-        this reaches the watch too — and that is the surface this is built for.
+        The phone running the Home Assistant Companion app. If they wear an
+        Apple Watch, this reaches the watch too — and that is the surface this
+        is built for.
+      # A DEVICE, not an action and not a text box, and this is the third
+      # selector this input has had. The reasoning for each rejection matters
+      # more than the answer:
+      #
+      #   `text:`   — forbidden by the design, and rightly: a mistyped service
+      #               name fails silently at send time, hours after it was saved.
+      #   `action:` — what shipped in 0.4.3, and it could never have worked.
+      #               `ActionSelector` is "a selector of an action SEQUENCE",
+      #               and its validator is `return data` — it checks nothing and
+      #               hands back a LIST of action steps. Used under `action:`,
+      #               which needs a service-name string, that is a type error
+      #               Home Assistant only reports when a person presses save.
+      #
+      # There is no selector anywhere in Home Assistant that yields a service
+      # name; all 43 were checked. So the service call was the wrong shape, not
+      # the selector — and the answer is Home Assistant's own, from
+      # `notify_leaving_zone.yaml`: pick the device, and use the mobile_app
+      # device action, which resolves the notify service from the device's
+      # webhook. Exact rather than guessed, and no name to mistype.
       selector:
-        action:
+        device:
+          filter:
+            - integration: mobile_app
     batch_size:
       name: How many items to show
       description: >-
@@ -316,66 +338,72 @@ actions:
           # sends this. That is what the comment at the top of `actions:` means
           # by "a tap acts on the list as it stands".
           - &shop_card
-            action: !input notify_service
+            # `domain`/`type`/`device_id` is a DEVICE ACTION, not a service
+            # call. mobile_app resolves the right notify service from the
+            # device, so nothing here names a service and nothing can mistype
+            # one. `title`, `message` and `data` sit at this level rather than
+            # nested under `data:` — that is the device action's own schema.
+            domain: mobile_app
+            type: notify
+            device_id: !input notify_device
+            # The title must stand alone: it is the whole short look on a
+            # watch, and on a locked iPhone with previews hidden it is all
+            # there is. Nothing load-bearing lives below it.
+            title: >-
+              {{ shop_name }} —
+              {{ 'last one' if outstanding | count == 1
+                 else (outstanding | count) ~ ' things' }}
+            # The second sentence is designed to be cut off. Android collapses
+            # to one line and the watch long look cuts around there, so it is
+            # a separate sentence rather than a clause.
+            message: >-
+              {{ showing | map(attribute='summary') | join(', ') }}.
+              {%- if remaining > 0 %} Then {{ remaining }} more.{% endif %}
             data:
-              # The title must stand alone: it is the whole short look on a
-              # watch, and on a locked iPhone with previews hidden it is all
-              # there is. Nothing load-bearing lives below it.
-              title: >-
-                {{ shop_name }} —
-                {{ 'last one' if outstanding | count == 1
-                   else (outstanding | count) ~ ' things' }}
-              # The second sentence is designed to be cut off. Android collapses
-              # to one line and the watch long look cuts around there, so it is
-              # a separate sentence rather than a clause.
-              message: >-
-                {{ showing | map(attribute='summary') | join(', ') }}.
-                {%- if remaining > 0 %} Then {{ remaining }} more.{% endif %}
-              data:
-                # iOS and watchOS only; Android drops it.
-                subtitle: "{{ list_name }}"
-                tag: "{{ notification_tag }}"
-                group: calendora-shopping
-                # Not time-sensitive. A shopping list is not allowed to break
-                # somebody's Focus.
-                push:
-                  interruption-level: active
-                  # §8: one thread per person per trip, so a shop does not
-                  # interleave with the door sensor and the washing machine in
-                  # the notification centre. iOS and watchOS only; Android
-                  # groups on `group` below.
-                  thread-id: "{{ notification_tag }}"
-                # On Android the channel is the mute switch, and that is the
-                # point: a family can silence this without silencing their
-                # smart home.
-                channel: Shopping list
-                notification_icon: "mdi:cart"
-                # Tapping the card is the iPhone's primary action, because the
-                # expand gesture that reveals buttons is unreliable. The deep
-                # link has to open ready to tick.
-                url: "{{ deep_link }}"
-                clickAction: "{{ deep_link }}"
-                action_data:
-                  item_ids: "{{ showing | map(attribute='uid') | list }}"
-                # Four identifiers, fixed labels, same order every send. Labels
-                # never name their contents — the body does that — which is what
-                # keeps the set stable while the contents change. Android shows
-                # the first three and drops the fourth, which is why the deep
-                # link is also on the card itself.
-                actions:
-                  - action: CALENDORA_SHOP_GOT_BATCH
-                    title: Got these
-                    icon: "sfsymbols:checkmark"
-                  - action: CALENDORA_SHOP_GOT_ALL
-                    title: Got the rest
-                    icon: "sfsymbols:checkmark.circle.fill"
-                  - action: CALENDORA_SHOP_STOP
-                    title: Not shopping
-                    icon: "sfsymbols:xmark"
-                  - action: CALENDORA_SHOP_OPEN
-                    title: Open list
-                    icon: "sfsymbols:list.bullet"
-                    uri: "{{ deep_link }}"
+              # iOS and watchOS only; Android drops it.
+              subtitle: "{{ list_name }}"
+              tag: "{{ notification_tag }}"
+              group: calendora-shopping
+              # Not time-sensitive. A shopping list is not allowed to break
+              # somebody's Focus.
+              push:
+                interruption-level: active
+                # §8: one thread per person per trip, so a shop does not
+                # interleave with the door sensor and the washing machine in
+                # the notification centre. iOS and watchOS only; Android
+                # groups on `group` below.
+                thread-id: "{{ notification_tag }}"
+              # On Android the channel is the mute switch, and that is the
+              # point: a family can silence this without silencing their
+              # smart home.
+              channel: Shopping list
+              notification_icon: "mdi:cart"
+              # Tapping the card is the iPhone's primary action, because the
+              # expand gesture that reveals buttons is unreliable. The deep
+              # link has to open ready to tick.
+              url: "{{ deep_link }}"
+              clickAction: "{{ deep_link }}"
+              action_data:
+                item_ids: "{{ showing | map(attribute='uid') | list }}"
+              # Four identifiers, fixed labels, same order every send. Labels
+              # never name their contents — the body does that — which is what
+              # keeps the set stable while the contents change. Android shows
+              # the first three and drops the fourth, which is why the deep
+              # link is also on the card itself.
+              actions:
+                - action: CALENDORA_SHOP_GOT_BATCH
+                  title: Got these
+                  icon: "sfsymbols:checkmark"
+                - action: CALENDORA_SHOP_GOT_ALL
+                  title: Got the rest
+                  icon: "sfsymbols:checkmark.circle.fill"
+                - action: CALENDORA_SHOP_STOP
+                  title: Not shopping
+                  icon: "sfsymbols:xmark"
+                - action: CALENDORA_SHOP_OPEN
+                  title: Open list
+                  icon: "sfsymbols:list.bullet"
+                  uri: "{{ deep_link }}"
 
       # ------------------------------------------------------------------ stop
       - conditions:
@@ -390,11 +418,12 @@ actions:
         sequence:
           # Clear the card first: the trip is over, and leaving it in the shade
           # invites a tap that no longer means anything.
-          - action: !input notify_service
+          - domain: mobile_app
+            type: notify
+            device_id: !input notify_device
+            message: clear_notification
             data:
-              message: clear_notification
-              data:
-                tag: "{{ notification_tag }}"
+              tag: "{{ notification_tag }}"
 
           # Then sleep until midnight. `mode: single` does the rest — every
           # later trigger at this zone, arrival or tap, is dropped silently
@@ -511,29 +540,30 @@ actions:
                   - condition: template
                     value_template: "{{ send_completion_card }}"
                 then:
-                  - action: !input notify_service
+                  - domain: mobile_app
+                    type: notify
+                    device_id: !input notify_device
+                    # The whole message is the title, because the title is the
+                    # whole short look on a watch and this card has nothing
+                    # below it worth expanding for.
+                    title: "{{ shop_name }} — that's the lot"
+                    message: "{{ list_name }} is clear."
                     data:
-                      # The whole message is the title, because the title is the
-                      # whole short look on a watch and this card has nothing
-                      # below it worth expanding for.
-                      title: "{{ shop_name }} — that's the lot"
-                      message: "{{ list_name }} is clear."
-                      data:
-                        # Same tag as the trip card, so this REPLACES whatever
-                        # is left in the shade rather than stacking beside it. A
-                        # shopper never has more than one of these.
-                        tag: "{{ notification_tag }}"
-                        subtitle: "{{ list_name }}"
-                        push:
-                          # What the Android quiet channel was for, done per
-                          # notification instead of per channel — no channel to
-                          # create, no importance frozen at creation, nothing to
-                          # verify on a device. §10.3.
-                          interruption-level: passive
-                          # §8: these stack apart from every other Home
-                          # Assistant notification, per person per trip.
-                          thread-id: "{{ notification_tag }}"
-                      # No `actions:` and no `channel:`, both deliberate. §6 —
-                      # "List cleared: one card, no buttons, silent." There is
-                      # nothing left to tick, so a button could only be a way to
-                      # get this wrong.
+                      # Same tag as the trip card, so this REPLACES whatever
+                      # is left in the shade rather than stacking beside it. A
+                      # shopper never has more than one of these.
+                      tag: "{{ notification_tag }}"
+                      subtitle: "{{ list_name }}"
+                      push:
+                        # What the Android quiet channel was for, done per
+                        # notification instead of per channel — no channel to
+                        # create, no importance frozen at creation, nothing to
+                        # verify on a device. §10.3.
+                        interruption-level: passive
+                        # §8: these stack apart from every other Home
+                        # Assistant notification, per person per trip.
+                        thread-id: "{{ notification_tag }}"
+                    # No `actions:` and no `channel:`, both deliberate. §6 —
+                    # "List cleared: one card, no buttons, silent." There is
+                    # nothing left to tick, so a button could only be a way to
+                    # get this wrong.
