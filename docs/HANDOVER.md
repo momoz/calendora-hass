@@ -38,8 +38,26 @@ and it becomes a gap.
 
 ## Where things stand
 
-**`0.4.3`, released 2026-08-10** — the release that makes the shop-arrival
-blueprint work for the first time. 309 tests.
+**`0.4.5`, released 2026-08-10.** 313 tests. Five releases in a day, and the
+sequence is the point: 0.4.0–0.4.2 the blueprint would not load, 0.4.3 it loaded
+and could not be saved, 0.4.4 fixed that and its "not imported" notice could
+never be satisfied, 0.4.5 fixed that. **Every one of those was found by a person
+or a live instance, never by CI** — the gates were written afterwards, and each
+one holds.
+
+### Two operational facts that cost time to learn
+
+- **An imported blueprint is a snapshot, and updating the integration does not
+  refresh it.** HACS writes `custom_components/`; the blueprint HA uses is the
+  copy it saved into `blueprints/automation/<github-owner>/` at import time.
+  After any release that changes the blueprint, **import it again over the top**
+  and accept the overwrite (`allow_override`, `blueprint/save`). Deleting first
+  is unnecessary, and worse advice in general: Home Assistant refuses to delete a
+  blueprint that an automation is using.
+- **Making HACS offer a new release takes two steps, and the intuitive one alone
+  does nothing.** `homeassistant.update_entity` on `update.calendora_update` did
+  not move it; the HACS *repository record* has to be refreshed from GitHub first,
+  and then the entity reflects it. I credited `update_entity` once and was wrong.
 
 Working: household and per-member calendars, next-event and clash sensors,
 to-do lists with write-back, calendar write-back with `scope`, per-member opt-in.
