@@ -16,7 +16,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
-from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
+from pytest_homeassistant_custom_component.test_util.aiohttp import (
+    AiohttpClientMocker,
+    AiohttpClientMockResponse,
+)
 
 from custom_components.calendora.calendar import _scope_for, _wire_times
 from custom_components.calendora.const import API_BASE_URL, CONF_API_KEY, DOMAIN
@@ -353,3 +356,126 @@ async def test_member_calendars_can_create_again(
     for entity_id in ("calendar.test_household", "calendar.test_household_robin"):
         supported = hass.states.get(entity_id).attributes["supported_features"]
         assert supported & CalendarEntityFeature.CREATE_EVENT
+
+
+# --- when a second client is writing too ------------------------------------
+#
+# `todo.py` has had these two tests since its retry was written. The calendar's
+# retry is the same shape and had none, which mattered less while Home Assistant
+# was the only thing writing to a household. It stops being true the moment a
+# second client — the iOS app — is editing the same events, and a 409 goes from
+# a code nobody sees to the ordinary result of two people in one evening.
+
+
+async def test_a_calendar_conflict_is_retried_once_against_refreshed_state(
+    hass: HomeAssistant, setup_calendar: MockConfigEntry, aioclient_mock: AiohttpClientMocker
+) -> None:
+    """§7: 409 means the request was right and nothing was applied.
+
+    Retrying is the correct response and it is safe — the second attempt reads
+    the event as it now stands. Treating it as a failure would tell somebody to
+    stop when the answer is to try again.
+    """
+    aioclient_mock.clear_requests()
+    attempts: list[dict] = []
+
+    async def _conflict_then_ok(method, url, data):
+        attempts.append(data)
+        if len(attempts) == 1:
+            return AiohttpClientMockResponse(
+                method, url, status=409,
+                json={"error": "somebody else changed this a moment ago",
+                      "code": "conflict"},
+            )
+        return AiohttpClientMockResponse(
+            method, url, status=200,
+            json={"id": "new-standalone-id", "scope": "this", "result": "changed"},
+        )
+
+    aioclient_mock.patch(f"{EVENTS_URL}/{OCCURRENCE}", side_effect=_conflict_then_ok)
+    _mock_reads(aioclient_mock)
+
+    entity = hass.data["entity_components"]["calendar"].get_entity(ENTITY_ID)
+    await entity.async_update_event(
+        OCCURRENCE,
+        {"summary": "Piano (moved)",
+         "dtstart": datetime(2026, 11, 4, 15, 0, tzinfo=dt_util.UTC),
+         "dtend": datetime(2026, 11, 4, 16, 0, tzinfo=dt_util.UTC)},
+        recurrence_id="2026-11-04",
+        recurrence_range="",
+    )
+
+    assert len(attempts) == 2, "a conflict should be retried exactly once"
+    assert attempts[0] == attempts[1], "the retry must send the same considered change"
+    assert attempts[1]["scope"] == "this", "the retry must not lose the scope"
+
+
+async def test_a_second_calendar_conflict_is_reported_rather_than_looped(
+    hass: HomeAssistant, setup_calendar: MockConfigEntry, aioclient_mock: AiohttpClientMocker
+) -> None:
+    """Retry once, not forever.
+
+    §7 is explicit that retrying in a loop is wrong, because the other writer
+    may still be going. A contested event must surface to the user rather than
+    spin — and a spin here would be invisible, since Home Assistant would show
+    a service call that simply never returns.
+    """
+    aioclient_mock.clear_requests()
+    attempts: list[dict] = []
+
+    async def _always_conflict(method, url, data):
+        attempts.append(data)
+        return AiohttpClientMockResponse(
+            method, url, status=409,
+            json={"error": "somebody else changed this a moment ago",
+                  "code": "conflict"},
+        )
+
+    aioclient_mock.patch(f"{EVENTS_URL}/{OCCURRENCE}", side_effect=_always_conflict)
+    _mock_reads(aioclient_mock)
+
+    entity = hass.data["entity_components"]["calendar"].get_entity(ENTITY_ID)
+    with pytest.raises(HomeAssistantError):
+        await entity.async_update_event(
+            OCCURRENCE,
+            {"summary": "Piano (moved)",
+             "dtstart": datetime(2026, 11, 4, 15, 0, tzinfo=dt_util.UTC),
+             "dtend": datetime(2026, 11, 4, 16, 0, tzinfo=dt_util.UTC)},
+            recurrence_id="2026-11-04",
+            recurrence_range="",
+        )
+
+    assert len(attempts) == 2, "exactly two attempts — the original and one retry"
+
+
+async def test_a_conflict_on_delete_is_retried_too(
+    hass: HomeAssistant, setup_calendar: MockConfigEntry, aioclient_mock: AiohttpClientMocker
+) -> None:
+    """The retry lives in the shared write path, so every write gets it.
+
+    Asserted rather than assumed: a future refactor that moved the retry into
+    the update path alone would leave deletes failing on a code the contract
+    says to retry, and nothing else would notice.
+    """
+    aioclient_mock.clear_requests()
+    calls: list[str] = []
+
+    async def _conflict_then_ok(method, url, data):
+        calls.append(str(url))
+        if len(calls) == 1:
+            return AiohttpClientMockResponse(
+                method, url, status=409,
+                json={"error": "somebody else changed this a moment ago",
+                      "code": "conflict"},
+            )
+        return AiohttpClientMockResponse(
+            method, url, status=200, json={"id": "evt-solo", "deleted": True}
+        )
+
+    aioclient_mock.delete(f"{EVENTS_URL}/evt-solo", side_effect=_conflict_then_ok)
+    _mock_reads(aioclient_mock)
+
+    entity = hass.data["entity_components"]["calendar"].get_entity(ENTITY_ID)
+    await entity.async_delete_event("evt-solo")
+
+    assert len(calls) == 2, "a delete must get the same one retry an update gets"
