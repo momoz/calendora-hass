@@ -53,13 +53,19 @@ def auto_enable_custom_integrations(enable_custom_integrations: None) -> None:
     return
 
 
-_TEST_CONFIG_BLUEPRINTS = (
+_TEST_CONFIG_AUTOMATION_BLUEPRINTS = (
     Path(pytest_homeassistant_custom_component.__file__).parent
     / "testing_config"
     / "blueprints"
     / "automation"
-    / "calendora"
 )
+
+#: Every folder this repository's tests write a blueprint into. `momoz` is where
+#: Home Assistant actually files an imported blueprint — under the GitHub owner —
+#: and the others are paths used to prove the check does not depend on that.
+#: Listed rather than wildcarded so the plugin's own fixture blueprints are never
+#: deleted by a test in this repository.
+_BLUEPRINT_DIRS_WE_WRITE = ("calendora", "momoz", "somebody_elses_folder")
 
 
 @pytest.fixture(autouse=True)
@@ -80,6 +86,8 @@ def clean_blueprint_directory():
     three-release failure. It showed up immediately, which is the only reason
     this is a fixture rather than a bug.
     """
-    shutil.rmtree(_TEST_CONFIG_BLUEPRINTS, ignore_errors=True)
+    for name in _BLUEPRINT_DIRS_WE_WRITE:
+        shutil.rmtree(_TEST_CONFIG_AUTOMATION_BLUEPRINTS / name, ignore_errors=True)
     yield
-    shutil.rmtree(_TEST_CONFIG_BLUEPRINTS, ignore_errors=True)
+    for name in _BLUEPRINT_DIRS_WE_WRITE:
+        shutil.rmtree(_TEST_CONFIG_AUTOMATION_BLUEPRINTS / name, ignore_errors=True)

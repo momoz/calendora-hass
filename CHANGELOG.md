@@ -4,6 +4,20 @@ All notable changes to this integration are recorded here. Versions match the
 `version` field in `custom_components/calendora/manifest.json` and the GitHub tag
 they were released under.
 
+## 0.4.5 — 2026-08-10
+
+### Fixed
+
+- **The "blueprint not imported" notice would not go away, even once you had
+  imported it.** Home Assistant files an imported blueprint under the name of
+  whoever published it, and the check was looking under the integration's own
+  name — a folder that never exists — so it could never find the blueprint and
+  never stop asking. Found on a real installation, not in testing.
+
+  It now recognises the blueprint by where it came from rather than by where
+  Home Assistant chose to put it, so importing it clears the notice, wherever it
+  landed.
+
 ## 0.4.4 — 2026-08-10
 
 **0.4.3 could be installed and imported, and then could not be saved.** Filling

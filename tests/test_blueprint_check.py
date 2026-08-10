@@ -20,21 +20,40 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import issue_registry as ir
 
 from custom_components.calendora.blueprint_check import (
-    BLUEPRINT_PATH,
     ISSUE_ID,
     async_check_blueprint_is_imported,
 )
 from custom_components.calendora.const import DOMAIN
 
-REPO_BLUEPRINT = Path(__file__).resolve().parents[1] / BLUEPRINT_PATH
+REPO_BLUEPRINT = (
+    Path(__file__).resolve().parents[1]
+    / "blueprints/automation/calendora/shopping_list_on_arrival.yaml"
+)
+
+#: Where Home Assistant ACTUALLY files it — under the GitHub owner, not under
+#: this repository's own folder name. Verified against a live instance on
+#: 2026-08-10, where the imported blueprint sits at
+#: `momoz/shopping_list_on_arrival.yaml`. The first version of this check looked
+#: under `calendora/` and so could never pass; the test that was meant to cover
+#: the "already imported" case installed the file at the wrong path too, because
+#: the same person wrote both.
+IMPORTED_PATH = "blueprints/automation/momoz/shopping_list_on_arrival.yaml"
 
 
-def _install(hass: HomeAssistant) -> Path:
-    """Put the blueprint where an import would have put it."""
-    target = Path(hass.config.path(BLUEPRINT_PATH))
+async def _install(hass: HomeAssistant, path: str = IMPORTED_PATH) -> Path:
+    """Import the blueprint the way Home Assistant does."""
+    target = Path(hass.config.path(path))
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(REPO_BLUEPRINT.read_text(encoding="utf-8"), encoding="utf-8")
+    await _reset_blueprint_cache(hass)
     return target
+
+
+async def _reset_blueprint_cache(hass: HomeAssistant) -> None:
+    """Home Assistant caches the blueprint listing; a test writing files must clear it."""
+    from homeassistant.components.automation.helpers import async_get_blueprints
+
+    await async_get_blueprints(hass).async_reset_cache()
 
 
 async def test_a_household_without_the_blueprint_is_told(hass: HomeAssistant) -> None:
@@ -67,7 +86,7 @@ async def test_a_household_with_the_blueprint_is_left_alone(
     typo in the filename — which would otherwise present as a permanent warning
     that every user learns to dismiss.
     """
-    _install(hass)
+    await _install(hass)
     assert await async_check_blueprint_is_imported(hass) is True
     assert ir.async_get(hass).async_get_issue(DOMAIN, ISSUE_ID) is None
 
@@ -81,23 +100,45 @@ async def test_importing_it_later_clears_the_notice(hass: HomeAssistant) -> None
     assert await async_check_blueprint_is_imported(hass) is False
     assert ir.async_get(hass).async_get_issue(DOMAIN, ISSUE_ID) is not None
 
-    _install(hass)
+    await _install(hass)
     assert await async_check_blueprint_is_imported(hass) is True
     assert ir.async_get(hass).async_get_issue(DOMAIN, ISSUE_ID) is None
 
 
-def test_the_path_it_checks_is_the_path_the_repo_ships() -> None:
-    """The two ends of this only line up by agreement, so assert the agreement.
-
-    `BLUEPRINT_PATH` is where Home Assistant puts an imported blueprint, derived
-    from the blueprint's own location in this repository. Move the file and the
-    check silently starts testing for something that was never there, and warns
-    every household forever.
-    """
+def test_the_blueprint_this_repo_ships_still_exists() -> None:
+    """Guard against the whole file passing vacuously."""
     assert REPO_BLUEPRINT.is_file(), (
-        f"{BLUEPRINT_PATH} is not in this repository — the check is looking for "
-        f"a file this integration no longer ships"
+        "the shopping blueprint is not in this repository — the check is looking "
+        "for something this integration no longer ships"
     )
+
+
+async def test_it_finds_the_blueprint_wherever_home_assistant_filed_it(
+    hass: HomeAssistant,
+) -> None:
+    """The bug that shipped in 0.4.3 and 0.4.4, named.
+
+    Home Assistant files an imported blueprint under the **GitHub owner** —
+    `momoz/` — not under this repository's own folder name. A check that looked
+    for `calendora/` could never pass, so a household that had imported the
+    blueprint was told to import it, forever.
+
+    This asserts the real path *and* an unrelated one, because identity comes
+    from the blueprint's `source_url` rather than from where it happens to sit,
+    and neither the owner's name nor Home Assistant's filing rule is this
+    integration's to predict.
+    """
+    for path in (
+        IMPORTED_PATH,
+        "blueprints/automation/somebody_elses_folder/whatever.yaml",
+    ):
+        await _install(hass, path)
+        assert await async_check_blueprint_is_imported(hass) is True, (
+            f"the blueprint at {path} was not recognised — identity must come "
+            f"from source_url, not from the folder Home Assistant chose"
+        )
+        Path(hass.config.path(path)).unlink()
+        await _reset_blueprint_cache(hass)
 
 
 def test_the_import_url_points_at_the_blueprint_this_repo_ships() -> None:
@@ -118,5 +159,5 @@ async def test_the_notice_survives_a_household_that_has_never_opened_blueprints(
     been to that page.
     """
     blueprints = Path(hass.config.path("blueprints"))
-    assert not (blueprints / "automation" / "calendora").exists()
+    assert not (blueprints / "automation" / "momoz").exists()
     assert await async_check_blueprint_is_imported(hass) is False

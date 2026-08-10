@@ -23,6 +23,35 @@ because anything forbids editing the design.
 
 ---
 
+## 2026-08-10 — the notice that could never be satisfied
+
+`0.4.3` added a Repairs notice for a household that has the integration and not
+the blueprint. **It rendered correctly on a live instance — the first proof of
+that, and it had been the release's one tests-only claim — and it was wrong.**
+
+Home Assistant files an imported blueprint under the **GitHub owner**:
+`blueprints/automation/momoz/shopping_list_on_arrival.yaml`. The check looked
+under `blueprints/automation/calendora/`, reasoning from this repository's own
+folder layout. That folder never exists in a user's config, so the check could
+**never pass**: a household that had done exactly what the notice asked was told
+to do it again, forever.
+
+Shipped in `0.4.3` and `0.4.4`. Fixed in `0.4.5` by asking Home Assistant which
+blueprints it has and matching on the blueprint's own `source_url`, which points
+at this repository — identity rather than location. Where Home Assistant files
+things is its business and not this integration's to predict.
+
+**Why the test suite said it was fine.** `test_blueprint_check.py` covered both
+states, including "already imported" — by installing the blueprint **at the path
+the check was looking in**. The author supplied the location as well as the
+value, so the two agreed with each other and neither agreed with Home Assistant.
+That is the judge-fed-by-the-defendant shape again, wearing a different coat: the
+first time it was the input *value*, this time the input *location*.
+
+Caught by reading a live instance. The tests now install at the real path and at
+an unrelated one, and mutation-testing the old path-matching logic back in fails
+three of them.
+
 ## 2026-08-10 — it loaded and could not be configured
 
 `0.4.3` fixed loading. A real household then filled the form in, pressed save,
