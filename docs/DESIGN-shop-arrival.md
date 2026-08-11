@@ -316,6 +316,35 @@ switched off.
 | Your own tap | Replacement immediately, always, no debounce. The tap dismissed the card; something has to come back |
 | Someone adds an item while you're in the zone | Debounced 3 min. **Max 3 per trip**, then additions go quiet and ride your next tap |
 | Someone else's tick empties the batch on your screen | Immediately, debounced 3 min — else you go looking for things already in a trolley |
+
+> ### ⚠️ Building either of the two rows above? Build the push cap in the same change.
+>
+> **These are the only sends in this design that push somebody who did not just
+> do something.** Until they exist, the 8-push cap governs nothing — every other
+> send answers a tap, so a shopper would have to press a button eight times to be
+> pushed eight times. The moment one of these lands, the cap starts being the
+> thing that stands between a family and a phone that buzzes on its own.
+>
+> **This is an instruction, not a status.** Nobody is waiting for a condition to
+> flip; whoever writes these triggers writes the cap with them.
+>
+> **How, and how not:**
+>
+> - **The design is to make a trip one run of the script** — the arrival branch
+>   sends, then awaits taps inline with `wait_for_trigger` and a timeout. The
+>   push count is then a loop variable and needs nothing persisted. It is a real
+>   restructure of the branch layout, which is why it was not done speculatively.
+> - **A `counter` helper works and costs the household setup** for something most
+>   trips never reach. Acceptable if the restructure is judged too risky; not
+>   free.
+> - **Do NOT ride the count in the card's `action_data`.** It looks cheapest and
+>   it is the one that must not be built: `#67` is unanswered, so on any phone
+>   that does not return `action_data` the count comes back empty and the cap
+>   silently does not cap. A limit that fails open is worse than no limit,
+>   because everyone downstream believes it.
+>
+> Filed as `#151`, and deliberately written here as well — whoever builds these
+> rows will be reading §6, not the board.
 | List cleared | One card, no buttons, silent (§8) |
 | A tick failed to save | After one silent retry at 10s |
 
