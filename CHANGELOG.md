@@ -4,6 +4,19 @@ All notable changes to this integration are recorded here. Versions match the
 `version` field in `custom_components/calendora/manifest.json` and the GitHub tag
 they were released under.
 
+## 0.4.6 — 2026-08-11
+
+### Fixed
+
+- **A shopping notification left over from an abandoned trip no longer ticks
+  things off.** The card stays in your notification shade with its buttons
+  working, so a tap the next morning would quietly tick items off *that day's*
+  list. A trip now stops ninety minutes after the last thing you did on it, and
+  a card older than that does nothing when tapped.
+
+  A long shop is not cut off: ninety minutes is measured from your last tap, not
+  from when you arrived, so a slow trip with steady ticking keeps working.
+
 ## 0.4.5 — 2026-08-10
 
 ### Fixed

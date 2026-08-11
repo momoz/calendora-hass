@@ -23,6 +23,57 @@ because anything forbids editing the design.
 
 ---
 
+## 2026-08-11 — the trip can stop itself
+
+§6's stop conditions, filed as `#151`. **The expiry is built. The push cap is
+not, and the reason is worth more than the feature would have been.**
+
+### The severity was overstated, and checking said so
+
+`#151` was promoted on the grounds that two live automations now exist, so an
+uncapped push loop is reachable on two real phones. **It is not.** Parsing the
+shipped blueprint gives two triggers, `arrived` and `tapped`, and every send sits
+under one of them: one push on arrival, and everything after it inside a branch
+that only runs when the shopper taps. **Nothing can push uncaused.** The rows in
+§6's matrix that would — somebody adding an item while you are in the zone,
+somebody else's tick emptying your batch — are unbuilt.
+
+So a cap of eight would today bound a person's own thumb. It is filed, not
+abandoned, and it should land **with** the uncaused sends, because that is the
+point at which it governs anything.
+
+### The expiry, and what made it cheap
+
+A card left in the shade after an abandoned trip keeps its buttons. Tap *Got
+these* the next morning and it ticks **tomorrow's list** off yesterday's card,
+silently. That is the real defect in the missing stop condition, and it is now
+closed.
+
+**It needed no stored state, which is why it could ship tonight.**
+`this.attributes.last_triggered` is the time of the *previous* run:
+`Script.async_run` stamps it when the action script starts, and `this` is
+captured before that. So a tap branch can ask how long ago this trip last did
+anything.
+
+**That fact was load-bearing already and had never been tested.** The revisit
+window — "nothing within two hours at this shop" — rests on exactly the same
+behaviour, in shipped code, unverified. A probe confirmed it: first arrival
+sends, a second arrival twenty minutes later does not.
+
+**The deviation, stated rather than absorbed:** §6 says 90 minutes from arrival;
+this measures 90 minutes from the last trip activity. Both tests are in
+`test_shop_blueprint_behaviour.py` — a card tapped 91 minutes after the trip went
+quiet ticks nothing, and a slow shop with a tap every 50 minutes keeps working
+past the two-hour mark. Frozen clock, never a real wait.
+
+### A correction to the tests, which were testing an impossible state
+
+Every tap test fired a tap with no preceding arrival — a state no household can
+be in. They passed because nothing had ever cared. The expiry cares immediately:
+it refuses a tap when the automation has never run. So the tap tests now walk the
+person into the zone and wait out the dwell first, which is what a real tap is
+always preceded by.
+
 ## 2026-08-10 — the notice that could never be satisfied
 
 `0.4.3` added a Repairs notice for a household that has the integration and not

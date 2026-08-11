@@ -207,3 +207,42 @@ async def test_no_input_is_used_where_a_service_name_is_required(
         + "\nNo Home Assistant selector yields a service-name string. Use the "
         "mobile_app device action, or build the name in a variable."
     )
+
+
+async def test_every_declared_input_is_actually_used(blueprint: Blueprint) -> None:
+    """An input the body never reads is a control that does nothing.
+
+    A blueprint's input list is a document Home Assistant interprets and renders
+    as a form, so an unconsumed input is not dead code — it is a **promise made
+    to a person**, on screen, with a slider they can move to no effect.
+
+    `max_pushes` was exactly that: declared permanent in the design at 3–20,
+    default 8, and read by nothing. It went unnoticed because nothing compares
+    the declaration against the body — the same shape as every other defect in
+    this blueprint's history, aimed at the schema this time.
+    """
+    from homeassistant.util.yaml.objects import Input
+
+    raw = yaml_loader.parse_yaml(BLUEPRINT.read_text(encoding="utf-8"))
+    used: set[str] = set()
+
+    def walk(node: Any) -> None:
+        if isinstance(node, Input):
+            used.add(node.name)
+        elif isinstance(node, dict):
+            for value in node.values():
+                walk(value)
+        elif isinstance(node, list):
+            for value in node:
+                walk(value)
+
+    # Only the body — the `blueprint:` block is where they are declared.
+    walk({key: value for key, value in raw.items() if key != "blueprint"})
+
+    declared = set(blueprint.inputs)
+    unused = sorted(declared - used)
+    assert not unused, (
+        f"declared but never used: {unused}. Every input is a control shown to a "
+        f"person; one the body does not read is a promise the blueprint cannot "
+        f"keep. Either consume it or stop declaring it."
+    )

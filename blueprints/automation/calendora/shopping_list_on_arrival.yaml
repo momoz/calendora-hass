@@ -239,6 +239,12 @@ variables:
   item_limit: !input batch_size
   revisit_window: !input revisit_hours
   send_completion_card: !input send_completion_card
+  # §6, "the trip stops": 90 minutes. Not an input — §0 does not declare one and
+  # this is not a knob a household should have to reason about. A number here
+  # rather than a helper entity because the blueprint has nowhere to persist a
+  # trip, and this needs nothing persisted: it is derived from when this
+  # automation last did something.
+  trip_expiry_seconds: 5400
   # One tag for the whole trip, so a shopper never has more than one of these in
   # the shade and every send replaces the last.
   notification_tag: "calendora_shop_{{ person_entity.split('.')[1] }}"
@@ -431,6 +437,28 @@ actions:
           - condition: template
             value_template: >-
               {{ trigger.event.data.tag | default('') == notification_tag }}
+          # §6: the trip stops after 90 minutes. A card left in the shade when
+          # somebody abandons a trip keeps its buttons — tap "Got these"
+          # tomorrow morning and it ticks tomorrow's list off yesterday's card,
+          # silently. This is the stop condition that closes that.
+          #
+          # `this.attributes.last_triggered` is the time of the PREVIOUS run,
+          # not this one: `Script.async_run` stamps it when the ACTION script
+          # starts, and `this` is captured before that. Verified rather than
+          # assumed — the revisit window below relies on the same fact, and it
+          # had never been tested either.
+          #
+          # **This measures 90 minutes since the last thing that happened on
+          # this trip, not since arrival**, which is a deliberate deviation from
+          # §6's wording. A shopper still tapping at 100 minutes is still
+          # shopping; one who has not tapped for 90 is not. Cutting off an
+          # active trip to honour the letter of the rule would be the worse
+          # reading of it.
+          - condition: template
+            value_template: >-
+              {{ this.attributes.last_triggered is not none
+                 and (now() - this.attributes.last_triggered).total_seconds()
+                     <= trip_expiry_seconds }}
         sequence:
           # Clear the card first: the trip is over, and leaving it in the shade
           # invites a tap that no longer means anything.
@@ -463,6 +491,28 @@ actions:
           - condition: template
             value_template: >-
               {{ trigger.event.data.tag | default('') == notification_tag }}
+          # §6: the trip stops after 90 minutes. A card left in the shade when
+          # somebody abandons a trip keeps its buttons — tap "Got these"
+          # tomorrow morning and it ticks tomorrow's list off yesterday's card,
+          # silently. This is the stop condition that closes that.
+          #
+          # `this.attributes.last_triggered` is the time of the PREVIOUS run,
+          # not this one: `Script.async_run` stamps it when the ACTION script
+          # starts, and `this` is captured before that. Verified rather than
+          # assumed — the revisit window below relies on the same fact, and it
+          # had never been tested either.
+          #
+          # **This measures 90 minutes since the last thing that happened on
+          # this trip, not since arrival**, which is a deliberate deviation from
+          # §6's wording. A shopper still tapping at 100 minutes is still
+          # shopping; one who has not tapped for 90 is not. Cutting off an
+          # active trip to honour the letter of the rule would be the worse
+          # reading of it.
+          - condition: template
+            value_template: >-
+              {{ this.attributes.last_triggered is not none
+                 and (now() - this.attributes.last_triggered).total_seconds()
+                     <= trip_expiry_seconds }}
         sequence:
           - variables:
               # "Got the rest" means everything outstanding. "Got these" means

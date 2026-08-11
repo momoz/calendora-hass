@@ -331,6 +331,21 @@ switched off.
 At whichever comes first: list cleared · `GOT_ALL` · `STOP` · 90 minutes since
 arrival · **8 pushes**.
 
+> **BUILT 2026-08-11, with one deviation and one omission — see
+> `SHOP-ARRIVAL-BUILD-LOG.md`.**
+>
+> **The 90 minutes is measured from the last activity on the trip, not from
+> arrival.** A shopper still ticking at 100 minutes is still shopping; one who
+> has not tapped for 90 has gone home. Cutting off an active trip to honour the
+> letter of this rule is the worse reading of it.
+>
+> **The 8-push cap is not built**, and `max_pushes` is declared in §0 as an
+> input that the blueprint has never had. It is not currently reachable: every
+> send after the arrival card is caused by the shopper's own tap, and the two
+> rows in the send matrix that push *uncaused* — somebody adding an item, and
+> somebody else's tick emptying your batch — are themselves unbuilt. **The cap
+> should land with them**, because that is when it starts governing anything.
+
 The eighth is a hard stop with no explanatory ninth. If a trip has taken eight,
 the design has already failed and a message about it is not the repair.
 

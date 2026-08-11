@@ -111,8 +111,24 @@ async def _setup(
     target.mkdir(parents=True, exist_ok=True)
     shutil.copy(BLUEPRINT, target / BLUEPRINT.name)
 
-    hass.states.async_set("person.test", "not_home")
-    hass.states.async_set("zone.the_shop", 0, {"friendly_name": "Tesco"})
+    await hass.config.async_set_time_zone("UTC")
+    assert await async_setup_component(
+        hass,
+        "zone",
+        {
+            "zone": {
+                "name": "The shop",
+                "latitude": 32.880837,
+                "longitude": -117.237561,
+                "radius": 250,
+            }
+        },
+    )
+    hass.states.async_set(
+        "person.test",
+        "not_home",
+        {"latitude": 40.0, "longitude": -80.0, "in_zones": []},
+    )
     hass.states.async_set(
         "sensor.calendora_member_test", "ok", {"shop_notifications": True}
     )
@@ -144,6 +160,38 @@ async def _setup(
     await hass.async_block_till_done()
 
 
+async def _arrive(
+    hass: HomeAssistant, freezer, notifications: list[ServiceCall]
+) -> None:
+    """Walk the person into the shop and wait out the dwell.
+
+    Every tap test does this now, and that is a correction rather than extra
+    setup: a tap with no preceding trip is not a state a household can be in,
+    and the tests that skipped it were exercising one that cannot happen. The
+    90-minute expiry made that visible — it refuses a tap when the automation
+    has never run, which is right, and which no test could tolerate while they
+    were all tapping out of nowhere.
+
+    Time is frozen because the blueprint will not send outside 07:00–21:30.
+    """
+    from datetime import timedelta
+
+    from homeassistant.util import dt as dt_util
+    from pytest_homeassistant_custom_component.common import async_fire_time_changed
+
+    hass.states.async_set(
+        "person.test",
+        "The shop",
+        {"latitude": 32.880837, "longitude": -117.237561, "in_zones": ["zone.the_shop"]},
+    )
+    await hass.async_block_till_done()
+    freezer.move_to(dt_util.utcnow() + timedelta(minutes=3))
+    async_fire_time_changed(hass, dt_util.utcnow())
+    await hass.async_block_till_done()
+    assert notifications, "the trip did not start — no arrival card"
+    notifications.clear()
+
+
 async def _tap(
     hass: HomeAssistant, action: str, item_ids: list[str] | None = None, *, tag: str = TAG
 ) -> None:
@@ -159,13 +207,16 @@ async def test_a_tap_ticks_the_items_and_the_card_comes_back(
     notifications: list[ServiceCall],
     ticked: list[ServiceCall],
     phone: str,
+    freezer,
 ) -> None:
     """§6, the row with no debounce and no cap.
 
     This is the whole of #112: before it, a tap ended at `todo.update_item` and
     the shopper got silence from a card their tap had just dismissed.
     """
+    freezer.move_to("2026-08-11 10:00:00+00:00")
     await _setup(hass, phone)
+    await _arrive(hass, freezer, notifications)
     await _tap(hass, "CALENDORA_SHOP_GOT_BATCH", ["i1", "i2"])
 
     assert [call.data["item"] for call in ticked] == ["i1", "i2"]
@@ -185,13 +236,16 @@ async def test_the_replacement_carries_the_same_four_buttons(
     notifications: list[ServiceCall],
     ticked: list[ServiceCall],
     phone: str,
+    freezer,
 ) -> None:
     """The anchor's payoff, observed at runtime rather than in the YAML.
 
     A shopper mid-trip is looking at the second card, not the first. If the two
     ever come apart, this is where a person notices.
     """
+    freezer.move_to("2026-08-11 10:00:00+00:00")
     await _setup(hass, phone)
+    await _arrive(hass, freezer, notifications)
     await _tap(hass, "CALENDORA_SHOP_GOT_BATCH", ["i1"])
 
     card = notifications[0].data["data"]
@@ -214,6 +268,7 @@ async def test_the_replacement_is_not_read_back_from_the_list_entity(
     notifications: list[ServiceCall],
     ticked: list[ServiceCall],
     phone: str,
+    freezer,
 ) -> None:
     """The todo service is mocked, so the entity still holds all five items.
 
@@ -223,7 +278,9 @@ async def test_the_replacement_is_not_read_back_from_the_list_entity(
     intermittent in a real house and absent in every unit test that does not
     hold the state still like this.
     """
+    freezer.move_to("2026-08-11 10:00:00+00:00")
     await _setup(hass, phone)
+    await _arrive(hass, freezer, notifications)
     await _tap(hass, "CALENDORA_SHOP_GOT_BATCH", ["i1", "i2"])
 
     assert len(hass.states.get(TODO_ENTITY).attributes["items"]) == 5
@@ -235,13 +292,16 @@ async def test_got_the_rest_ends_the_trip_without_a_replacement(
     notifications: list[ServiceCall],
     ticked: list[ServiceCall],
     phone: str,
+    freezer,
 ) -> None:
     """Nothing is left, so there is no card to come back with.
 
     With the completion card off — the default — the correct behaviour is
     silence, not an empty list card.
     """
+    freezer.move_to("2026-08-11 10:00:00+00:00")
     await _setup(hass, phone, completion_card=False)
+    await _arrive(hass, freezer, notifications)
     await _tap(hass, "CALENDORA_SHOP_GOT_ALL")
 
     assert [call.data["item"] for call in ticked] == ["i1", "i2", "i3", "i4", "i5"]
@@ -255,9 +315,12 @@ async def test_the_completion_card_replaces_the_trip_card_when_switched_on(
     notifications: list[ServiceCall],
     ticked: list[ServiceCall],
     phone: str,
+    freezer,
 ) -> None:
     """§6: "list cleared → one card, no buttons, silent."."""
+    freezer.move_to("2026-08-11 10:00:00+00:00")
     await _setup(hass, phone, completion_card=True)
+    await _arrive(hass, freezer, notifications)
     await _tap(hass, "CALENDORA_SHOP_GOT_ALL")
 
     assert len(notifications) == 1
@@ -273,12 +336,15 @@ async def test_another_households_tap_is_ignored(
     notifications: list[ServiceCall],
     ticked: list[ServiceCall],
     phone: str,
+    freezer,
 ) -> None:
     """Home Assistant does not route the action event to the automation that sent
     the notification — every automation on the instance sees every tap. The tag
     check is the only thing standing between two households' shopping lists.
     """
+    freezer.move_to("2026-08-11 10:00:00+00:00")
     await _setup(hass, phone)
+    await _arrive(hass, freezer, notifications)
     await _tap(hass, "CALENDORA_SHOP_GOT_BATCH", ["i1"], tag="calendora_shop_someone_else")
 
     assert ticked == [] and notifications == []
@@ -289,6 +355,7 @@ async def test_a_tap_with_no_action_data_falls_back_to_the_batch_it_showed(
     notifications: list[ServiceCall],
     ticked: list[ServiceCall],
     phone: str,
+    freezer,
 ) -> None:
     """The `action_data` device test (#67) is still unanswered.
 
@@ -297,7 +364,9 @@ async def test_a_tap_with_no_action_data_falls_back_to_the_batch_it_showed(
     carries the whole list, and this pins the behaviour either way so the
     device test has something to confirm or contradict rather than a guess.
     """
+    freezer.move_to("2026-08-11 10:00:00+00:00")
     await _setup(hass, phone)
+    await _arrive(hass, freezer, notifications)
     await _tap(hass, "CALENDORA_SHOP_GOT_BATCH")
 
     assert [call.data["item"] for call in ticked] == ["i1", "i2", "i3", "i4", "i5"]
@@ -424,3 +493,82 @@ async def test_arriving_at_the_shop_and_staying_sends_the_list(
     assert "5 things" in card["title"]
     assert card["data"]["tag"] == TAG
     assert len(card["data"]["actions"]) == 4
+
+
+async def test_a_card_left_overnight_no_longer_ticks_anything(
+    hass: HomeAssistant,
+    notifications: list[ServiceCall],
+    ticked: list[ServiceCall],
+    phone: str,
+    freezer,
+) -> None:
+    """§6: the trip stops after 90 minutes.
+
+    The failure this closes is quiet and plausible: somebody abandons a shop,
+    the card stays in the notification shade with its buttons live, and a tap
+    the next morning ticks **tomorrow's list** off yesterday's card. Nothing
+    errors, nothing is logged, and the items simply go.
+
+    Time is stepped rather than waited out — a test that only fails when the
+    machine is slow gets re-run until green and then deleted.
+    """
+    from datetime import timedelta
+
+    from homeassistant.util import dt as dt_util
+
+    freezer.move_to("2026-08-11 10:00:00+00:00")
+    await _setup(hass, phone)
+    await _arrive(hass, freezer, notifications)
+
+    # Still shopping twenty minutes in: the loop works.
+    freezer.move_to(dt_util.utcnow() + timedelta(minutes=20))
+    await _tap(hass, "CALENDORA_SHOP_GOT_BATCH", ["i1"])
+    assert [call.data["item"] for call in ticked] == ["i1"]
+    assert len(notifications) == 1, "an active trip stopped answering taps"
+
+    ticked.clear()
+    notifications.clear()
+
+    # The trip is abandoned. Ninety-one minutes after the last thing happened,
+    # the card in the shade is a relic.
+    freezer.move_to(dt_util.utcnow() + timedelta(minutes=91))
+    await _tap(hass, "CALENDORA_SHOP_GOT_BATCH", ["i2"])
+
+    assert ticked == [], (
+        "a tap 91 minutes after the trip went quiet still ticked an item off — "
+        "that is yesterday's card editing today's list"
+    )
+    assert notifications == [], "an expired trip answered with a card"
+
+
+async def test_a_long_shop_is_not_cut_off_while_it_is_still_being_shopped(
+    hass: HomeAssistant,
+    notifications: list[ServiceCall],
+    ticked: list[ServiceCall],
+    phone: str,
+    freezer,
+) -> None:
+    """The deliberate deviation from §6, asserted so it is a decision and not a bug.
+
+    §6 says the trip stops 90 minutes after **arrival**. This measures 90
+    minutes since the last thing that happened, so a slow shop with steady
+    tapping keeps working past the two-hour mark. Somebody still ticking items
+    off is still shopping, and cutting them off mid-aisle to honour the letter
+    of the rule is the worse reading of it.
+    """
+    from datetime import timedelta
+
+    from homeassistant.util import dt as dt_util
+
+    freezer.move_to("2026-08-11 09:00:00+00:00")
+    await _setup(hass, phone)
+    await _arrive(hass, freezer, notifications)
+
+    for index, uid in enumerate(("i1", "i2", "i3"), start=1):
+        freezer.move_to(dt_util.utcnow() + timedelta(minutes=50))
+        await _tap(hass, "CALENDORA_SHOP_GOT_BATCH", [uid])
+        assert [call.data["item"] for call in ticked] == [uid], (
+            f"tap {index}, at {index * 50} minutes past arrival, was refused — "
+            f"the expiry is measuring from arrival rather than from activity"
+        )
+        ticked.clear()
