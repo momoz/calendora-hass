@@ -163,6 +163,22 @@ Reports are read by the product owner, not by another engineer. Format, every ti
 The same applies to a gap entry: its summary line must make sense to somebody who has never
 opened this repository.
 
+## Mistakes ledger — `MISTAKES.md`
+
+**Mike's standing rule, 2026-08-13, for every agent in this project.** Keep `MISTAKES.md` at
+this repo's root. Every time you make a mistake — a wrong assumption, code that shipped broken,
+time spent down the wrong path, a fix that turned out not to be the fix — add an entry before
+moving on. Two things per entry, nothing else:
+
+- **What the mistake was.** Concrete: what you assumed or did, what actually happened, what it
+  cost. Not a general lesson — the next reader needs the specific wrong turn, not a maxim they
+  already agree with.
+- **The actual fix.** What really solved it — not the first thing you tried if that one didn't
+  work.
+
+Read it before starting work in an area it already covers. The point is not paying for the same
+mistake twice.
+
 ## Never block on CI
 
 Push, then check **once**:
