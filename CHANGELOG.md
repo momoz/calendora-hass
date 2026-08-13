@@ -4,6 +4,19 @@ All notable changes to this integration are recorded here. Versions match the
 `version` field in `custom_components/calendora/manifest.json` and the GitHub tag
 they were released under.
 
+## 0.4.9 — 2026-08-13
+
+### Fixed
+
+- **Tapping the shopping card opened a "404: Not Found" instead of your list.**
+  The link was written as a path rather than a full address, so the Companion
+  app looked for the page inside Home Assistant — which has no such page —
+  rather than opening Calendora.
+
+  That tap is the main way the card is meant to be used on an iPhone, where the
+  buttons are behind a swipe that often will not open, so this was the one
+  interaction the design leans on hardest.
+
 ## 0.4.8 — 2026-08-13
 
 ### Added

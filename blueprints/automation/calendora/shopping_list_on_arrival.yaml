@@ -329,8 +329,25 @@ actions:
         {{ (state_attr(shop_entity, 'friendly_name') or 'The shop')
            | truncate(18, true, '') }}
       list_name: "{{ state_attr(list_entity, 'friendly_name') or 'List' }}"
+      # An ABSOLUTE url, not the path §4 specifies.
+      #
+      # The design writes the deep link as `/lists/<listId>?mode=shopping`, and
+      # putting that path straight into `clickAction` is what shipped — where
+      # the Companion app reads a relative path as a **Home Assistant**
+      # navigation target. Tapping the card opened Home Assistant's own frontend
+      # at `/lists/…`, which has no such page, and the shopper got **404: Not
+      # Found**. Found by Mike tapping the first card this feature ever sent.
+      #
+      # §4 calls the deep link "the iPhone's primary action" — the buttons sit
+      # behind an expand gesture unreliable enough that tapping the card IS the
+      # designed path. So this was the one interaction the design leans on
+      # hardest, broken by copying a spec written as a path into a field that
+      # needs a URL.
+      #
+      # The host is pinned to the same value as the integration's
+      # `API_BASE_URL`, and a test asserts the two match so they cannot drift.
       deep_link: >-
-        /lists/{{ state_attr(list_entity, 'list_id') }}?mode=shopping
+        https://calendora.app/lists/{{ state_attr(list_entity, 'list_id') }}?mode=shopping
 
   - choose:
       # ---------------------------------------------------------------- arrival

@@ -23,6 +23,27 @@ because anything forbids editing the design.
 
 ---
 
+## 2026-08-13 — the primary action opened a 404
+
+Mike tapped the first card this feature has ever sent, and got **404: Not
+Found**.
+
+`deep_link` was `/lists/<listId>?mode=shopping` — **the path §4 writes**, copied
+verbatim into `clickAction`. The Companion app reads a relative path as a
+navigation target inside **Home Assistant's own frontend**, which has no
+`/lists/…`. Fixed by making it absolute against the same host as the
+integration's `API_BASE_URL`, with a test asserting the two cannot drift.
+
+**§4 calls the deep link "the iPhone's primary action"** — the buttons sit behind
+an expand gesture unreliable enough that tapping the card *is* the designed path.
+So the single interaction the design leans on hardest was broken by copying a
+spec written as a path into a field that needs a URL.
+
+**Nothing in this repository could have caught it. No test opens a link.** It
+took a person tapping a real card, which is the same lesson as the four before
+it: the gates catch regressions, and the first proof that something works at all
+still comes from a person using it.
+
 ## 2026-08-13 — the diagnostic that could never answer
 
 Mike updated everything, pressed **Run actions**, and got nothing. He expected it

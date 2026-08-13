@@ -235,6 +235,21 @@ def test_the_replacement_is_built_from_the_list_as_it_stands_after_the_tap(
         )
 
 
+def _find_variable_blocks(node, found=None) -> list[dict]:
+    """Every `variables:` mapping anywhere in the blueprint."""
+    found = [] if found is None else found
+    if isinstance(node, dict):
+        variables = node.get("variables")
+        if isinstance(variables, dict):
+            found.append(variables)
+        for value in node.values():
+            _find_variable_blocks(value, found)
+    elif isinstance(node, list):
+        for item in node:
+            _find_variable_blocks(item, found)
+    return found
+
+
 def _find_variable_rebinds(node, found=None) -> list[dict]:
     """Every `variables:` step that redefines `outstanding`.
 
@@ -349,3 +364,40 @@ async def test_the_anchor_survives_home_assistant_s_own_loader(hass) -> None:
     assert with_buttons[0]["data"] == with_buttons[1]["data"], (
         "the arrival and the replacement came out of substitution differing"
     )
+
+
+def test_the_deep_link_is_absolute_and_points_at_calendora(blueprint: dict) -> None:
+    """A relative `clickAction` opens Home Assistant, not Calendora.
+
+    The Companion app treats a relative path as a navigation target inside Home
+    Assistant's own frontend. The design writes the deep link as
+    `/lists/<listId>?mode=shopping` — a path — and copying that verbatim into
+    `clickAction` sent shoppers to Home Assistant's `/lists/…`, which does not
+    exist. **404: Not Found**, on the interaction §4 calls the iPhone's primary
+    action.
+
+    Nothing could have caught it here: no test opens a link. It took a person
+    tapping the first card this feature ever sent.
+    """
+    from custom_components.calendora.const import API_BASE_URL
+
+    # `deep_link` is built in an action-level `variables:` step, not in the
+    # blueprint's top-level block — found by walking rather than by a fixed path,
+    # for the same reason as `_notify_calls`.
+    found = [
+        block["deep_link"]
+        for block in _find_variable_blocks(blueprint)
+        if "deep_link" in block
+    ]
+    assert len(found) == 1, f"expected one deep_link definition, found {len(found)}"
+    deep_link = found[0]
+
+    assert deep_link.startswith("https://"), (
+        f"the deep link is relative ({deep_link!r}) — the Companion app will "
+        f"open Home Assistant's own frontend and the shopper gets a 404"
+    )
+    assert API_BASE_URL in deep_link, (
+        f"the deep link host and the integration's API_BASE_URL have come "
+        f"apart: {deep_link!r} does not contain {API_BASE_URL!r}"
+    )
+    assert "?mode=shopping" in deep_link, "the link must open ready to tick (§4)"
