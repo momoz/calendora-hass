@@ -98,6 +98,12 @@ https://github.com/momoz/calendora-hass/blob/main/blueprints/automation/calendor
 **2. Create an automation from it** — one per person per shop. Importing a
 blueprint only makes it available; nothing runs until an automation exists.
 
+**Check it works without leaving the house.** Open the automation and press
+**Run actions**. It sends the real card — buttons and all — to the phone you
+chose. If it cannot, it says why: a notice appears in the **Notifications**
+panel in the sidebar telling you whether that person is not opted in or the list
+is empty. A dry run never ticks anything off, and never affects a real trip.
+
 **3. Check it is enabled**, under Settings → Automations & scenes. An automation
 Home Assistant refuses to load is not listed at all, and the only sign is one
 line in the log — which is exactly how the 0.4.0–0.4.2 breakage stayed invisible.

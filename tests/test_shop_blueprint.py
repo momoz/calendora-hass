@@ -91,8 +91,9 @@ def _notify_calls(node, found=None) -> list[dict]:
 def test_the_blueprint_parses_and_has_notify_calls(blueprint: dict) -> None:
     """Guard against every assertion below passing vacuously."""
     calls = _notify_calls(blueprint)
-    assert len(calls) >= 4, (
-        f"expected arrival, clear, replacement and completion sends, got {len(calls)}"
+    assert len(calls) >= 5, (
+        f"expected arrival, clear, replacement, completion and dry-run sends, "
+        f"got {len(calls)}"
     )
 
 
@@ -174,11 +175,12 @@ def test_the_replacement_is_the_arrival_card_and_not_a_copy(blueprint: dict) -> 
         for call in _notify_calls(blueprint)
         if call.get("data", {}).get("actions")
     ]
-    assert len(cards) == 2, (
-        f"expected the list card to be sent twice — on arrival and as the "
-        f"replacement after a tap — found {len(cards)} sends carrying buttons"
+    assert len(cards) == 3, (
+        f"expected the list card to be sent three times — on arrival, as the "
+        f"replacement after a tap, and by the Run-actions dry run — found "
+        f"{len(cards)} sends carrying buttons"
     )
-    assert cards[0] is cards[1], (
+    assert cards[0] is cards[1] is cards[2], (
         "the replacement has been expanded into its own copy of the arrival "
         "payload. It is one card sent twice (§6); two copies drift, and the "
         "drift only shows up mid-shop. Restore the `*shop_card` alias."
@@ -338,12 +340,12 @@ async def test_the_anchor_survives_home_assistant_s_own_loader(hass) -> None:
         for node in nodes
         if node.get("domain") == "mobile_app" and node.get("type") == "notify"
     ]
-    assert len(sends) == 4, (
-        f"expected four sends after substitution — arrival, clear, replacement, "
-        f"completion — found {len(sends)}"
+    assert len(sends) == 5, (
+        f"expected five sends after substitution — arrival, clear, replacement, "
+        f"completion, and the dry run — found {len(sends)}"
     )
     with_buttons = [s for s in sends if s.get("data", {}).get("actions")]
-    assert len(with_buttons) == 2, "the replacement lost its buttons in substitution"
+    assert len(with_buttons) == 3, "a list card lost its buttons in substitution"
     assert with_buttons[0]["data"] == with_buttons[1]["data"], (
         "the arrival and the replacement came out of substitution differing"
     )

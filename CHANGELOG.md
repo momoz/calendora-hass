@@ -4,6 +4,25 @@ All notable changes to this integration are recorded here. Versions match the
 `version` field in `custom_components/calendora/manifest.json` and the GitHub tag
 they were released under.
 
+## 0.4.8 — 2026-08-13
+
+### Added
+
+- **"Run actions" now works as a dry run.** Home Assistant's *Run actions*
+  button is the first thing anyone presses to ask whether an automation is set
+  up correctly, and on this one it did nothing at all — the button skips the
+  trigger, and every branch of the automation is keyed to one, so it fell
+  straight through.
+
+  It now sends the real shopping card, buttons and all, so you can check the
+  whole thing from your armchair without driving anywhere. **And if it cannot
+  send, it says why** — a notice appears telling you whether the person is not
+  opted in or the list is empty, instead of the silence that made the last week
+  hard to diagnose.
+
+  Nothing is ticked off by a dry run, and a real trip is unaffected: the button
+  only reaches this path because no trigger fired.
+
 ## 0.4.7 — 2026-08-13
 
 **Every version before this one sent nothing.** The shopping notification read

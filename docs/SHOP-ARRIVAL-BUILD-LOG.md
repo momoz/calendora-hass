@@ -23,6 +23,37 @@ because anything forbids editing the design.
 
 ---
 
+## 2026-08-13 — the diagnostic that could never answer
+
+Mike updated everything, pressed **Run actions**, and got nothing. He expected it
+to simulate the trigger. It does not.
+
+`automation.trigger` passes `trigger: {platform: None}` — **defined, but with no
+`id`**. Every branch of the `choose` opens with `condition: trigger`, so all of
+them are false and the whole thing falls through. `skip_condition` does not help:
+it skips the automation's top-level `conditions:`, and these live inside the
+actions.
+
+**So the one tool a person reaches for to ask "is this working?" was the one
+tool that could never answer** — across four releases in which the answer was
+"no" for four different reasons.
+
+`default:` now makes the button a dry run: it sends the **real** card via the
+same `&shop_card` anchor, so a correctly configured phone gets the real thing
+rather than a simplified stand-in that proves only that the stand-in works. If it
+cannot send, it raises a persistent notification naming the reason — not opted
+in, or nothing outstanding.
+
+**Guarded on `trigger.id is not defined`**, which no real trigger can satisfy.
+That guard is the whole safety of a `default:` branch, and mutation-testing
+proves it: without it, another household's tap and an expired card both send a
+card.
+
+Quiet hours and the revisit window are deliberately **not** applied to a dry
+run — they are rules about a trip, and a diagnostic that stays silent because it
+is 22:15, or because you pressed the button twice, is the problem this exists to
+solve.
+
 ## 2026-08-13 — the list was never read
 
 **Found while answering "how do I test this", which is the only reason it was

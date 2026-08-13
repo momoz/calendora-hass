@@ -696,3 +696,95 @@ async def test_a_long_shop_is_not_cut_off_while_it_is_still_being_shopped(
             f"the expiry is measuring from arrival rather than from activity"
         )
         ticked.clear()
+
+
+async def test_run_actions_in_the_ui_sends_the_card(
+    hass: HomeAssistant,
+    notifications,
+    ticked,
+    phone: str,
+    freezer,
+    aioclient_mock,
+) -> None:
+    """The button a person presses to ask "is this working?".
+
+    It calls `automation.trigger`, which passes `trigger: {platform: None}` —
+    defined, but with **no `id`**. Every branch of the `choose` opens with
+    `condition: trigger`, so all of them are false and nothing happened at all.
+    Correct, and useless: the one tool anyone reaches for to diagnose an
+    automation was the one that could never answer.
+
+    Four releases of this blueprint sent nothing for four different reasons, and
+    every one of those days would have been shorter if this button had worked.
+    """
+    freezer.move_to("2026-08-13 10:00:00+00:00")
+    await _setup(hass, phone, aioclient_mock)
+
+    await hass.services.async_call(
+        "automation",
+        "trigger",
+        {"entity_id": "automation.automation_0"},
+        blocking=True,
+    )
+    await hass.async_block_till_done()
+
+    assert len(notifications) == 1, (
+        "pressing Run actions sent nothing — the dry run is not reachable"
+    )
+    card = notifications[0]
+    assert "5 things" in card.data["title"]
+    assert len(card.data["data"]["actions"]) == 4, (
+        "the dry run must send the REAL card, buttons and all — a diagnostic "
+        "that sends something simpler proves the simpler thing works"
+    )
+    assert ticked() == [], "a dry run must not tick anything off"
+
+
+async def test_run_actions_says_why_when_it_cannot_send(
+    hass: HomeAssistant,
+    notifications,
+    phone: str,
+    freezer,
+    aioclient_mock,
+) -> None:
+    """Silence with a reason beats silence.
+
+    The opt-in is off here, which is a setup mistake and the single most likely
+    reason a household gets nothing. Before this, the automation and the button
+    both did exactly what they do when everything is fine.
+    """
+    freezer.move_to("2026-08-13 10:00:00+00:00")
+    # The dry run reports through `persistent_notification.create`, which is not
+    # registered unless the component is set up. A real Home Assistant always
+    # has it; a test does not, and without this the service call fails and the
+    # branch looks broken.
+    assert await async_setup_component(hass, "persistent_notification", {})
+    await _setup(hass, phone, aioclient_mock)
+    hass.states.async_set(
+        "sensor.calendora_member_test", "ok", {"shop_notifications": False}
+    )
+    await hass.async_block_till_done()
+
+    await hass.services.async_call(
+        "automation",
+        "trigger",
+        {"entity_id": "automation.automation_0"},
+        blocking=True,
+    )
+    await hass.async_block_till_done()
+
+    assert notifications == [], "sent to a member who has not opted in"
+
+    # Persistent notifications stopped being entities in Home Assistant; they
+    # live in their own store now, so `hass.states.get(...)` finds nothing and
+    # a test written against the old shape would fail for the wrong reason.
+    from homeassistant.components.persistent_notification import (
+        _async_get_or_create_notifications,
+    )
+
+    notices = _async_get_or_create_notifications(hass)
+    assert "calendora_shop_dry_run" in notices, (
+        "nothing was sent and nothing said why — that is the failure mode this "
+        "branch exists to end"
+    )
+    assert "not opted in" in notices["calendora_shop_dry_run"]["message"]

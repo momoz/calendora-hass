@@ -656,3 +656,71 @@ actions:
                     # "List cleared: one card, no buttons, silent." There is
                     # nothing left to tick, so a button could only be a way to
                     # get this wrong.
+
+    # ------------------------------------------------------- Run actions
+    #
+    # **"Run actions" in the UI reaches here, and nothing above it.**
+    #
+    # That button calls `automation.trigger`, which passes
+    # `trigger: {platform: None}` — defined, but with **no `id`**. Every branch
+    # above starts with `condition: trigger`, so all of them are false and the
+    # `choose` falls through. Pressing it did nothing at all, which is correct
+    # behaviour and completely unhelpful: the one tool a person reaches for to
+    # ask "is this thing working?" was the one that could never answer.
+    #
+    # `skip_condition` does not help either — it skips the automation's
+    # top-level `conditions:`, and these live inside the actions.
+    #
+    # So this branch makes the button a **dry run**: it sends the real arrival
+    # card, so a phone that is set up correctly gets the real thing, and says
+    # why if it cannot.
+    #
+    # **Guarded on `trigger.id is not defined`**, which no real trigger can
+    # satisfy — both declare an id. Without that guard this would fire on any
+    # tap that failed the branches above, including another household's, which
+    # is exactly the accident a `default:` invites.
+    default:
+      - condition: template
+        value_template: "{{ trigger.id is not defined }}"
+
+      # The two checks that represent a SETUP mistake, and nothing else.
+      # Quiet hours and the revisit window are deliberately not applied: they
+      # are rules about a trip, and a diagnostic that stays silent because it is
+      # 22:15 or because you pressed the button twice is the problem this branch
+      # exists to solve.
+      - if:
+          - condition: template
+            value_template: >-
+              {{ state_attr(member_entity, 'shop_notifications') is true
+                 and outstanding | count > 0 }}
+        then:
+          - *shop_card
+        else:
+          # Say which check failed. Four releases of this blueprint sent
+          # nothing and gave no reason, and every one of those days would have
+          # been shorter if the thing had been able to say what was wrong.
+          - action: persistent_notification.create
+            data:
+              title: Calendora — shopping list dry run
+              notification_id: "calendora_shop_dry_run"
+              message: >-
+                Nothing was sent, and here is why.
+
+
+                {% if state_attr(member_entity, 'shop_notifications') is not true %}
+                **{{ member_entity }} is not opted in to shop notifications.**
+                Turn it on in Settings → Devices & Services → Calendora →
+                Configure. Without it nothing is ever sent to this person, by
+                design.
+                {% endif %}
+
+                {% if outstanding | count == 0 %}
+                **{{ list_name }} has nothing outstanding on it.** An empty list
+                is silence on purpose — this never announces an absence of work.
+                Add an item and press Run actions again.
+                {% endif %}
+
+
+                Everything else looks right: the blueprint is loaded, the list
+                was read, and the phone is configured.
+
