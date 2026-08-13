@@ -294,12 +294,35 @@ triggers:
 conditions: []
 
 actions:
+  # THE LIST IS FETCHED, NOT READ FROM AN ATTRIBUTE.
+  #
+  # `state_attr(list_entity, 'items')` returns None. A Home Assistant to-do
+  # entity does not publish its items as a state attribute — the state is a
+  # count, the attributes are whatever the integration adds (here `list_id`,
+  # `list_type`, `section_count`), and **the items come from the `todo.get_items`
+  # action with a response variable**. Verified against a live instance: that
+  # entity has no `items` attribute and never did.
+  #
+  # This blueprint read the attribute from the day it was written, so
+  # `outstanding` was always empty, so the arrival card could never send and a
+  # tap could never tick anything. Nobody saw it because no household had the
+  # blueprint until 2026-08-10.
+  #
+  # The tests did not see it because they FABRICATED the attribute —
+  # `hass.states.async_set(TODO_ENTITY, n, {"items": [...]})` — inventing a state
+  # shape this integration does not produce. The author supplied the input again,
+  # and this time it was the shape of his own entity.
+  - action: todo.get_items
+    target:
+      entity_id: !input todo_entity
+    data:
+      status: needs_action
+    response_variable: todo_result
+
   - variables:
       # Recomputed on every branch, so a tap acts on the list as it stands
       # rather than as it was when the card was sent.
-      outstanding: >-
-        {{ (state_attr(list_entity, 'items') or [])
-           | selectattr('status', 'eq', 'needs_action') | list }}
+      outstanding: "{{ todo_result[list_entity]['items'] }}"
       showing: "{{ outstanding[:item_limit | int] }}"
       remaining: "{{ (outstanding | count) - (outstanding[:item_limit | int] | count) }}"
       shop_name: >-

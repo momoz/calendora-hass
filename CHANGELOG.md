@@ -4,6 +4,24 @@ All notable changes to this integration are recorded here. Versions match the
 `version` field in `custom_components/calendora/manifest.json` and the GitHub tag
 they were released under.
 
+## 0.4.7 — 2026-08-13
+
+**Every version before this one sent nothing.** The shopping notification read
+your list in a way that always came back empty, so the card could never arrive
+and a tap could never tick anything off. If you had driven to the shop you would
+have got silence, and the natural conclusion would have been that the zone or the
+dwell time was wrong.
+
+### Fixed
+
+- **The shopping list is actually read now.** The blueprint asked Home Assistant
+  for the list's items in a way that has never worked — a to-do list does not
+  publish its items that way, and the request quietly returned nothing rather
+  than failing. It now fetches them properly.
+
+  **Import the blueprint again** after updating, from the same address, and
+  accept the overwrite. Nothing else you have set up changes.
+
 ## 0.4.6 — 2026-08-11
 
 ### Fixed

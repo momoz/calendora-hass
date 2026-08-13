@@ -207,8 +207,15 @@ def test_the_replacement_is_built_from_the_list_as_it_stands_after_the_tap(
         f"the top, once by subtraction after the tick — found {len(blocks)}"
     )
     source, rebind = blocks
-    assert "state_attr" in source["outstanding"], (
-        "the first definition should read the list from the entity"
+    assert "todo_result" in source["outstanding"], (
+        "the first definition should come from the `todo.get_items` response. "
+        "Reading `state_attr(entity, 'items')` is the defect that made every "
+        "release before 0.4.7 silent: no Home Assistant to-do entity has an "
+        "`items` attribute, so `outstanding` was always empty."
+    )
+    assert "state_attr" not in source["outstanding"], (
+        "the list is being read from a state attribute again — there is no such "
+        "attribute, and it fails silently as an empty list"
     )
     assert "rejectattr" in rebind["outstanding"] and "ticking" in rebind["outstanding"], (
         f"`outstanding` is rebound, but not by subtracting what this tap ticked: "

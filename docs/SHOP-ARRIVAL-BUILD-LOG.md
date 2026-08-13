@@ -23,6 +23,52 @@ because anything forbids editing the design.
 
 ---
 
+## 2026-08-13 — the list was never read
+
+**Found while answering "how do I test this", which is the only reason it was
+found at all.**
+
+The blueprint read the shopping list as `state_attr(list_entity, 'items')`.
+**No Home Assistant to-do entity publishes an `items` attribute.** The state is a
+count; the attributes are whatever the integration adds — here `list_id`,
+`list_type`, `section_count`. Items come from the **`todo.get_items` action with
+a response variable**, and nothing else.
+
+So `outstanding` was always `[]`. The arrival card is gated on
+`outstanding | count > 0`, so **it could never send**; a tap ticked nothing
+because `ticking` fell back to an empty slice. **Every release that has ever
+contained this blueprint has been silent**, including the four shipped in the two
+days spent fixing everything else about it.
+
+Verified against the live instance before and after: `todo.shopping_list` carries
+no `items` attribute, and `todo.get_items` on the same entity returns two real
+items with `uid`, `summary` and `status`. Fixed by calling the action and reading
+`todo_result[list_entity]['items']`.
+
+### The third instance of the same shape in three days
+
+The tests published the to-do state by hand — `hass.states.async_set(entity, n,
+{"items": [...]})` — **inventing an attribute the integration one directory away
+does not produce.** The blueprint read it, the fixture supplied it, and the two
+agreed with each other.
+
+- `0.4.4`: the author supplied the wrong input **value** (a service-name string
+  where the selector yields an action sequence).
+- `0.4.5`: the wrong input **location** (a blueprint path Home Assistant never
+  uses).
+- `0.4.7`: the wrong input **shape** — and this one is the worst of the three,
+  because the correct shape was available in this repository the whole time. The
+  integration's own `extra_state_attributes` says exactly what it publishes.
+
+**The repair is structural rather than another assertion.** The behaviour tests
+now stand up the **real Calendora integration** against mocked HTTP and drive the
+**real to-do entity**, so a fixture can no longer invent a state shape the
+integration does not produce. Ticks are asserted against the outgoing API request
+rather than a service spy — `todo.update_item` now reaches the real entity, and a
+spy in front of it would prove only that something was asked for.
+
+Mutation-tested: restoring the attribute read fails all ten behaviour tests.
+
 ## 2026-08-11 — the trip can stop itself
 
 §6's stop conditions, filed as `#151`. **The expiry is built. The push cap is

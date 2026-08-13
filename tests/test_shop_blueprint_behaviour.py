@@ -39,16 +39,42 @@ BLUEPRINT = (
 )
 
 NOTIFY_SERVICE = "notify.mobile_app_test_iphone"
-TODO_ENTITY = "todo.shopping"
+#: The REAL Calendora to-do entity, set up from the real integration against
+#: mocked HTTP — not a hand-made state object.
+#:
+#: The blueprint used to read `state_attr(todo_entity, 'items')`, and these
+#: tests passed by publishing an `items` attribute with
+#: `hass.states.async_set(...)`. **No Home Assistant to-do entity has such an
+#: attribute**, and this one never did — it exposes `list_id`, `list_type` and
+#: `section_count`. So the fixture invented the state shape the blueprint
+#: wanted, the two agreed, and neither agreed with the integration in the next
+#: directory. Driving the real entity is what stops that recurring.
+TODO_ENTITY = "todo.test_household_shopping"
 TAG = "calendora_shop_test"
 
-ITEMS = [
-    {"uid": "i1", "summary": "Milk", "status": "needs_action"},
-    {"uid": "i2", "summary": "Bread", "status": "needs_action"},
-    {"uid": "i3", "summary": "Eggs", "status": "needs_action"},
-    {"uid": "i4", "summary": "Butter", "status": "needs_action"},
-    {"uid": "i5", "summary": "Coffee", "status": "needs_action"},
-]
+#: A purpose-built API payload rather than the shared fixture, because these
+#: tests need five open items. The INTEGRATION still translates it, so the
+#: entity under test is the real one publishing its real shape — only the data
+#: is chosen here.
+_NAMES = ["Milk", "Bread", "Eggs", "Butter", "Coffee"]
+LIST_ITEMS_PAYLOAD = {
+    "listId": "lst-1",
+    "sections": [],
+    "items": [
+        {
+            "id": f"i{n}",
+            "text": name,
+            "quantity": None,
+            "notes": None,
+            "isChecked": False,
+            "sectionId": None,
+            "position": f"a{n}",
+            "due": None,
+            "assignedMembershipId": None,
+        }
+        for n, name in enumerate(_NAMES, start=1)
+    ],
+}
 
 
 @pytest.fixture
@@ -94,12 +120,67 @@ def phone_fixture(hass: HomeAssistant, monkeypatch) -> str:
 
 
 @pytest.fixture
-def ticked(hass: HomeAssistant) -> list[ServiceCall]:
-    return async_mock_service(hass, "todo", "update_item")
+def ticked(aioclient_mock):
+    """The item ids actually ticked off, read from the outgoing API requests.
+
+    Not a spy on `todo.update_item`. That service now reaches the real Calendora
+    entity, which writes to the API — so the truthful record of what got ticked
+    is the request that left the house. A service spy would sit in front of the
+    entity and prove only that something was asked for.
+    """
+
+    def _ids() -> list[str]:
+        return [
+            str(call[1]).rsplit("/", 1)[-1]
+            for call in aioclient_mock.mock_calls
+            if call[0] == "PATCH" and (call[2] or {}).get("isChecked") is True
+        ]
+
+    _ids.clear = aioclient_mock.mock_calls.clear
+    return _ids
+
+
+@pytest.fixture(name="phone")
+def phone_fixture(hass: HomeAssistant, monkeypatch) -> str:
+    """A mobile_app device, and the two lookups that turn it into a service.
+
+    The blueprint sends through mobile_app's **device action** rather than a
+    named service, because no Home Assistant selector yields a service name.
+    At runtime that action resolves device id → webhook id → notify service.
+    The device is real, registered against a real config entry; only the two
+    webhook lookups are stubbed, because they read mobile_app's own storage
+    which a test has no honest way to populate.
+
+    Stubbing them is the smallest lie that still exercises the real device
+    action — the schema, the template rendering and the service call underneath
+    are all Home Assistant's.
+    """
+    from homeassistant.components.mobile_app import device_action
+    from homeassistant.helpers import device_registry as dr
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    entry = MockConfigEntry(domain="mobile_app", data={})
+    entry.add_to_hass(hass)
+    device = dr.async_get(hass).async_get_or_create(
+        config_entry_id=entry.entry_id,
+        identifiers={("mobile_app", "test-phone")},
+        name="Test Phone",
+    )
+    monkeypatch.setattr(
+        device_action, "webhook_id_from_device_id", lambda hass, device_id: "webhook-1"
+    )
+    monkeypatch.setattr(
+        device_action,
+        "get_notify_service",
+        lambda hass, webhook_id: NOTIFY_SERVICE.split(".", 1)[1],
+    )
+    return device.id
+
+
 
 
 async def _setup(
-    hass: HomeAssistant, phone: str, *, completion_card: bool = False
+    hass: HomeAssistant, phone: str, mocker, *, completion_card: bool = False
 ) -> None:
     """Install the blueprint and build an automation from it.
 
@@ -132,11 +213,7 @@ async def _setup(
     hass.states.async_set(
         "sensor.calendora_member_test", "ok", {"shop_notifications": True}
     )
-    hass.states.async_set(
-        TODO_ENTITY,
-        len(ITEMS),
-        {"friendly_name": "Shopping", "list_id": "list-123", "items": ITEMS},
-    )
+    await _setup_calendora(hass, mocker)
 
     assert await async_setup_component(
         hass,
@@ -158,6 +235,43 @@ async def _setup(
         },
     )
     await hass.async_block_till_done()
+
+
+async def _setup_calendora(hass: HomeAssistant, mocker) -> None:
+    """Stand up the real integration so the real to-do entity exists.
+
+    This is the repair for the defect these tests hid. They used to publish a
+    to-do state by hand, complete with an `items` attribute that no Home
+    Assistant to-do entity has — so the blueprint read the attribute, the
+    fixture supplied it, and the pair agreed with each other while disagreeing
+    with the integration in the next directory. Now the entity is built by the
+    integration from an API response, and the blueprint has to get its items the
+    way a household's would: through `todo.get_items`.
+    """
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    from custom_components.calendora.const import API_BASE_URL, CONF_API_KEY, DOMAIN
+
+    from .const import API_KEY, load_fixture
+
+    base = f"{API_BASE_URL}/api/v1"
+    mocker.get(f"{base}/household", json=load_fixture("household.json"))
+    mocker.get(f"{base}/members", json=load_fixture("members.json"))
+    mocker.get(f"{base}/events", json=load_fixture("events.json"))
+    mocker.get(f"{base}/lists", json=load_fixture("lists.json"))
+    mocker.get(f"{base}/lists/lst-1/items", json=LIST_ITEMS_PAYLOAD)
+    mocker.get(f"{base}/lists/lst-2/items", json={"listId": "lst-2", "sections": [], "items": []})
+    mocker.get(f"{base}/stream", text="", headers={"Content-Type": "text/event-stream"})
+    for item in LIST_ITEMS_PAYLOAD["items"]:
+        mocker.patch(f"{base}/lists/lst-1/items/{item['id']}", json={"id": item["id"]})
+
+    entry = MockConfigEntry(
+        domain=DOMAIN, title="Calendora", data={CONF_API_KEY: API_KEY}, version=2
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert hass.states.get(TODO_ENTITY) is not None, "the real to-do entity is missing"
 
 
 async def _arrive(
@@ -205,9 +319,10 @@ async def _tap(
 async def test_a_tap_ticks_the_items_and_the_card_comes_back(
     hass: HomeAssistant,
     notifications: list[ServiceCall],
-    ticked: list[ServiceCall],
+    ticked,
     phone: str,
     freezer,
+    aioclient_mock,
 ) -> None:
     """§6, the row with no debounce and no cap.
 
@@ -215,11 +330,11 @@ async def test_a_tap_ticks_the_items_and_the_card_comes_back(
     the shopper got silence from a card their tap had just dismissed.
     """
     freezer.move_to("2026-08-11 10:00:00+00:00")
-    await _setup(hass, phone)
+    await _setup(hass, phone, aioclient_mock)
     await _arrive(hass, freezer, notifications)
     await _tap(hass, "CALENDORA_SHOP_GOT_BATCH", ["i1", "i2"])
 
-    assert [call.data["item"] for call in ticked] == ["i1", "i2"]
+    assert ticked() == ["i1", "i2"]
     assert len(notifications) == 1, "the tap produced no replacement card"
 
     card = notifications[0].data
@@ -234,9 +349,10 @@ async def test_a_tap_ticks_the_items_and_the_card_comes_back(
 async def test_the_replacement_carries_the_same_four_buttons(
     hass: HomeAssistant,
     notifications: list[ServiceCall],
-    ticked: list[ServiceCall],
+    ticked,
     phone: str,
     freezer,
+    aioclient_mock,
 ) -> None:
     """The anchor's payoff, observed at runtime rather than in the YAML.
 
@@ -244,7 +360,7 @@ async def test_the_replacement_carries_the_same_four_buttons(
     ever come apart, this is where a person notices.
     """
     freezer.move_to("2026-08-11 10:00:00+00:00")
-    await _setup(hass, phone)
+    await _setup(hass, phone, aioclient_mock)
     await _arrive(hass, freezer, notifications)
     await _tap(hass, "CALENDORA_SHOP_GOT_BATCH", ["i1"])
 
@@ -266,9 +382,10 @@ async def test_the_replacement_carries_the_same_four_buttons(
 async def test_the_replacement_is_not_read_back_from_the_list_entity(
     hass: HomeAssistant,
     notifications: list[ServiceCall],
-    ticked: list[ServiceCall],
+    ticked,
     phone: str,
     freezer,
+    aioclient_mock,
 ) -> None:
     """The todo service is mocked, so the entity still holds all five items.
 
@@ -279,20 +396,25 @@ async def test_the_replacement_is_not_read_back_from_the_list_entity(
     hold the state still like this.
     """
     freezer.move_to("2026-08-11 10:00:00+00:00")
-    await _setup(hass, phone)
+    await _setup(hass, phone, aioclient_mock)
     await _arrive(hass, freezer, notifications)
     await _tap(hass, "CALENDORA_SHOP_GOT_BATCH", ["i1", "i2"])
 
-    assert len(hass.states.get(TODO_ENTITY).attributes["items"]) == 5
+    # The entity still reports five open items: nothing has been re-read, and
+    # `items` is not an attribute at all — asserting on one is what hid the
+    # defect this test now guards.
+    assert hass.states.get(TODO_ENTITY).state == "5"
+    assert "items" not in hass.states.get(TODO_ENTITY).attributes
     assert "5 things" not in notifications[0].data["title"]
 
 
 async def test_got_the_rest_ends_the_trip_without_a_replacement(
     hass: HomeAssistant,
     notifications: list[ServiceCall],
-    ticked: list[ServiceCall],
+    ticked,
     phone: str,
     freezer,
+    aioclient_mock,
 ) -> None:
     """Nothing is left, so there is no card to come back with.
 
@@ -300,11 +422,11 @@ async def test_got_the_rest_ends_the_trip_without_a_replacement(
     silence, not an empty list card.
     """
     freezer.move_to("2026-08-11 10:00:00+00:00")
-    await _setup(hass, phone, completion_card=False)
+    await _setup(hass, phone, aioclient_mock, completion_card=False)
     await _arrive(hass, freezer, notifications)
     await _tap(hass, "CALENDORA_SHOP_GOT_ALL")
 
-    assert [call.data["item"] for call in ticked] == ["i1", "i2", "i3", "i4", "i5"]
+    assert ticked() == ["i1", "i2", "i3", "i4", "i5"]
     assert notifications == [], (
         "an empty list must not produce a list card — and the completion card is off"
     )
@@ -313,13 +435,14 @@ async def test_got_the_rest_ends_the_trip_without_a_replacement(
 async def test_the_completion_card_replaces_the_trip_card_when_switched_on(
     hass: HomeAssistant,
     notifications: list[ServiceCall],
-    ticked: list[ServiceCall],
+    ticked,
     phone: str,
     freezer,
+    aioclient_mock,
 ) -> None:
     """§6: "list cleared → one card, no buttons, silent."."""
     freezer.move_to("2026-08-11 10:00:00+00:00")
-    await _setup(hass, phone, completion_card=True)
+    await _setup(hass, phone, aioclient_mock, completion_card=True)
     await _arrive(hass, freezer, notifications)
     await _tap(hass, "CALENDORA_SHOP_GOT_ALL")
 
@@ -334,28 +457,30 @@ async def test_the_completion_card_replaces_the_trip_card_when_switched_on(
 async def test_another_households_tap_is_ignored(
     hass: HomeAssistant,
     notifications: list[ServiceCall],
-    ticked: list[ServiceCall],
+    ticked,
     phone: str,
     freezer,
+    aioclient_mock,
 ) -> None:
     """Home Assistant does not route the action event to the automation that sent
     the notification — every automation on the instance sees every tap. The tag
     check is the only thing standing between two households' shopping lists.
     """
     freezer.move_to("2026-08-11 10:00:00+00:00")
-    await _setup(hass, phone)
+    await _setup(hass, phone, aioclient_mock)
     await _arrive(hass, freezer, notifications)
     await _tap(hass, "CALENDORA_SHOP_GOT_BATCH", ["i1"], tag="calendora_shop_someone_else")
 
-    assert ticked == [] and notifications == []
+    assert ticked() == [] and notifications == []
 
 
 async def test_a_tap_with_no_action_data_falls_back_to_the_batch_it_showed(
     hass: HomeAssistant,
     notifications: list[ServiceCall],
-    ticked: list[ServiceCall],
+    ticked,
     phone: str,
     freezer,
+    aioclient_mock,
 ) -> None:
     """The `action_data` device test (#67) is still unanswered.
 
@@ -365,20 +490,21 @@ async def test_a_tap_with_no_action_data_falls_back_to_the_batch_it_showed(
     device test has something to confirm or contradict rather than a guess.
     """
     freezer.move_to("2026-08-11 10:00:00+00:00")
-    await _setup(hass, phone)
+    await _setup(hass, phone, aioclient_mock)
     await _arrive(hass, freezer, notifications)
     await _tap(hass, "CALENDORA_SHOP_GOT_BATCH")
 
-    assert [call.data["item"] for call in ticked] == ["i1", "i2", "i3", "i4", "i5"]
+    assert ticked() == ["i1", "i2", "i3", "i4", "i5"]
     assert notifications == [], "a five-item list and a five-item batch leaves nothing"
 
 
 async def test_arriving_at_the_shop_and_staying_sends_the_list(
     hass: HomeAssistant,
     notifications: list[ServiceCall],
-    ticked: list[ServiceCall],
+    ticked,
     phone: str,
     freezer,
+    aioclient_mock,
 ) -> None:
     """The dwell trigger, which had never been executed by anything.
 
@@ -417,11 +543,7 @@ async def test_arriving_at_the_shop_and_staying_sends_the_list(
     hass.states.async_set(
         "sensor.calendora_member_test", "ok", {"shop_notifications": True}
     )
-    hass.states.async_set(
-        TODO_ENTITY,
-        len(ITEMS),
-        {"friendly_name": "Shopping", "list_id": "list-123", "items": ITEMS},
-    )
+    await _setup_calendora(hass, aioclient_mock)
     # `in_zones` is what the trigger actually reads. `zone.entered` does not do
     # geometry against the person's coordinates — it asks the person entity
     # which zones it considers itself in, an attribute only `person` and
@@ -498,9 +620,10 @@ async def test_arriving_at_the_shop_and_staying_sends_the_list(
 async def test_a_card_left_overnight_no_longer_ticks_anything(
     hass: HomeAssistant,
     notifications: list[ServiceCall],
-    ticked: list[ServiceCall],
+    ticked,
     phone: str,
     freezer,
+    aioclient_mock,
 ) -> None:
     """§6: the trip stops after 90 minutes.
 
@@ -517,13 +640,13 @@ async def test_a_card_left_overnight_no_longer_ticks_anything(
     from homeassistant.util import dt as dt_util
 
     freezer.move_to("2026-08-11 10:00:00+00:00")
-    await _setup(hass, phone)
+    await _setup(hass, phone, aioclient_mock)
     await _arrive(hass, freezer, notifications)
 
     # Still shopping twenty minutes in: the loop works.
     freezer.move_to(dt_util.utcnow() + timedelta(minutes=20))
     await _tap(hass, "CALENDORA_SHOP_GOT_BATCH", ["i1"])
-    assert [call.data["item"] for call in ticked] == ["i1"]
+    assert ticked() == ["i1"]
     assert len(notifications) == 1, "an active trip stopped answering taps"
 
     ticked.clear()
@@ -534,7 +657,7 @@ async def test_a_card_left_overnight_no_longer_ticks_anything(
     freezer.move_to(dt_util.utcnow() + timedelta(minutes=91))
     await _tap(hass, "CALENDORA_SHOP_GOT_BATCH", ["i2"])
 
-    assert ticked == [], (
+    assert ticked() == [], (
         "a tap 91 minutes after the trip went quiet still ticked an item off — "
         "that is yesterday's card editing today's list"
     )
@@ -544,9 +667,10 @@ async def test_a_card_left_overnight_no_longer_ticks_anything(
 async def test_a_long_shop_is_not_cut_off_while_it_is_still_being_shopped(
     hass: HomeAssistant,
     notifications: list[ServiceCall],
-    ticked: list[ServiceCall],
+    ticked,
     phone: str,
     freezer,
+    aioclient_mock,
 ) -> None:
     """The deliberate deviation from §6, asserted so it is a decision and not a bug.
 
@@ -561,13 +685,13 @@ async def test_a_long_shop_is_not_cut_off_while_it_is_still_being_shopped(
     from homeassistant.util import dt as dt_util
 
     freezer.move_to("2026-08-11 09:00:00+00:00")
-    await _setup(hass, phone)
+    await _setup(hass, phone, aioclient_mock)
     await _arrive(hass, freezer, notifications)
 
     for index, uid in enumerate(("i1", "i2", "i3"), start=1):
         freezer.move_to(dt_util.utcnow() + timedelta(minutes=50))
         await _tap(hass, "CALENDORA_SHOP_GOT_BATCH", [uid])
-        assert [call.data["item"] for call in ticked] == [uid], (
+        assert ticked() == [uid], (
             f"tap {index}, at {index * 50} minutes past arrival, was refused — "
             f"the expiry is measuring from arrival rather than from activity"
         )
