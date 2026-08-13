@@ -140,6 +140,22 @@ blueprint:
       selector:
         duration:
           enable_day: false
+    max_pushes:
+      name: Most notifications in one trip
+      description: >-
+        A trip goes quiet after this many notifications. It is a backstop rather
+        than a setting to tune: every notification after the first answers a
+        button you pressed, so a normal shop never reaches it.
+
+
+        The count is kept by Home Assistant itself and survives a restart — a
+        limit that resets when your hub reboots is not a limit.
+      default: 8
+      selector:
+        number:
+          min: 3
+          max: 20
+          mode: slider
     revisit_hours:
       name: Don't send again for
       description: >-
@@ -238,6 +254,7 @@ variables:
   shop_entity: !input shop_zone
   item_limit: !input batch_size
   revisit_window: !input revisit_hours
+  push_cap: !input max_pushes
   send_completion_card: !input send_completion_card
   # §6, "the trip stops": 90 minutes. Not an input — §0 does not declare one and
   # this is not a knob a household should have to reason about. A number here
@@ -387,6 +404,19 @@ actions:
             after: !input quiet_until
             before: !input quiet_from
         sequence:
+          # §6: the trip starts here, so the budget starts here. `reset` is what
+          # makes the cap per-trip rather than per-lifetime — without it the
+          # eighth notification this household ever received would be its last.
+          #
+          # The arrival card is push 1. It is never refused: a trip that cannot
+          # send its first card is not a capped trip, it is a broken one.
+          - action: calendora.shop_push_budget
+            data:
+              trip: "{{ notification_tag }}"
+              max: "{{ push_cap }}"
+              reset: true
+            response_variable: budget
+
           # `&shop_card` — this exact node is sent again by the ticking branch
           # below (§6, "your own tap → replacement immediately"). A YAML anchor
           # rather than a second copy, because it is not a second card: it is
@@ -620,9 +650,15 @@ actions:
               showing: "{{ outstanding[:item_limit | int] }}"
               remaining: "{{ (outstanding | count) - (outstanding[:item_limit | int] | count) }}"
 
+          - action: calendora.shop_push_budget
+            data:
+              trip: "{{ notification_tag }}"
+              max: "{{ push_cap }}"
+            response_variable: budget
+
           - if:
               - condition: template
-                value_template: "{{ outstanding | count > 0 }}"
+                value_template: "{{ outstanding | count > 0 and budget.allowed }}"
             then:
               # Not gated on quiet hours, and that is deliberate. §7 exists to
               # stop this making a noise for something the person did not do;
@@ -644,7 +680,7 @@ actions:
               # silent, and on Android it cannot be (§10.3).
               - if:
                   - condition: template
-                    value_template: "{{ send_completion_card }}"
+                    value_template: "{{ send_completion_card and budget.allowed }}"
                 then:
                   - domain: mobile_app
                     type: notify

@@ -1,0 +1,24 @@
+shop_push_budget:
+  # DESIGN-shop-arrival.md §6. Called by the shopping blueprint before each
+  # send, so a trip cannot push a family more times than they agreed to.
+  #
+  # A response-only service: it answers "may I send?" and records that you
+  # asked. Calling it without reading the answer increments the count and
+  # tells you nothing, which is why it does not support being called blind.
+  fields:
+    trip:
+      required: true
+      example: calendora_shop_mike
+      selector:
+        text:
+    max:
+      default: 8
+      selector:
+        number:
+          min: 3
+          max: 20
+          mode: slider
+    reset:
+      default: false
+      selector:
+        boolean:

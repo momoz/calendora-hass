@@ -4,6 +4,25 @@ All notable changes to this integration are recorded here. Versions match the
 `version` field in `custom_components/calendora/manifest.json` and the GitHub tag
 they were released under.
 
+## 0.5.0 — 2026-08-13
+
+### Added
+
+- **A shopping trip now goes quiet after eight notifications.** It is a backstop
+  rather than a setting to fiddle with: every notification after the first
+  answers a button you pressed, so an ordinary shop never comes near it. It is
+  there so that a trip can never keep notifying a family indefinitely, whatever
+  goes wrong.
+
+  Adjustable between 3 and 20 when you import the blueprint.
+
+  **The count is kept by Home Assistant and survives a restart** — which is the
+  whole point. A limit that resets when your hub reboots reads as a limit and
+  is not one, and Home Assistant reboots on every update.
+
+  Going quiet does not mean going dead: your taps still tick items off. Only the
+  notification is withheld.
+
 ## 0.4.9 — 2026-08-13
 
 ### Fixed

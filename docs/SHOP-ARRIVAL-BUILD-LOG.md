@@ -23,6 +23,47 @@ because anything forbids editing the design.
 
 ---
 
+## 2026-08-13 — the push cap, the other half of #151
+
+§6 caps a trip at eight pushes and §0 declares a `max_pushes` input, 3–20,
+default 8. **Neither had ever been built**, and the input was a promise the
+blueprint's form never made.
+
+**Deferred earlier the same day, and the deferral was right at the time:** every
+send after the arrival card answers a tap, so a cap would have bounded a person's
+own thumb. It is built now because Mike settled the storage question — *"I think
+HA should store itself"* — and a decision about where a counter lives is not one
+you make for a counter you do not want.
+
+**Where it lives, and why not the two alternatives.** `homeassistant.helpers.
+storage.Store`, in the integration, behind a response-only service the blueprint
+calls before each send.
+
+- **Not a script variable**, because a blueprint has nowhere to keep a number
+  between runs.
+- **Not a household `counter` helper**, because that is setup work pushed onto
+  every family for a backstop most trips never reach.
+- **Not Calendora's database** — the first answer, and the expensive one. The
+  pushes originate in Home Assistant and never touch Calendora, which has no
+  other reason to know how many notifications a blueprint sent. That route meant
+  a new public `/api/v1` surface, maintained forever, for a counter.
+
+**The test that is the requirement rather than arithmetic** is
+`test_the_count_survives_a_restart`. A restart-scoped counter reads as enforced
+and is not — Home Assistant restarts on updates, config reloads and power cuts —
+which is the silent-success shape inside a control whose only job is to be a
+limit. Mutation-tested by dropping the save: it fails.
+
+**And the blueprint has to ask.** A counter that counts while nothing consults it
+is the same defect wearing the opposite sign, so
+`test_a_trip_goes_quiet_once_it_has_spent_its_budget` drives a real trip through
+nine taps and asserts the ninth card never arrives. Mutation-tested by removing
+`budget.allowed` from the send condition.
+
+**Silence, not an apology.** §6: *"The eighth is a hard stop with no explanatory
+ninth."* The refusal is logged for whoever goes looking and nothing reaches the
+phone. Ticking still works — going quiet must not mean going dead.
+
 ## 2026-08-13 — the primary action opened a 404
 
 Mike tapped the first card this feature has ever sent, and got **404: Not

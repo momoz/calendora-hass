@@ -8,6 +8,7 @@ from homeassistant.core import HomeAssistant
 
 from .blueprint_check import async_check_blueprint_is_imported
 from .const import CONF_API_KEY, LOGGER
+from .push_budget import async_register_push_budget
 from .coordinator import CalendoraDataUpdateCoordinator
 
 PLATFORMS: list[Platform] = [
@@ -42,6 +43,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: CalendoraConfigEntry) ->
     # a blueprint that had never been imported into any household and therefore
     # could not have been noticed to be broken. See `blueprint_check`.
     await async_check_blueprint_is_imported(hass)
+
+    # §6's push cap. Registered here rather than per-entry — it is one service
+    # for the instance, and `async_register_push_budget` is idempotent.
+    await async_register_push_budget(hass)
 
     return True
 

@@ -110,5 +110,25 @@
       "title": "The shopping blueprint has not been imported",
       "description": "Calendora ships a blueprint that sends your shopping list to your phone when you arrive at a shop, but installing this integration does not install it — Home Assistant only knows about a blueprint once you import it yourself.\n\nTo set it up: **Settings → Automations & scenes → Blueprints → Import blueprint**, and paste this address:\n\n{url}\n\nThen create an automation from it, one per person per shop.\n\nIf you do not want the shopping notification, you can safely ignore this."
     }
+  },
+  "services": {
+    "shop_push_budget": {
+      "name": "Shopping trip push budget",
+      "description": "Records one notification against a shopping trip and says whether it was within the trip's limit. Used by the shopping blueprint so a trip cannot notify a family more times than they agreed to.",
+      "fields": {
+        "trip": {
+          "name": "Trip",
+          "description": "Identifies the trip. The blueprint uses the notification tag, which is one per person per trip."
+        },
+        "max": {
+          "name": "Most notifications",
+          "description": "How many notifications one trip may send before it goes quiet."
+        },
+        "reset": {
+          "name": "Start a new trip",
+          "description": "Set when the arrival notification is sent, so the count is per trip rather than for ever."
+        }
+      }
+    }
   }
 }

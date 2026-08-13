@@ -788,3 +788,51 @@ async def test_run_actions_says_why_when_it_cannot_send(
         "branch exists to end"
     )
     assert "not opted in" in notices["calendora_shop_dry_run"]["message"]
+
+
+async def test_a_trip_goes_quiet_once_it_has_spent_its_budget(
+    hass: HomeAssistant,
+    notifications,
+    ticked,
+    phone: str,
+    freezer,
+    aioclient_mock,
+) -> None:
+    """§6's hard stop, exercised through the blueprint rather than the service.
+
+    The unit tests prove the counter counts. This proves the blueprint *asks* —
+    which is the part that was missing for the whole of the feature's life, and
+    the part a counter cannot enforce on its own.
+
+    A shopper taps repeatedly; the replacements come back until the budget is
+    spent and then stop. §6: "The eighth is a hard stop with no explanatory
+    ninth. If a trip has taken eight, the design has already failed and a
+    message about it is not the repair." So the test asserts silence, not an
+    apology.
+    """
+    freezer.move_to("2026-08-13 10:00:00+00:00")
+    await _setup(hass, phone, aioclient_mock)
+    await _arrive(hass, freezer, notifications)  # push 1 of 8, and resets the trip
+
+    # Seven more sends are allowed; the eighth tap gets nothing back.
+    for tap in range(2, 9):
+        ticked.clear()
+        notifications.clear()
+        await _tap(hass, "CALENDORA_SHOP_GOT_BATCH", ["i1"])
+        assert len(notifications) == 1, (
+            f"push {tap} of 8 was refused — the cap is firing early"
+        )
+
+    ticked.clear()
+    notifications.clear()
+    await _tap(hass, "CALENDORA_SHOP_GOT_BATCH", ["i1"])
+
+    assert notifications == [], (
+        "the ninth push was sent — §6 caps a trip at eight, and this is the "
+        "control that stops a family being notified indefinitely"
+    )
+    assert ticked() == ["i1"], (
+        "the tap stopped ticking items off as well. Going quiet must not mean "
+        "going dead — the shopper's tap still has to do what they asked for; "
+        "only the notification is withheld."
+    )

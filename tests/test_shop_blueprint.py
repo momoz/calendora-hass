@@ -323,6 +323,7 @@ async def test_the_anchor_survives_home_assistant_s_own_loader(hass) -> None:
         "notify_device": notify_service,
         "dwell_minutes": {"minutes": 2},
         "batch_size": 5,
+        "max_pushes": 8,
         "revisit_hours": 2,
         "send_completion_card": True,
         "quiet_from": "21:30:00",
