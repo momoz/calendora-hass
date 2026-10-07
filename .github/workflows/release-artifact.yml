@@ -1,0 +1,82 @@
+name: Release artifact
+
+# `validate.yml` proves a **commit** is sound. This proves the **artifact** is —
+# the archive HACS downloads into a household, and the URL the Repairs notice
+# tells a person to paste. Nothing here had ever fetched either one.
+#
+# The silent-success test is the whole argument for this file. If a tag shipped
+# with the blueprint missing, with `manifest.json` naming a different version
+# than the tag, or with the import URL pointing at a file that had been renamed
+# on `main`, **nothing in this repository would look any different** — every
+# existing check reads the working tree, and the working tree is the one thing
+# that does not need the release to exist.
+#
+# It runs weekly as well as on publication, deliberately: the import URL points
+# at `main`, so it can rot **after** a green release, and the household that
+# finds out is one following a notice this integration raised.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to check (default: the latest published release)"
+        required: false
+  schedule:
+    # Mondays, after the weekly validate run and the contract-drift run, so the
+    # three land in the order a release actually happens: code, contract, artifact.
+    - cron: "0 6 * * 1"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.release.tag_name || github.event.inputs.tag || 'latest' }}
+  cancel-in-progress: false
+
+jobs:
+  artifact:
+    name: is the released artifact the one we meant to ship
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          # Same version as validate.yml, and for the same reason: the test
+          # harness pulls in the matching Home Assistant. Bump them together.
+          python-version: "3.14"
+
+      - run: pip install -r requirements_test.txt
+
+      - name: Fetch and check the release archive
+        env:
+          # Anonymous API requests are rate-limited per runner IP, and a 403
+          # from that is indistinguishable from a missing release. No extra
+          # permission needed — this only reads public releases.
+          GITHUB_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name || github.event.inputs.tag }}
+        run: |
+          python scripts/verify_release_artifact.py \
+            ${TAG:+--tag "$TAG"} \
+            --unpack-to "$RUNNER_TEMP/artifact"
+
+      - name: Run the blueprint gates from inside the downloaded archive
+        # The archive carries the tests, so this is not a new gate — it is the
+        # existing one aimed at the artifact instead of the working tree. The
+        # test harness symlinks whichever `custom_components/calendora` it is
+        # pointed at into Home Assistant's config directory, so these load the
+        # **downloaded** integration and the **downloaded** blueprint.
+        #
+        # `test_blueprint_configures.py` is the gate that cost the fourth
+        # release in a row: it substitutes each input the way the UI does and
+        # asks Home Assistant to validate the result. `test_blueprint_check.py`
+        # holds the Repairs notice in both directions. `test_manifest.py` ties
+        # the manifest to the changelog.
+        run: |
+          TREE=$(find "$RUNNER_TEMP/artifact" -maxdepth 1 -mindepth 1 -type d | head -1)
+          echo "Running the archive's own tests from $TREE"
+          pytest -q \
+            "$TREE/tests/test_blueprint_configures.py" \
+            "$TREE/tests/test_shop_blueprint.py" \
+            "$TREE/tests/test_shop_blueprint_behaviour.py" \
+            "$TREE/tests/test_blueprint_check.py" \
+            "$TREE/tests/test_manifest.py"

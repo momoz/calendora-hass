@@ -23,6 +23,104 @@ because anything forbids editing the design.
 
 ---
 
+## 2026-08-22 — the first real trips, read off the traces
+
+**The design's most exposed surface has now been exercised by a person walking
+into a shop**, three times, and nobody reported it — it was found by reading
+Mike's instance during a status sweep. Recorded here from automation traces
+rather than from anyone's account of it.
+
+| When | Whose | What the trace shows |
+|---|---|---|
+| 2026-08-16 09:15 | Donna | triggered on arrival; trace since expired, contents unrecoverable |
+| 2026-08-19 09:56 | Mike | `not_home` → `Publix-NorthDeLand`; four real items; `remaining: 0`; budget `{allowed: true, count: 1, max: 8}`; send executed, no error |
+| 2026-08-21 09:00 | Mike | nine items outstanding, `showing` 5, **`remaining: 4`** — the "and N more" path, on real data, for the first time |
+
+**What this closes.** The zone trigger fires on a real arrival, and it survived
+parking and walking in — the trigger fired *after* the dwell, on both trips,
+rather than at the kerb. `todo.get_items` returns the household's actual list.
+The quiet-hours window passes at 09:00 and 09:56. `calendora.shop_push_budget`
+answers from Home Assistant's own `Store`. The notify step runs clean. **Every
+one of those was suite-only a week ago.**
+
+**Stated precisely, because the temptation is to claim the dwell outright:** two
+arrivals produced two sends. A drive-past that correctly sent *nothing* leaves no
+trace at all, so "the dwell suppresses what it should" is **not** shown here —
+only that it does not suppress a real arrival.
+
+**What it does not close, and the evidence is the absence rather than a
+failure.** A press on a card button is a *run of the same automation*. Across
+both of Mike's trips there is **no such run**, and the arrival traces are still
+stored, so nothing was cleared in between. **Nobody has tapped.** The
+replacement loop, the tick-through and the completion card are still proved only
+by tests. One item did move to `completed` between the trips — through the app or
+by Donna, not through a card.
+
+**And what cannot be answered from here at all:** whether either card *arrived*
+on the phone or the watch. Home Assistant executed the send; the rest is the
+phone's word. Do not let a clean trace be read as a delivered notification.
+
+### The duplicate automation, which doubles every reading above
+
+Mike's household has **three** automations from this blueprint and two are
+byte-identical — `1786387458467` and `1786629794737`, same person, zone, list and
+phone. Both fired on both trips, milliseconds apart: **two identical cards per
+arrival.** They share one trip key, so they spend the push budget twice per send,
+which makes the 8-push cap behave as a 4.
+
+It is a household configuration rather than a defect here, flagged to Mike on
+2026-08-20 and **still present on 2026-08-22**. Two consequences worth carrying:
+any measurement taken from his instance is doubled until it is gone, and **a
+blueprint that can be instantiated twice against the same person and zone is a
+shape the design never considered** — worth a thought before the cap is trusted.
+
+---
+
+## 2026-08-14 — the release process now opens the artifact (#198)
+
+The three-release failure had a three-part answer written down at the time. Two
+shipped: the README carries the import step as a required step, and a Repairs
+notice fires in a household that has the integration and not the blueprint. The
+third — **verify the artifact, not the commit** — had never been built, and the
+gap it leaves is invisible by construction.
+
+**The state before this.** `validate.yml` checks out the tree, runs hassfest,
+the suite and the HACS action, and goes green. Every check this repository owned
+read the working tree. **Nothing had ever fetched the thing a household
+receives.** So: if a tag were published with the blueprint missing, with
+`manifest.json` naming a version other than the tag, or with the import URL
+pointing at a file renamed on `main` — what would look different here? Nothing.
+That is the same silent-success shape as the blueprint that never loaded, one
+layer out.
+
+**What runs now** (`.github/workflows/release-artifact.yml`, on publication, on
+demand, and weekly):
+
+1. `scripts/verify_release_artifact.py` — the tag has a **published release**
+   (a tag with no release offers HACS nothing while reading as shipped); the
+   archive downloads; `custom_components/calendora` is in it; the manifest
+   version **equals the tag**; `hacs.json` still describes the real layout; the
+   blueprint is in the archive and parses; and the `IMPORT_URL` compiled into
+   **the downloaded copy** of `blueprint_check.py` resolves and serves a
+   blueprint.
+2. The archive's **own tests**, run from inside the unpacked tree — so
+   `test_blueprint_configures.py`, the gate that cost the fourth release in a
+   row, validates the **downloaded** blueprint against the **downloaded**
+   integration rather than the working tree.
+
+**Reported, never fatal:** the import URL points at `main` by design, so between
+releases it legitimately serves something newer than the release. A household
+importing main's blueprint against an older installed integration is a real
+hazard — a blueprint can call a service that version does not ship, which is
+exactly what `calendora.shop_push_budget` would have been a week ago — so the
+divergence is printed loudly instead of being swallowed or treated as a fault.
+
+**The checks are pure functions over a tree, and `tests/test_release_artifact.py`
+hands each one a broken tree.** A control that only ever runs on a real release,
+on a runner, at the moment nobody is watching, is a control nobody has seen fail.
+
+---
+
 ## 2026-08-13 — the push cap, the other half of #151
 
 §6 caps a trip at eight pushes and §0 declares a `max_pushes` input, 3–20,
