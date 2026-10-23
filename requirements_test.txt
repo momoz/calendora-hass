@@ -22,3 +22,10 @@ home_assistant_intents
 mutagen
 pymicro_vad
 pyspeex_noise
+
+# Security floors. Home Assistant's package_constraints.txt does not pin these,
+# so the resolver would otherwise stop at whatever an upstream requirement
+# allows. A floor (>=) is not a second opinion about Home Assistant's version:
+# it only refuses the vulnerable range. Drop a line once the HA pin above
+# carries the fix on its own.
+certifi>=2026.10.19   # PYSEC-2026-4320 / GHSA-6q48-6c7w-9gw2; 2026.7.22 was vulnerable
