@@ -35,6 +35,9 @@ jobs:
           # together, never separately.
           python-version: "3.14"
       - run: pip install -r requirements_test.txt
+      # Security overrides over Home Assistant's exact pins; see the file.
+      - run: pip install --no-deps -r requirements_security_override.txt
+      - run: python -c "import PIL, sys; assert PIL.__version__ == '13.0.0', PIL.__version__"
       - run: pytest -q
 
   hacs:

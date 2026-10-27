@@ -1,0 +1,13 @@
+# Security overrides, installed AFTER requirements_test.txt with --no-deps.
+#
+# Home Assistant 2026.10.2 (pinned through pytest-homeassistant-custom-component
+# in requirements_test.txt) pins these EXACTLY, so a floor there cannot resolve.
+# These are test-environment-only: the integration ships neither, and Mike's
+# Home Assistant installs its own. Approved by Mike 2026-10-27 ("get everything
+# medium and higher upgraded"). Verified: the full suite passes with these, and
+# PIL.Image is loaded during the run, so the pass covers Pillow 13.
+#
+# Drop a line once the HA pin carries the fix on its own; `pip check` reports the
+# conflict until then, and that is expected.
+pillow==13.0.0   # moDev sec:pillow@12.3.0 (critical)
+uv==0.13.4       # moDev sec:uv@0.12.23 (critical)
