@@ -1,0 +1,21 @@
+{
+  "describes": "Tag an event, by name or id, with one of the key owner's own tags. Allowed on an imported event too. `67`, GAP-020.",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/events/fx-event-gym/tags",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    },
+    "body": {
+      "tag": "Important"
+    }
+  },
+  "response": {
+    "status": 201,
+    "body": {
+      "eventId": "fx-event-gym",
+      "tag": "Important",
+      "tagId": "fx-tag-important"
+    }
+  }
+}

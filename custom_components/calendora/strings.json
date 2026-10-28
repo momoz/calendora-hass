@@ -89,6 +89,9 @@
       },
       "tonights_dinner": {
         "name": "Tonight’s dinner"
+      },
+      "chores_due": {
+        "name": "Chores due"
       }
     },
     "binary_sensor": {

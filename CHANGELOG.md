@@ -15,10 +15,14 @@ they were released under.
 - **Tonight's dinner.** One sensor with tonight's dinner as Calendora's Today
   screen says it, plus who is cooking, when it is served and a sentence for a
   speaker to read out. Needs a key that can read meals.
+- **Chores due.** A count of the repeating chores due today or overdue, with
+  each one named, so a dashboard or a morning announcement can list them.
+- **"Leave home at 6:45 AM · 15 min drive"** — the leave-by sensor now carries
+  Calendora's own sentence for it.
 
 ### Changed
 
-- The integration now reads Calendora's API as documented on 2026-10-27; the
+- The integration now reads Calendora's API as documented on 2026-10-28; the
   copy it was built against was from early August.
 
 ## 0.5.0 — 2026-08-13

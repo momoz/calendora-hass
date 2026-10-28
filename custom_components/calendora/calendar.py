@@ -94,6 +94,33 @@ def _belongs_to_member(occurrence: dict[str, Any], member_id: str) -> bool:
     return member_id in attendee_ids
 
 
+def next_driven_occurrence(
+    occurrences: list[dict[str, Any]], member_id: str, now: datetime
+) -> dict[str, Any] | None:
+    """A member's next timed event that Calendora has a drive time for.
+
+    Not their next event: if that one is at home, the question an automation
+    asks — "when do I next have to set off?" — is about the one after. All-day
+    events are skipped because §4 gives them no leave time, and
+    `travelMinutes: null` is "nobody said", which is not the same as zero.
+
+    An event whose leave time has passed but which has not started stays the
+    answer. "You should have left" is true, and moving on would hide it.
+
+    Here rather than in `sensor.py` because the coordinator needs it too, to
+    know which occurrences to ask `/leave-by` about.
+    """
+    for occurrence in occurrences:
+        if occurrence.get("isAllDay") or occurrence.get("travelMinutes") is None:
+            continue
+        if not _belongs_to_member(occurrence, member_id):
+            continue
+        start = dt_util.parse_datetime(occurrence.get("start") or "")
+        if start is not None and start > now:
+            return occurrence
+    return None
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: CalendoraConfigEntry,

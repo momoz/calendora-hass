@@ -28,6 +28,7 @@
           "sectionId": "fx-section-produce",
           "position": "a0",
           "assignedMembershipId": null,
+          "repeats": false,
           "listId": "fx-list-shopping",
           "completedAt": null,
           "updatedAt": "<stamp>",
@@ -43,10 +44,27 @@
           "sectionId": null,
           "position": "a1",
           "assignedMembershipId": "fx-member-mike",
+          "repeats": true,
           "listId": "fx-list-shopping",
           "completedAt": null,
           "updatedAt": "<stamp>",
           "assigneeName": "Mike",
+          "due": "2027-03-11"
+        },
+        {
+          "id": "fx-item-school-form",
+          "text": "Return the school form",
+          "quantity": null,
+          "notes": null,
+          "isChecked": false,
+          "sectionId": null,
+          "position": "a2",
+          "assignedMembershipId": null,
+          "repeats": false,
+          "listId": "fx-list-shopping",
+          "completedAt": null,
+          "updatedAt": "<stamp>",
+          "assigneeName": null,
           "due": "2027-03-11"
         }
       ]

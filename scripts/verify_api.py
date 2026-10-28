@@ -67,6 +67,7 @@ DOCUMENTED = {
     "items": {
         "id", "text", "quantity", "notes", "isChecked", "sectionId", "position",
         "due", "assignedMembershipId", "assigneeName", "completedAt", "updatedAt",
+        "listId", "repeats",
     },
 }
 

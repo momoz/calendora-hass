@@ -1,0 +1,18 @@
+{
+  "describes": "Take a tag off. A fromCalendar tag is refused with the calendar's name; this one is the key owner's own. `67`, GAP-020.",
+  "request": {
+    "method": "DELETE",
+    "path": "/api/v1/events/fx-event-gym/tags/fx-tag-important",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "eventId": "fx-event-gym",
+      "removed": 1,
+      "tag": "Important"
+    }
+  }
+}

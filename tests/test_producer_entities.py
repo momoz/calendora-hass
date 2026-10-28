@@ -16,6 +16,8 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
+import re
+
 import pytest
 from freezegun.api import FrozenDateTimeFactory
 from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
@@ -39,6 +41,8 @@ CALENDAR = "calendar.the_olsens"
 MIKE_LEAVE_BY = "sensor.the_olsens_mike_leave_by"
 DONNA_LEAVE_BY = "sensor.the_olsens_donna_leave_by"
 DINNER = "sensor.the_olsens_tonights_dinner"
+CHORES = "sensor.the_olsens_chores_due"
+LEAVE_BY_ROUTE = re.compile(r"/api/v1/events/[^/]+/leave-by$")
 
 TAGS_GAP = "no tagged occurrence in `events` (filed with this change)"
 TRAVEL_GAP = "no occurrence with `travelMinutes` in `events` (filed with this change)"
@@ -74,7 +78,13 @@ def _mock_reads(aioclient_mock: AiohttpClientMocker) -> None:
     )
 
 
-async def _setup(hass: HomeAssistant, aioclient_mock: AiohttpClientMocker) -> None:
+async def _setup(
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    leave_by: str = "event-leave-by",
+) -> None:
+    response = pair(leave_by)["response"]
+    aioclient_mock.get(LEAVE_BY_ROUTE, status=response["status"], json=response["body"])
     _mock_reads(aioclient_mock)
     entry = MockConfigEntry(
         domain=DOMAIN, title="Calendora", data={CONF_API_KEY: API_KEY}, version=2
@@ -195,21 +205,60 @@ async def test_a_tagged_event_names_its_tags(
 # --- leave by -------------------------------------------------------------
 
 
-async def test_no_drive_time_is_no_leave_time(
+async def test_an_event_without_a_drive_is_skipped_for_the_next_with_one(
     hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
 ) -> None:
-    """§4: no `travelMinutes` is no `leaveAt` — not a guess, and not an error.
+    """§4: no `travelMinutes` is no leave time, so it is not the answer.
 
-    Every event the producer generates has none, so for now this is the whole
-    of what can be checked against real data.
+    Mike's next event is the household-wide "Contested", which has no drive;
+    the one after with a drive is the household gym session. Answering with
+    "Contested" would be an `unknown` on a morning he does have to set off.
     """
-    assert all(o["travelMinutes"] is None for o in _occurrences())
+    occurrences = _occurrences()
+    mikes = [o for o in occurrences if not o["attendeeIds"] or "fx-member-mike" in o["attendeeIds"]]
+    assert mikes[0]["travelMinutes"] is None, "the producer's order changed; re-read this test"
+    driven = next(o for o in mikes if o["travelMinutes"] is not None and not o["isAllDay"])
     await _setup(hass, aioclient_mock)
 
-    for entity_id, member in ((MIKE_LEAVE_BY, "fx-member-mike"), (DONNA_LEAVE_BY, "fx-member-donna")):
-        state = hass.states.get(entity_id)
-        assert state.state == STATE_UNKNOWN
-        assert state.attributes["member_id"] == member
+    state = hass.states.get(MIKE_LEAVE_BY)
+    assert state.attributes["event_id"] == driven["id"]
+    assert dt_util.parse_datetime(state.state) == dt_util.parse_datetime(
+        driven["start"]
+    ) - timedelta(minutes=driven["travelMinutes"])
+
+
+async def test_the_words_are_calendoras_and_asked_for_by_occurrence(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+) -> None:
+    """`words` is passed through from `/leave-by`, which is asked per occurrence.
+
+    The producer's `event-leave-by` is for a 2029 gym session rather than the
+    March 2027 one these events hold, so this pins the route and the
+    pass-through, not that the words describe this exact morning.
+    """
+    await _setup(hass, aioclient_mock)
+
+    asked = sorted(
+        call[1].path for call in aioclient_mock.mock_calls if LEAVE_BY_ROUTE.search(call[1].path)
+    )
+    expected = sorted(
+        f"/api/v1/events/{hass.states.get(entity_id).attributes['event_id']}/leave-by"
+        for entity_id in (MIKE_LEAVE_BY, DONNA_LEAVE_BY)
+    )
+    assert asked == expected
+    assert hass.states.get(DONNA_LEAVE_BY).attributes["words"] == body("event-leave-by")["words"]
+
+
+async def test_a_failed_leave_by_read_costs_the_words_not_the_time(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+) -> None:
+    """A refused `/leave-by` must not take the sensor, or the refresh, with it."""
+    await _setup(hass, aioclient_mock, leave_by="error-patch-missing-event")
+
+    state = hass.states.get(DONNA_LEAVE_BY)
+    assert state.state not in (STATE_UNKNOWN, STATE_UNAVAILABLE)
+    assert state.attributes["words"] is None
+    assert hass.states.get(CALENDAR).state not in (STATE_UNAVAILABLE, STATE_UNKNOWN)
 
 
 async def test_leave_by_is_start_minus_the_drive(
@@ -319,3 +368,48 @@ async def test_losing_meals_after_set_up_makes_dinner_unavailable(
     await hass.async_block_till_done()
 
     assert hass.states.get(DINNER).state == STATE_UNAVAILABLE
+
+
+# --- chores due -----------------------------------------------------------
+
+
+def _items() -> list[dict]:
+    return body("list-items")["items"]
+
+
+@pytest.mark.parametrize(
+    ("utc", "expect_due"),
+    [
+        # 03:00 UTC on the 11th is 03:00 in London — the key owner's zone —
+        # and still the 10th in Home Assistant's test zone (US/Pacific). Due.
+        (datetime(2027, 3, 11, 3, 0, tzinfo=dt_util.UTC), True),
+        # 23:30 UTC on the 10th is still the 10th in London. Not yet.
+        (datetime(2027, 3, 10, 23, 30, tzinfo=dt_util.UTC), False),
+    ],
+)
+async def test_chores_due_is_repeating_items_due_by_today_in_the_owners_zone(
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    freezer: FrozenDateTimeFactory,
+    utc: datetime,
+    expect_due: bool,
+) -> None:
+    """GAP-019's rule: `repeats: true`, `due` on or before today, owner's zone.
+
+    The producer's `list-items` has "Bins out" (repeats) and "Return the
+    school form" (one-off) due the same day; only `repeats` separates them,
+    so a sensor counting both is caught here.
+    """
+    freezer.move_to(utc)
+    chores = [i for i in _items() if i["repeats"] and not i["isChecked"] and i["due"]]
+    assert chores and any(not i["repeats"] and i["due"] for i in _items())
+    await _setup(hass, aioclient_mock)
+
+    state = hass.states.get(CHORES)
+    names = [item["summary"] for item in state.attributes["items"]]
+    if expect_due:
+        assert int(state.state) == len(chores)
+        assert names == [i["text"] for i in chores]
+    else:
+        assert state.state == "0"
+        assert names == []

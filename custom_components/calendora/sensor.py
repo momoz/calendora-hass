@@ -14,12 +14,12 @@ the leave time itself — `leaveAt` is `start` minus `travelMinutes` (§4,
 Calendora works it out, and `travel_from` says what it assumes. It is still not
 live traffic and never claims to be.
 
-It is computed from the occurrence rather than fetched from `/leave-by`: same
-definition, no request per member per refresh, and it rests on fields the
-producer's fixtures carry. The endpoint's `words` line ("Leave home at 2:35 PM ·
-25 min drive") is the one thing that costs — Calendora has generated no fixture
-for that route, so a test of it would be testing a shape somebody typed. Filed
-as a gap; this sensor gains `words` when the fixture exists.
+The time is computed from the occurrence, so the state never waits on a second
+request; `/leave-by` is asked only for `words`, the sentence the Today card
+shows. See `CalendoraDataUpdateCoordinator._async_leave_by`.
+
+**`chores_due`** counts the items Calendora calls chores — `repeats: true` —
+that are due today or earlier in the key owner's zone (§6, GAP-019).
 
 **A `busy` binary sensor.** A calendar entity's own state is already `on` while
 an event is running, so a `binary_sensor.<member>_busy` would duplicate
@@ -31,7 +31,7 @@ calendar entity's state.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import Any
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -43,7 +43,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
 from . import CalendoraConfigEntry
-from .calendar import _belongs_to_member, _tag_names
+from .calendar import _belongs_to_member, _tag_names, next_driven_occurrence
 from .const import DOMAIN
 from .coordinator import CalendoraDataUpdateCoordinator, member_attributes
 
@@ -71,6 +71,9 @@ async def async_setup_entry(
             new.append(CalendoraLeaveBySensor(coordinator, member))
         # Only once the key can read meals: a dinner sensor that is permanently
         # unknown would read as "nothing planned", which is a different fact.
+        if "chores" not in known:
+            known.add("chores")
+            new.append(CalendoraChoresDueSensor(coordinator))
         if coordinator.data.dinner is not None and "dinner" not in known:
             known.add("dinner")
             new.append(CalendoraDinnerSensor(coordinator))
@@ -189,28 +192,10 @@ class CalendoraLeaveBySensor(CalendoraNextEventSensor):
         )
 
     def _next_occurrence(self) -> dict[str, Any] | None:
-        """The member's next timed event that Calendora has a drive time for.
-
-        Not their next event: if that one is at home, the question an
-        automation asks — "when do I next have to set off?" — is about the one
-        after. All-day events are skipped because §4 gives them no leave time
-        (`leaveAt` is null), and `travelMinutes: null` is "nobody said", which
-        is not the same as zero.
-
-        An event whose leave time has passed but which has not started stays
-        the answer. "You should have left" is true, and moving on to the next
-        event would hide it.
-        """
-        now = dt_util.now()
-        for occurrence in self.coordinator.data.occurrences:
-            if occurrence.get("isAllDay") or occurrence.get("travelMinutes") is None:
-                continue
-            if not _belongs_to_member(occurrence, self._member_id):
-                continue
-            start = dt_util.parse_datetime(occurrence.get("start") or "")
-            if start is not None and start > now:
-                return occurrence
-        return None
+        """See `next_driven_occurrence` for what counts."""
+        return next_driven_occurrence(
+            self.coordinator.data.occurrences, self._member_id, dt_util.now()
+        )
 
     @property
     def native_value(self) -> datetime | None:
@@ -237,6 +222,11 @@ class CalendoraLeaveBySensor(CalendoraNextEventSensor):
             # through as given; parsing it is what §4 says not to do.
             "travel_from": occurrence.get("travelFrom"),
             "event_id": occurrence.get("id"),
+            # Calendora's own sentence, for a speaker or a notification. None
+            # when `/leave-by` did not answer — the time above still stands.
+            "words": (
+                self.coordinator.data.leave_by.get(occurrence.get("id")) or {}
+            ).get("words"),
         }
 
 
@@ -317,3 +307,86 @@ class CalendoraDinnerSensor(
             "serve_at": next((m["serve_at"] for m in meals if m["serve_at"]), None),
             "meals": meals,
         }
+
+
+def _due_day(due: Any, zone: ZoneInfo) -> date | None:
+    """§6: `due` is a day or an instant, and the form is the meaning."""
+    if not isinstance(due, str):
+        return None
+    if len(due) == 10:
+        try:
+            return date.fromisoformat(due)
+        except ValueError:
+            return None
+    instant = dt_util.parse_datetime(due)
+    return instant.astimezone(zone).date() if instant else None
+
+
+class CalendoraChoresDueSensor(
+    CoordinatorEntity[CalendoraDataUpdateCoordinator], SensorEntity
+):
+    """How many chores are due today or overdue, with the chores themselves."""
+
+    _attr_has_entity_name = True
+    _attr_translation_key = "chores_due"
+
+    def __init__(self, coordinator: CalendoraDataUpdateCoordinator) -> None:
+        """Initialise the sensor."""
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{coordinator.data.household_id}-chores-due"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, coordinator.data.household_id)},
+            entry_type=DeviceEntryType.SERVICE,
+            name=coordinator.data.household_name,
+            manufacturer="Calendora",
+        )
+
+    def _items(self) -> list[dict[str, Any]] | None:
+        """The open chores due by today, or None when Calendora cannot say.
+
+        **None, not zero, when an item has no `repeats` at all.** The field
+        reached the extract before it reached production (web v2610.0453 lacks
+        it), and §9 says a documented field is always present on a read — so
+        its absence means a server that cannot tell a chore from a to-do. A
+        count of 0 there would be a confident wrong answer: "nothing to do"
+        on a day the bins go out.
+
+        Today is the key owner's, as §6 defines it — the zone Home Assistant
+        is in can differ, and a chore due "today" in Calendora must be due
+        today here too.
+        """
+        try:
+            zone = ZoneInfo(self.coordinator.data.key_owner_timezone)
+        except (ValueError, ZoneInfoNotFoundError):
+            zone = ZoneInfo("UTC")
+        today = dt_util.now().astimezone(zone).date()
+        due: list[dict[str, Any]] = []
+        for held in self.coordinator.data.lists.values():
+            for item in held["items"]:
+                if "repeats" not in item:
+                    return None
+                if not item["repeats"] or item.get("isChecked"):
+                    continue
+                day = _due_day(item.get("due"), zone)
+                if day is not None and day <= today:
+                    due.append(
+                        {
+                            "summary": item.get("text") or "",
+                            "due": item.get("due"),
+                            "list": held["list"].get("name"),
+                            "assignee": item.get("assigneeName"),
+                        }
+                    )
+        return due
+
+    @property
+    def native_value(self) -> int | None:
+        """The count; unknown when the server cannot tell chores apart."""
+        items = self._items()
+        return None if items is None else len(items)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        """The chores, so a card or an announcement can name them."""
+        items = self._items()
+        return None if items is None else {"items": items}

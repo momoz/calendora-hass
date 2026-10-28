@@ -1,0 +1,17 @@
+{
+  "describes": "A fromCalendar tag cannot be taken off one event: the subscribed calendar puts it on all of its events, so the refusal names the calendar. GAP-020.",
+  "request": {
+    "method": "DELETE",
+    "path": "/api/v1/events/fx-event-client-dinner/tags/fx-tag-work",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 400,
+    "body": {
+      "error": "\"Work\" is on this event because the calendar \"Mike's work\" tags everything it brings in. It cannot come off one event; change the calendar's tag in Calendora's settings instead.",
+      "code": "bad_request"
+    }
+  }
+}

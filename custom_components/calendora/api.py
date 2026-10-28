@@ -267,6 +267,15 @@ class CalendoraClient:
         """
         return await self._async_request("/api/v1/dinner")
 
+    async def async_get_leave_by(self, occurrence_id: str) -> Any:
+        """`GET /api/v1/events/{id}/leave-by` — requires `calendar:read`.
+
+        Always called with an **occurrence** id. A bare id of a repeating event
+        answers for its next occurrence (§4), which is a second opinion about
+        "next" that could disagree with the one the sensor already chose.
+        """
+        return await self._async_request(f"/api/v1/events/{occurrence_id}/leave-by")
+
     # --- writes -------------------------------------------------------------
     #
     # §6 is the rule these all obey: **partial, omitted untouched, explicit null

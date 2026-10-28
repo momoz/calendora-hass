@@ -1,0 +1,23 @@
+{
+  "describes": "No drive time set: travelMinutes, leaveAt and travelFrom are null — never guessed — and passed is false. GAP-020.",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/events/fx-event-contested:2029-03-06/leave-by",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "eventId": "fx-event-contested",
+      "occurrence": "2029-03-06",
+      "start": "2029-03-06T09:00:00.000Z",
+      "travelMinutes": null,
+      "leaveAt": null,
+      "passed": false,
+      "travelFrom": null,
+      "words": null
+    }
+  }
+}

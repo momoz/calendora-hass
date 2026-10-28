@@ -37,6 +37,7 @@ Home Assistant. Without it everything still appears; only editing fails.
 | `calendar.<household>_<name>` | one person's events, **plus everything shared** |
 | `sensor.<household>_<name>_next_event` | when that person's next event starts |
 | `sensor.<household>_<name>_leave_by` | when they have to set off for their next event with a drive time |
+| `sensor.<household>_chores_due` | how many chores are due today or overdue, and which |
 | `sensor.<household>_tonights_dinner` | tonight's dinner, worded as Calendora's Today screen words it |
 | `todo.<household>_<list>` | one of your Calendora lists, editable |
 | `binary_sensor.<household>_<name>_has_a_clash_today` | on when two of their events overlap today |
@@ -227,7 +228,17 @@ which is the same sum Calendora's own "Leave by" line does. Its `travel_from`
 attribute says where that drive was worked out from (`home`, an address, or
 nothing for a number somebody typed). It does not know where the person is now.
 An event with no drive time saved is skipped, so the sensor points at the next
-one that has one.
+one that has one. Its `words` attribute is Calendora's own sentence —
+"Leave home at 6:45 AM · 15 min drive" — ready to hand to a speaker.
+
+### Chores due counts what Calendora calls a chore
+
+A chore is a to-do that repeats, like "Bins out" every Thursday. The sensor
+counts the ones due today or earlier — "today" as Calendora sees it for the
+person whose key this is — and lists them in its `items` attribute. One-off
+to-dos are left out even when they are due. If Calendora's server is older than
+the version that marks repeating items, the sensor says **unknown** rather than
+a reassuring 0.
 
 ### Tonight's dinner needs a key that can read meals
 

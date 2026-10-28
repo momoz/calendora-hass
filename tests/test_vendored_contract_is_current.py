@@ -40,7 +40,9 @@ def test_the_vendored_surface_records_where_it_came_from(surface_text: str) -> N
     anybody would notice.
     """
     assert re.search(
-        r"^\*\*Source:\*\* `momoz/calendora` @ `[0-9a-f]{7,40}`$",
+        # Trailing prose allowed: the 2026-10-28 extract reads "@ `4a7fb28`
+        # (this change is the commit after it)". The sha is what must be there.
+        r"^\*\*Source:\*\* `momoz/calendora` @ `[0-9a-f]{7,40}`",
         surface_text,
         re.MULTILINE,
     ), "no `**Source:** … @ `<sha>`` line — see CONTRACT.md §3"
@@ -95,13 +97,41 @@ def test_every_fixture_named_in_the_prose_was_actually_vendored(
     )
 
 
-# NOT CHECKED HERE, and deliberately not guessed at: whether these two halves,
-# agreeing with each other, agree with Calendora *today*. `docs/API-SURFACE.md`
-# §10 says the fingerprint covers the fixtures directory and to file a gap when
-# it does not match — but it does not say how the fingerprint is computed, so it
-# cannot be recomputed from the vendored files. Reverse-engineering it would be
-# building against undocumented behaviour, which `CONTRACT.md` §3 forbids for
-# exactly the reason it would bite here: a guessed algorithm that happens to
-# match once becomes a check that silently passes forever.
-#
-# Filed as a gap; tracked on board card #105.
+def test_the_fingerprint_covers_the_fixtures_we_actually_hold(
+    surface_text: str,
+) -> None:
+    """The recorded fingerprint, recomputed from the vendored directory.
+
+    Until 2026-10-28 this was deliberately not checked: the algorithm was not
+    written down, and guessing one that happened to match once would have made
+    a check that passes forever (card #105). Calendora's agent then supplied
+    it — sha256 over each `*.json` name followed by its bytes, in name order,
+    first sixteen hex digits — and it reproduces both the old and the new
+    fingerprint exactly. Still not in the extract's §10 prose; asked for.
+
+    What this catches is the half-finished re-vendor: the doc from one commit
+    and the fixtures from another, which the count test misses whenever the
+    count happens to be unchanged.
+    """
+    import hashlib
+
+    recorded = re.search(
+        r"^\*\*Contract fingerprint:\*\* `([0-9a-f]{16})`", surface_text, re.MULTILINE
+    )
+    assert recorded, "no 16-digit contract fingerprint recorded"
+
+    digest = hashlib.sha256()
+    for path in sorted(FIXTURES.glob("*.json"), key=lambda p: p.name):
+        digest.update(path.name.encode())
+        digest.update(path.read_bytes())
+
+    assert digest.hexdigest()[:16] == recorded.group(1), (
+        "fixtures/ does not hash to the fingerprint docs/API-SURFACE.md records "
+        "— re-copy both from the same Calendora commit"
+    )
+
+
+# Whether these two halves, agreeing with each other, agree with Calendora
+# *today* is still not checked here: that needs the upstream fingerprint, and
+# this repository is public while Calendora is private. `contract-drift.yml`
+# asks the live server instead.

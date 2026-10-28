@@ -1,0 +1,23 @@
+{
+  "describes": "When to leave: the start minus the event's own travelMinutes. travelFrom \"home\" reads \"Leave home at …\"; `words` is in the key owner's zone. An occurrence in 2029 so `passed` stays false. GAP-020.",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/events/fx-event-gym:2029-03-06/leave-by",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "eventId": "fx-event-gym",
+      "occurrence": "2029-03-06",
+      "start": "2029-03-06T07:00:00.000Z",
+      "travelMinutes": 15,
+      "leaveAt": "2029-03-06T06:45:00.000Z",
+      "passed": false,
+      "travelFrom": "home",
+      "words": "Leave home at 6:45 AM · 15 min drive"
+    }
+  }
+}

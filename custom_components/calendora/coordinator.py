@@ -10,7 +10,7 @@ every minute is a polling integration wearing a costume.
 from __future__ import annotations
 
 import asyncio
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, timedelta
 from typing import TYPE_CHECKING, Any
 
@@ -98,6 +98,9 @@ class CalendoraData:
     # `meals:read` is a separate grant, so a key without it is a household that
     # simply has no dinner sensor — not a failed refresh. See `_async_dinner`.
     dinner: dict[str, Any] | None = None
+    # `/leave-by` answers, keyed by occurrence id, for each member's next drive.
+    # Only `words` is read from them — see `_async_leave_by`.
+    leave_by: dict[str, dict[str, Any]] = field(default_factory=dict)
 
 
 class CalendoraDataUpdateCoordinator(DataUpdateCoordinator[CalendoraData]):
@@ -209,6 +212,10 @@ class CalendoraDataUpdateCoordinator(DataUpdateCoordinator[CalendoraData]):
             )
 
         household_data = household.get("household") or {}
+        occurrences = events.get("occurrences") or []
+        leave_by = await self._async_leave_by(
+            occurrences, members.get("members") or []
+        )
         return CalendoraData(
             household_id=household_data.get("id", ""),
             household_name=household_data.get("name") or "Calendora",
@@ -222,9 +229,55 @@ class CalendoraDataUpdateCoordinator(DataUpdateCoordinator[CalendoraData]):
                 for row, payload in zip(list_rows, item_payloads, strict=True)
             },
             key_owner_timezone=household.get("timezone", {}).get("value") or "UTC",
-            occurrences=events.get("occurrences") or [],
+            occurrences=occurrences,
             dinner=dinner,
+            leave_by=leave_by,
         )
+
+    async def _async_leave_by(
+        self, occurrences: list[dict[str, Any]], members: list[dict[str, Any]]
+    ) -> dict[str, dict[str, Any]]:
+        """Ask Calendora how it words each member's next departure.
+
+        The leave *time* is computed locally — §4 defines it as `start` minus
+        `travelMinutes`, and the sensor's state must not depend on a second
+        request succeeding. What only the server has is `words`, the line the
+        Today card shows ("Leave home at 6:45 AM · 15 min drive"), in the key
+        owner's zone and clock style. One request per distinct occurrence, so
+        a household all driving to the same event asks once.
+
+        A failure here costs the sentence, never the refresh: the sensor still
+        has its time, and losing the words is not worth losing the calendar.
+        """
+        from .calendar import next_driven_occurrence  # calendar imports us
+
+        now = dt_util.now()
+        ids = {
+            occurrence["id"]
+            for member in members
+            if member.get("id")
+            and (occurrence := next_driven_occurrence(occurrences, member["id"], now))
+            and occurrence.get("id")
+        }
+        answers = await asyncio.gather(
+            *(self.client.async_get_leave_by(occurrence_id) for occurrence_id in ids),
+            return_exceptions=True,
+        )
+        result: dict[str, dict[str, Any]] = {}
+        for occurrence_id, answer in zip(ids, answers, strict=True):
+            if isinstance(answer, CalendoraAuthError):
+                # Outside the main read's `try`, so translated here: a revoked
+                # key is a reauth wherever it is noticed.
+                raise ConfigEntryAuthFailed(
+                    "Calendora rejected the API key.",
+                    translation_domain=DOMAIN,
+                    translation_key="invalid_auth",
+                ) from answer
+            if isinstance(answer, BaseException) or not isinstance(answer, dict):
+                LOGGER.debug("No leave-by words for %s: %r", occurrence_id, answer)
+                continue
+            result[occurrence_id] = answer
+        return result
 
     async def _async_dinner(self) -> dict[str, Any] | None:
         """Today's dinner card, or None when this key may not read meals.

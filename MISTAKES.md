@@ -147,3 +147,17 @@ schedules the start from what it read, so a single 23-hour jump skips the read.
 
 **The actual fix:** walk the clock forward in five-minute steps, firing each one.
 
+### Reverted a mutation with `git checkout` and lost uncommitted work
+
+To undo a deliberate one-line break in `calendar.py` I ran
+`git checkout -- calendar.py`. The file also held uncommitted work, the new
+`next_driven_occurrence`, and that went with it. The suite still imported
+cleanly only because nothing had run yet. Re-adding it cost a few minutes. Done
+on a file with more uncommitted work, it could have cost an afternoon.
+
+**The actual fix:** copy the file aside before mutating it, and restore from the
+copy (`cp f f.orig` … `mv f.orig f`). Never undo a test mutation with git while
+the tree holds uncommitted work. Also: the `-k leave` filter on the first try
+missed the test that mattered, so that mutation "passed". Choose the `-k`
+expression from the test names, not from the feature name.
+
