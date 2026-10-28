@@ -1329,6 +1329,12 @@ value.
 not match the fixtures you have, one of us is out of date — file a gap rather
 than guessing which.
 
+**How it is computed**, so you can check it yourself: take every `*.json` file
+in `fixtures/api-v1/`, sorted by file name as plain strings. Feed one SHA-256
+the file NAME, then the file's raw bytes, for each in that order. The
+fingerprint is the first 16 hex characters of the digest. `README.md` is not
+included. Calendora's build runs the same computation against this file.
+
 ---
 
 ## 11. When something disagrees with this file

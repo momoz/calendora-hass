@@ -102,12 +102,11 @@ def test_the_fingerprint_covers_the_fixtures_we_actually_hold(
 ) -> None:
     """The recorded fingerprint, recomputed from the vendored directory.
 
-    Until 2026-10-28 this was deliberately not checked: the algorithm was not
-    written down, and guessing one that happened to match once would have made
-    a check that passes forever (card #105). Calendora's agent then supplied
-    it — sha256 over each `*.json` name followed by its bytes, in name order,
-    first sixteen hex digits — and it reproduces both the old and the new
-    fingerprint exactly. Still not in the extract's §10 prose; asked for.
+    The algorithm is §10's ("How it is computed", since calendora dcdadde):
+    every `*.json` sorted by name as a plain string, one SHA-256 fed each name
+    then its raw bytes, first 16 hex; `README.md` excluded. Before that it was
+    deliberately not checked — guessing an unwritten algorithm that happened
+    to match once would have made a check that passes forever (card #105).
 
     What this catches is the half-finished re-vendor: the doc from one commit
     and the fixtures from another, which the count test misses whenever the
