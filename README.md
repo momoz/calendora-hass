@@ -36,6 +36,8 @@ Home Assistant. Without it everything still appears; only editing fails.
 | `calendar.<household>` | everything the household has on |
 | `calendar.<household>_<name>` | one person's events, **plus everything shared** |
 | `sensor.<household>_<name>_next_event` | when that person's next event starts |
+| `sensor.<household>_<name>_leave_by` | when they have to set off for their next event with a drive time |
+| `sensor.<household>_tonights_dinner` | tonight's dinner, worded as Calendora's Today screen words it |
 | `todo.<household>_<list>` | one of your Calendora lists, editable |
 | `binary_sensor.<household>_<name>_has_a_clash_today` | on when two of their events overlap today |
 
@@ -206,6 +208,33 @@ are looking at data up to half an hour old rather than at nothing.
 
 If you are timing something tightly, build on the calendar trigger rather than
 on polling a sensor.
+
+### Tags reach your automations
+
+The tags you put on an event in Calendora are **your** tags — another member's
+key sees theirs, not yours. They show up in two places:
+
+- On a calendar trigger, as `trigger.calendar_event.tags` — a comma-separated
+  string, because Home Assistant turns every event field into text. Test for one
+  with `'Vet' in trigger.calendar_event.tags.split(', ')`, not with a bare `in`,
+  which would also match a tag called "Vet visit".
+- On the calendar entity and the next-event sensor, as a `tags` list.
+
+### Leave by is Calendora's drive time, not live traffic
+
+`leave_by` is the event's start minus the drive time saved on it in Calendora,
+which is the same sum Calendora's own "Leave by" line does. Its `travel_from`
+attribute says where that drive was worked out from (`home`, an address, or
+nothing for a number somebody typed). It does not know where the person is now.
+An event with no drive time saved is skipped, so the sensor points at the next
+one that has one.
+
+### Tonight's dinner needs a key that can read meals
+
+The dinner sensor appears only when your API key has the **meals: read**
+permission. Without it the rest of the integration works as before and there is
+simply no dinner sensor — make a new key in Calendora with that permission
+ticked and use **Reconfigure** to add it.
 
 ### The next-event sensor skips what is already happening
 

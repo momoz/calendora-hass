@@ -83,6 +83,12 @@
     "sensor": {
       "next_event": {
         "name": "{member} next event"
+      },
+      "leave_by": {
+        "name": "{member} leave by"
+      },
+      "tonights_dinner": {
+        "name": "Tonight’s dinner"
       }
     },
     "binary_sensor": {

@@ -65,7 +65,11 @@ async def test_one_sensor_per_member(
     """Every member gets a next-event sensor, pets included."""
     await _setup(hass, aioclient_mock)
 
-    assert set(hass.states.async_entity_ids("sensor")) == {ALEX, ROBIN, BISCUIT}
+    assert {
+        entity_id
+        for entity_id in hass.states.async_entity_ids("sensor")
+        if entity_id.endswith("_next_event")
+    } == {ALEX, ROBIN, BISCUIT}
 
 
 async def test_device_class_is_timestamp(
@@ -209,21 +213,3 @@ async def test_no_busy_binary_sensor_is_created(
     assert [e for e in binary_sensors if "clash" in e]
     assert hass.states.get("calendar.test_household_alex") is not None
 
-
-async def test_no_leave_by_sensor_is_created(
-    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, before_everything: None
-) -> None:
-    """§7: `/api/v1/events/{id}/leave-by` is not built.
-
-    `travelMinutes` is on the event and looks like enough to derive one, but it
-    is a property of the event rather than a route from wherever the person
-    actually is. Subtracting it would produce a number that looks authoritative
-    and is not, so no such entity exists.
-    """
-    await _setup(hass, aioclient_mock)
-
-    assert not [
-        entity_id
-        for entity_id in hass.states.async_entity_ids("sensor")
-        if "leave" in entity_id
-    ]

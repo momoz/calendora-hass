@@ -1,16 +1,25 @@
 """Sensor platform for Calendora.
 
-One sensor per member: **when their next event starts.** `device_class:
-timestamp`, so a dashboard renders it as "in 20 minutes" and an automation can
-compare it directly instead of parsing a string.
+Per member: **when their next event starts**, and **when they have to leave for
+the next one with a drive time.** Both `device_class: timestamp`, so a dashboard
+renders "in 20 minutes" and an automation can compare without parsing.
 
-Two entities from the original scope are deliberately absent, and both omissions
-are decisions rather than oversights:
+Per household: **tonight's dinner**, the string every Calendora surface shows.
 
-**`leave_by`.** `GET /api/v1/events/{id}/leave-by` is listed under §7 as not
-built, and there is no honest way to derive a leave time here: `travelMinutes` is
-a property of the event, not a route from wherever the person currently is.
-Subtracting it would produce a number that looks authoritative and is not.
+**`leave_by` is the event's drive, not a route from where the person is.**
+This file used to decline the sensor on exactly that ground. What changed is
+that Calendora now says where the drive is from (`travelFrom`, §4) and defines
+the leave time itself — `leaveAt` is `start` minus `travelMinutes` (§4,
+`GET /events/{id}/leave-by`) — so the number is Calendora's, worked out the way
+Calendora works it out, and `travel_from` says what it assumes. It is still not
+live traffic and never claims to be.
+
+It is computed from the occurrence rather than fetched from `/leave-by`: same
+definition, no request per member per refresh, and it rests on fields the
+producer's fixtures carry. The endpoint's `words` line ("Leave home at 2:35 PM ·
+25 min drive") is the one thing that costs — Calendora has generated no fixture
+for that route, so a test of it would be testing a shape somebody typed. Filed
+as a gap; this sensor gains `words` when the fixture exists.
 
 **A `busy` binary sensor.** A calendar entity's own state is already `on` while
 an event is running, so a `binary_sensor.<member>_busy` would duplicate
@@ -22,8 +31,9 @@ calendar entity's state.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.core import HomeAssistant, callback
@@ -33,7 +43,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
 from . import CalendoraConfigEntry
-from .calendar import _belongs_to_member
+from .calendar import _belongs_to_member, _tag_names
 from .const import DOMAIN
 from .coordinator import CalendoraDataUpdateCoordinator, member_attributes
 
@@ -58,6 +68,12 @@ async def async_setup_entry(
                 continue
             known.add(member_id)
             new.append(CalendoraNextEventSensor(coordinator, member))
+            new.append(CalendoraLeaveBySensor(coordinator, member))
+        # Only once the key can read meals: a dinner sensor that is permanently
+        # unknown would read as "nothing planned", which is a different fact.
+        if coordinator.data.dinner is not None and "dinner" not in known:
+            known.add("dinner")
+            new.append(CalendoraDinnerSensor(coordinator))
         if new:
             async_add_entities(new)
 
@@ -154,4 +170,150 @@ class CalendoraNextEventSensor(
             "location": occurrence.get("location"),
             "all_day": bool(occurrence.get("isAllDay")),
             "shared_with_household": not occurrence.get("attendeeIds"),
+            "tags": _tag_names(occurrence),
+        }
+
+
+class CalendoraLeaveBySensor(CalendoraNextEventSensor):
+    """When this member has to leave for their next event with a drive time."""
+
+    _attr_translation_key = "leave_by"
+
+    def __init__(
+        self, coordinator: CalendoraDataUpdateCoordinator, member: dict[str, Any]
+    ) -> None:
+        """Initialise the sensor."""
+        super().__init__(coordinator, member)
+        self._attr_unique_id = (
+            f"{coordinator.data.household_id}-leave-by-{self._member_id}"
+        )
+
+    def _next_occurrence(self) -> dict[str, Any] | None:
+        """The member's next timed event that Calendora has a drive time for.
+
+        Not their next event: if that one is at home, the question an
+        automation asks — "when do I next have to set off?" — is about the one
+        after. All-day events are skipped because §4 gives them no leave time
+        (`leaveAt` is null), and `travelMinutes: null` is "nobody said", which
+        is not the same as zero.
+
+        An event whose leave time has passed but which has not started stays
+        the answer. "You should have left" is true, and moving on to the next
+        event would hide it.
+        """
+        now = dt_util.now()
+        for occurrence in self.coordinator.data.occurrences:
+            if occurrence.get("isAllDay") or occurrence.get("travelMinutes") is None:
+                continue
+            if not _belongs_to_member(occurrence, self._member_id):
+                continue
+            start = dt_util.parse_datetime(occurrence.get("start") or "")
+            if start is not None and start > now:
+                return occurrence
+        return None
+
+    @property
+    def native_value(self) -> datetime | None:
+        """`start` minus `travelMinutes` — §4's definition of `leaveAt`."""
+        occurrence = self._next_occurrence()
+        if occurrence is None:
+            return None
+        start = dt_util.parse_datetime(occurrence["start"])
+        return start - timedelta(minutes=occurrence["travelMinutes"])
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        """Which event, how long, and from where Calendora assumed."""
+        attributes = member_attributes(self.coordinator, self._member_id)
+        occurrence = self._next_occurrence()
+        if occurrence is None:
+            return attributes
+        return {
+            **attributes,
+            "summary": occurrence.get("title") or "",
+            "event_start": dt_util.parse_datetime(occurrence["start"]),
+            "travel_minutes": occurrence["travelMinutes"],
+            # "home", an address, or None for a number somebody typed. Passed
+            # through as given; parsing it is what §4 says not to do.
+            "travel_from": occurrence.get("travelFrom"),
+            "event_id": occurrence.get("id"),
+        }
+
+
+def _serve_instant(day: str | None, serve_at: str | None, tz: str | None) -> datetime | None:
+    """§6a: `serveAt` is a wall time — read it in `serveTz`, on that `day`."""
+    if not day or not serve_at or not tz:
+        return None
+    try:
+        zone = ZoneInfo(tz)
+        return datetime.fromisoformat(f"{day}T{serve_at}").replace(tzinfo=zone)
+    except (ValueError, ZoneInfoNotFoundError):
+        return None
+
+
+class CalendoraDinnerSensor(
+    CoordinatorEntity[CalendoraDataUpdateCoordinator], SensorEntity
+):
+    """Tonight's dinner, as the Today card says it."""
+
+    _attr_has_entity_name = True
+    _attr_translation_key = "tonights_dinner"
+
+    def __init__(self, coordinator: CalendoraDataUpdateCoordinator) -> None:
+        """Initialise the sensor."""
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{coordinator.data.household_id}-tonights-dinner"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, coordinator.data.household_id)},
+            entry_type=DeviceEntryType.SERVICE,
+            name=coordinator.data.household_name,
+            manufacturer="Calendora",
+        )
+
+    @property
+    def available(self) -> bool:
+        """Unavailable if the key loses `meals:read` after set-up."""
+        return super().available and self.coordinator.data.dinner is not None
+
+    @property
+    def native_value(self) -> str | None:
+        """§6a: `headline` is the sensor's state — `"Not planned"` when nothing is.
+
+        Used as given rather than rebuilt from the meals. Every Calendora
+        surface shows this exact string, and a second rendering here would be
+        the one place in the house that words dinner differently.
+        """
+        dinner = self.coordinator.data.dinner or {}
+        headline = dinner.get("headline")
+        # A state longer than 255 characters is refused by Home Assistant, and
+        # a refused state is an entity that stops updating.
+        return headline[:255] if isinstance(headline, str) else None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        """Enough to announce it or start the oven, without a second lookup."""
+        dinner = self.coordinator.data.dinner
+        if not dinner:
+            return None
+        day = dinner.get("day")
+        meals = [
+            {
+                "headline": meal.get("headline"),
+                "kind": meal.get("kind"),
+                "who": meal.get("ownerPhrase"),
+                "diners": (meal.get("diners") or {}).get("names"),
+                "serve_at": _serve_instant(day, meal.get("serveAt"), meal.get("serveTz")),
+                "place": meal.get("placeText"),
+                # §6a: the sentence "for a voice answer". The one to hand a
+                # TTS action, rather than the headline with its middots.
+                "sentence": meal.get("sentence"),
+            }
+            for meal in dinner.get("meals") or []
+            if isinstance(meal, dict)
+        ]
+        return {
+            "day": day,
+            "status": dinner.get("state"),
+            "serve_at": next((m["serve_at"] for m in meals if m["serve_at"]), None),
+            "meals": meals,
         }

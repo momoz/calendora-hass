@@ -94,6 +94,10 @@ class CalendoraData:
     # is. It is used to turn a requested window into the days the API wants.
     key_owner_timezone: str
     occurrences: list[dict[str, Any]]
+    # §6a's dinner card for today, or None when the key cannot read meals.
+    # `meals:read` is a separate grant, so a key without it is a household that
+    # simply has no dinner sensor — not a failed refresh. See `_async_dinner`.
+    dinner: dict[str, Any] | None = None
 
 
 class CalendoraDataUpdateCoordinator(DataUpdateCoordinator[CalendoraData]):
@@ -139,11 +143,12 @@ class CalendoraDataUpdateCoordinator(DataUpdateCoordinator[CalendoraData]):
 
         date_from, date_to = self._window()
         try:
-            household, members, events, lists = await asyncio.gather(
+            household, members, events, lists, dinner = await asyncio.gather(
                 self.client.async_get_household(),
                 self.client.async_get_members(),
                 self.client.async_get_events(date_from, date_to),
                 self.client.async_get_lists(),
+                self._async_dinner(),
             )
             # One request per list, in parallel. Sequential would make a
             # household with six lists six round trips deep on every refresh,
@@ -218,7 +223,25 @@ class CalendoraDataUpdateCoordinator(DataUpdateCoordinator[CalendoraData]):
             },
             key_owner_timezone=household.get("timezone", {}).get("value") or "UTC",
             occurrences=events.get("occurrences") or [],
+            dinner=dinner,
         )
+
+    async def _async_dinner(self) -> dict[str, Any] | None:
+        """Today's dinner card, or None when this key may not read meals.
+
+        Every other read fails the whole refresh on a 403, and this one must
+        not: `meals:read` arrived months after the keys people already hold,
+        and the calendar going unavailable because dinner is unreadable would
+        punish a household for a feature it never asked for. Only the 403 is
+        swallowed — anything else is a real failure and fails like one.
+        """
+        try:
+            payload = await self.client.async_get_dinner()
+        except CalendoraForbiddenError as err:
+            LOGGER.debug("No dinner sensor: the key cannot read meals (%s)", err)
+            return None
+        dinner = payload.get("dinner") if isinstance(payload, dict) else None
+        return dinner if isinstance(dinner, dict) else None
 
     async def async_fetch_window(
         self, date_from: date, date_to: date

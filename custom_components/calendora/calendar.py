@@ -26,10 +26,14 @@ implementation is quietly wrong:
 - **Who an event belongs to** (`_belongs_to_member`). See the note there; the
   naive version silently empties every person's calendar of everything the
   household does together.
+
+**Tags ride on the event itself** (`CalendoraCalendarEvent`), so a calendar
+trigger can key on them. See the note on that class for why they are a string.
 """
 
 from __future__ import annotations
 
+import dataclasses
 from datetime import date, datetime, timedelta
 from typing import Any
 from uuid import uuid4
@@ -141,6 +145,40 @@ def _event_timezone(occurrence: dict[str, Any], fallback: datetime) -> Any:
     return fallback.tzinfo
 
 
+@dataclasses.dataclass
+class CalendoraCalendarEvent(CalendarEvent):
+    """A Home Assistant event that also carries the key owner's tags.
+
+    Tags were asked for "so automations can key on them", and the place an
+    automation meets an event is a calendar trigger's `trigger.calendar_event`.
+    That dict is `CalendarEvent.as_dict()` — `dataclasses.asdict` over the
+    fields, so a field added here arrives in it with no other hook.
+
+    **It is a string because Home Assistant makes it one.** `event_dict_factory`
+    (2026.10.4, `calendar/helper.py`) runs every non-date value through `str()`,
+    so a list would arrive as `"['Vet', 'Work']"` — a Python repr that only
+    looks like data, and that `'Work' in …` matches for a tag called
+    "Homework". Joined with `", "` it is at least a format that can be stated:
+    `'Vet' in trigger.calendar_event.tags.split(', ')`. The calendar entity's
+    `tags` attribute carries the same names as a real list.
+
+    `""` rather than None when there are none: the API's `[]` is a statement
+    (§4), and None would drop the key, so a template reading it would error on
+    exactly the events that have no tags.
+    """
+
+    tags: str | None = None
+
+
+def _tag_names(occurrence: dict[str, Any]) -> list[str]:
+    """The key owner's tag names on one occurrence, in the API's own order."""
+    return [
+        tag["name"]
+        for tag in occurrence.get("tags") or []
+        if isinstance(tag, dict) and tag.get("name")
+    ]
+
+
 def _as_calendar_event(occurrence: dict[str, Any]) -> CalendarEvent | None:
     """Convert one occurrence into Home Assistant's shape.
 
@@ -178,13 +216,14 @@ def _as_calendar_event(occurrence: dict[str, Any]) -> CalendarEvent | None:
         start = dt_util.as_local(start_dt)
         end = dt_util.as_local(end_dt)
 
-    return CalendarEvent(
+    return CalendoraCalendarEvent(
         summary=occurrence.get("title") or "",
         start=start,
         end=end,
         description=occurrence.get("description"),
         location=occurrence.get("location"),
         uid=occurrence.get("id"),
+        tags=", ".join(_tag_names(occurrence)),
     )
 
 
@@ -269,14 +308,31 @@ class CalendoraCalendar(
         read on every state update, and §4a promises occurrences arrive sorted by
         `start`, so the first one that has not finished is the answer.
         """
+        current = self._current()
+        return current[1] if current else None
+
+    def _current(self) -> tuple[dict[str, Any], CalendarEvent] | None:
+        """The occurrence behind `event`, so attributes describe the same one."""
         now = dt_util.now()
         for occurrence in self.coordinator.data.occurrences:
             if not self._keep(occurrence):
                 continue
             event = _as_calendar_event(occurrence)
             if event is not None and _ends_after(event, now):
-                return event
+                return occurrence, event
         return None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """The tags of the event the state describes, as a real list.
+
+        Beside `message` and `start_time`, which Home Assistant writes for the
+        same event. Not a substitute for the trigger's own `tags`: with two
+        events overlapping, the state shows the earlier one, so a trigger for
+        the later one must read its tags off `trigger.calendar_event`.
+        """
+        current = self._current()
+        return {"tags": _tag_names(current[0]) if current else []}
 
     async def _async_write(self, make_request: Any) -> Any:
         """Run one write, surface its failure, then reconcile.
@@ -517,7 +573,10 @@ class CalendoraMemberCalendar(CalendoraCalendar):
         This is how a blueprint identifies the person and checks their consent
         without anybody typing an identifier.
         """
-        return member_attributes(self.coordinator, self._member_id)
+        return {
+            **super().extra_state_attributes,
+            **member_attributes(self.coordinator, self._member_id),
+        }
 
     def _keep(self, occurrence: dict[str, Any]) -> bool:
         """Keep what names this member, and what names nobody."""

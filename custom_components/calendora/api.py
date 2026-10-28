@@ -256,6 +256,17 @@ class CalendoraClient:
             params["member"] = member_id
         return await self._async_request("/api/v1/events", params)
 
+    async def async_get_dinner(self) -> Any:
+        """`GET /api/v1/dinner` — requires `meals:read`.
+
+        No `day`: §6a defaults it to today **in the key owner's zone**, which is
+        the day this integration would otherwise have to work out itself from a
+        timezone it reads in a separate request. Letting the server say which
+        day it answered for (`dinner.day`) removes the one way the two could
+        disagree around midnight.
+        """
+        return await self._async_request("/api/v1/dinner")
+
     # --- writes -------------------------------------------------------------
     #
     # §6 is the rule these all obey: **partial, omitted untouched, explicit null

@@ -121,3 +121,29 @@ longer line and assumed a layout problem.
 
 **The actual fix:** withdrew it in the next message rather than leaving it in the queue. A
 retraction costs one paragraph; a commit spent on an imaginary bug costs a build.
+
+---
+
+## 2026-10-28
+
+### Wrote a tags test that passed with the tags missing
+
+The calendar-trigger test compared `{{ trigger.calendar_event.tags }}` to the
+producer's tags joined — which is `""`, because every producer event has none.
+An absent key renders as `""` too, so the test passed whether or not the field
+reached the trigger at all. Caught only by reverting the field and watching the
+test stay green.
+
+**The actual fix:** a second rendered value, `{{ 'tags' in trigger.calendar_event }}`,
+asserted `True`. With the field reverted the test now fails. Any test whose
+expected value is "empty" needs a separate presence check, or it cannot tell
+empty from missing.
+
+### Assumed one time jump would fire a calendar trigger a day away
+
+`freezer.move_to(start)` then one `async_fire_time_changed` fired nothing. Home
+Assistant's calendar trigger re-reads the calendar every 15 minutes and
+schedules the start from what it read, so a single 23-hour jump skips the read.
+
+**The actual fix:** walk the clock forward in five-minute steps, firing each one.
+

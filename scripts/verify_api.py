@@ -44,7 +44,7 @@ import aiohttp
 BASE_URL = "https://calendora.app"
 DEFAULT_KEY_FILE = Path.home() / ".config" / "calendora-hass" / "api-key"
 
-# Field sets exactly as `docs/API-SURFACE.md` §4a documents them. When the doc
+# Field sets exactly as `docs/API-SURFACE.md` §4 and §6 document them. When the doc
 # changes, change these — that is the point of the script.
 DOCUMENTED = {
     "household": {"id", "name", "description", "color"},
@@ -56,13 +56,17 @@ DOCUMENTED = {
     "occurrences": {
         "id", "eventId", "occurrenceKey", "title", "description", "location",
         "icon", "isAllDay", "start", "end", "timezone", "repeats", "importance",
-        "travelMinutes", "attendeeIds",
+        "travelMinutes", "attendeeIds", "repeat", "readonly", "travelFrom",
+        "color", "status", "tags", "updatedAt",
     },
-    "lists": {"id", "name", "description", "type", "color", "icon", "isArchived"},
+    "lists": {
+        "id", "name", "description", "type", "color", "icon", "isArchived",
+        "itemCount", "openCount",
+    },
     "sections": {"id", "name", "position"},
     "items": {
         "id", "text", "quantity", "notes", "isChecked", "sectionId", "position",
-        "due", "assignedMembershipId",
+        "due", "assignedMembershipId", "assigneeName", "completedAt", "updatedAt",
     },
 }
 

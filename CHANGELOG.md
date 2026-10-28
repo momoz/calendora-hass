@@ -4,6 +4,23 @@ All notable changes to this integration are recorded here. Versions match the
 `version` field in `custom_components/calendora/manifest.json` and the GitHub tag
 they were released under.
 
+## Unreleased
+
+### Added
+
+- **Tags.** The tags you put on an event in Calendora now reach Home Assistant,
+  so an automation can do something only for events tagged "Vet" or "Work".
+- **When to leave.** Each person gets a "leave by" sensor: when they need to set
+  off for their next event that has a drive time saved in Calendora.
+- **Tonight's dinner.** One sensor with tonight's dinner as Calendora's Today
+  screen says it, plus who is cooking, when it is served and a sentence for a
+  speaker to read out. Needs a key that can read meals.
+
+### Changed
+
+- The integration now reads Calendora's API as documented on 2026-10-27; the
+  copy it was built against was from early August.
+
 ## 0.5.0 — 2026-08-13
 
 ### Added

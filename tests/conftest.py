@@ -18,6 +18,12 @@ from pathlib import Path
 
 import pytest
 import pytest_homeassistant_custom_component
+from pytest_homeassistant_custom_component.test_util.aiohttp import (
+    AiohttpClientMocker,
+    AiohttpClientMockResponse,
+)
+
+from .producer import pair
 
 pytest_plugins = "pytest_homeassistant_custom_component"
 
@@ -91,3 +97,43 @@ def clean_blueprint_directory():
     yield
     for name in _BLUEPRINT_DIRS_WE_WRITE:
         shutil.rmtree(_TEST_CONFIG_AUTOMATION_BLUEPRINTS / name, ignore_errors=True)
+
+
+class DinnerFixture:
+    """Which producer pair answers `GET /api/v1/dinner`. Set `.name` to change it."""
+
+    name = "dinner-unplanned"
+
+
+@pytest.fixture(autouse=True)
+def dinner(aioclient_mock: AiohttpClientMocker) -> DinnerFixture:
+    """Answer the dinner read every set-up now makes, from Calendora's fixtures.
+
+    Autouse because every test that stands the integration up reaches it, and
+    a missing mock fails set-up for reasons unrelated to the test. Resolved per
+    request rather than registered once, because the mocker answers with the
+    first matching registration — a test registering its own would be shadowed
+    by this one and silently test the default instead.
+    """
+    chosen = DinnerFixture()
+
+    async def _answer(method, url, data):
+        response = pair(chosen.name)["response"]
+        return AiohttpClientMockResponse(
+            method, url, status=response["status"], json=response["body"]
+        )
+
+    def _register() -> None:
+        aioclient_mock.get("https://calendora.app/api/v1/dinner", side_effect=_answer)
+
+    # Forty tests call `clear_requests()` and re-mock only what they are about;
+    # without re-registering here, their next refresh fails on dinner instead.
+    clear = aioclient_mock.clear_requests
+
+    def _clear_and_keep_dinner() -> None:
+        clear()
+        _register()
+
+    aioclient_mock.clear_requests = _clear_and_keep_dinner
+    _register()
+    return chosen
