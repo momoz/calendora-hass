@@ -1,0 +1,21 @@
+{
+  "describes": "Make a section. On a shopping list a section is a shop. `position` is computed here and never sent, the same rule lists and items follow — reordering is a separate call that takes the whole order.",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/lists/fx-list-shopping/sections",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    },
+    "body": {
+      "id": "fx-section-created",
+      "name": "Trader Joe's"
+    }
+  },
+  "response": {
+    "status": 201,
+    "body": {
+      "id": "fx-section-created",
+      "name": "Trader Joe's"
+    }
+  }
+}

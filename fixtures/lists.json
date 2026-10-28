@@ -18,7 +18,9 @@
           "type": "shopping",
           "color": null,
           "icon": null,
-          "isArchived": false
+          "isArchived": false,
+          "itemCount": 2,
+          "openCount": 2
         }
       ]
     }

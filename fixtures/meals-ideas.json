@@ -1,0 +1,45 @@
+{
+  "describes": "The Ideas shelf: dinners with no day (day null, idea true).",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/meals/ideas",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "ideas": [
+        {
+          "id": "fx-meal-idea",
+          "day": null,
+          "slot": "dinner",
+          "recipeId": null,
+          "text": "Smash burgers",
+          "servings": null,
+          "cookedAt": null,
+          "leftoverOf": null,
+          "kind": null,
+          "title": "Smash burgers",
+          "line": "Smash burgers",
+          "headline": "Smash burgers",
+          "sourceLine": null,
+          "serveAt": null,
+          "serveTz": null,
+          "ownerMembershipId": null,
+          "dinerIds": null,
+          "placeId": null,
+          "placeText": null,
+          "orderText": null,
+          "fulfillment": null,
+          "notes": null,
+          "rating": null,
+          "idea": true,
+          "dishes": [],
+          "plannedBy": null
+        }
+      ]
+    }
+  }
+}

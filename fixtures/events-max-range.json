@@ -24,8 +24,23 @@
           "end": "2027-03-02T08:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -43,8 +58,23 @@
           "end": "2027-03-02T10:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -60,8 +90,23 @@
           "end": "2027-03-09T08:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -77,8 +122,23 @@
           "end": "2027-03-09T10:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -94,8 +154,15 @@
           "end": "2027-03-20T00:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": false,
+          "repeat": null,
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -111,8 +178,23 @@
           "end": "2027-03-16T08:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -130,8 +212,23 @@
           "end": "2027-03-16T10:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -147,8 +244,23 @@
           "end": "2027-03-23T08:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -166,8 +278,23 @@
           "end": "2027-03-23T10:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -183,8 +310,23 @@
           "end": "2027-03-30T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -202,8 +344,23 @@
           "end": "2027-03-30T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -219,8 +376,23 @@
           "end": "2027-04-06T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -238,8 +410,23 @@
           "end": "2027-04-06T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -255,8 +442,23 @@
           "end": "2027-04-13T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -274,8 +476,23 @@
           "end": "2027-04-13T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -291,8 +508,23 @@
           "end": "2027-04-20T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -310,8 +542,23 @@
           "end": "2027-04-20T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -327,8 +574,23 @@
           "end": "2027-04-27T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -346,8 +608,23 @@
           "end": "2027-04-27T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -363,8 +640,23 @@
           "end": "2027-05-04T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -382,8 +674,23 @@
           "end": "2027-05-04T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -399,8 +706,23 @@
           "end": "2027-05-11T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -418,8 +740,23 @@
           "end": "2027-05-11T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -435,8 +772,23 @@
           "end": "2027-05-18T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -454,8 +806,23 @@
           "end": "2027-05-18T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -471,8 +838,23 @@
           "end": "2027-05-25T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -490,8 +872,23 @@
           "end": "2027-05-25T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -507,8 +904,23 @@
           "end": "2027-06-01T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -526,8 +938,23 @@
           "end": "2027-06-01T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -543,8 +970,23 @@
           "end": "2027-06-08T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -562,8 +1004,23 @@
           "end": "2027-06-08T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -579,8 +1036,23 @@
           "end": "2027-06-15T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -598,8 +1070,23 @@
           "end": "2027-06-15T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -615,8 +1102,23 @@
           "end": "2027-06-22T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -634,8 +1136,23 @@
           "end": "2027-06-22T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -651,8 +1168,23 @@
           "end": "2027-06-29T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -670,8 +1202,23 @@
           "end": "2027-06-29T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -687,8 +1234,23 @@
           "end": "2027-07-06T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -706,8 +1268,23 @@
           "end": "2027-07-06T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -723,8 +1300,23 @@
           "end": "2027-07-13T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -742,8 +1334,23 @@
           "end": "2027-07-13T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -759,8 +1366,23 @@
           "end": "2027-07-20T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -778,8 +1400,23 @@
           "end": "2027-07-20T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -795,8 +1432,23 @@
           "end": "2027-07-27T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -814,8 +1466,23 @@
           "end": "2027-07-27T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -831,8 +1498,23 @@
           "end": "2027-08-03T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -850,8 +1532,23 @@
           "end": "2027-08-03T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -867,8 +1564,23 @@
           "end": "2027-08-10T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -886,8 +1598,23 @@
           "end": "2027-08-10T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -903,8 +1630,23 @@
           "end": "2027-08-17T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -922,8 +1664,23 @@
           "end": "2027-08-17T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -939,8 +1696,23 @@
           "end": "2027-08-24T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -958,8 +1730,23 @@
           "end": "2027-08-24T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -975,8 +1762,23 @@
           "end": "2027-08-31T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -994,8 +1796,23 @@
           "end": "2027-08-31T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -1011,8 +1828,23 @@
           "end": "2027-09-07T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -1030,8 +1862,23 @@
           "end": "2027-09-07T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -1047,8 +1894,23 @@
           "end": "2027-09-14T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -1066,8 +1928,23 @@
           "end": "2027-09-14T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -1083,8 +1960,23 @@
           "end": "2027-09-21T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -1102,8 +1994,23 @@
           "end": "2027-09-21T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -1119,8 +2026,23 @@
           "end": "2027-09-28T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -1138,8 +2060,23 @@
           "end": "2027-09-28T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -1155,8 +2092,23 @@
           "end": "2027-10-05T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -1174,8 +2126,23 @@
           "end": "2027-10-05T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -1191,8 +2158,23 @@
           "end": "2027-10-12T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -1210,8 +2192,23 @@
           "end": "2027-10-12T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -1227,8 +2224,23 @@
           "end": "2027-10-19T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -1246,8 +2258,23 @@
           "end": "2027-10-19T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -1263,8 +2290,23 @@
           "end": "2027-10-26T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -1282,8 +2324,23 @@
           "end": "2027-10-26T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -1299,8 +2356,23 @@
           "end": "2027-11-02T08:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -1318,8 +2390,23 @@
           "end": "2027-11-02T10:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -1335,8 +2422,23 @@
           "end": "2027-11-09T08:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -1354,8 +2456,23 @@
           "end": "2027-11-09T10:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -1371,8 +2488,23 @@
           "end": "2027-11-16T08:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -1390,8 +2522,23 @@
           "end": "2027-11-16T10:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -1407,8 +2554,23 @@
           "end": "2027-11-23T08:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -1426,8 +2588,23 @@
           "end": "2027-11-23T10:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -1443,8 +2620,23 @@
           "end": "2027-11-30T08:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -1462,8 +2654,23 @@
           "end": "2027-11-30T10:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -1479,8 +2686,23 @@
           "end": "2027-12-07T08:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -1498,8 +2720,23 @@
           "end": "2027-12-07T10:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -1515,8 +2752,23 @@
           "end": "2027-12-14T08:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -1534,8 +2786,23 @@
           "end": "2027-12-14T10:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -1551,8 +2818,23 @@
           "end": "2027-12-21T08:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -1570,8 +2852,23 @@
           "end": "2027-12-21T10:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -1587,8 +2884,23 @@
           "end": "2027-12-28T08:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -1606,8 +2918,23 @@
           "end": "2027-12-28T10:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -1623,8 +2950,23 @@
           "end": "2028-01-04T08:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -1642,8 +2984,23 @@
           "end": "2028-01-04T10:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -1659,8 +3016,23 @@
           "end": "2028-01-11T08:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -1678,8 +3050,23 @@
           "end": "2028-01-11T10:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -1695,8 +3082,23 @@
           "end": "2028-01-18T08:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -1714,8 +3116,23 @@
           "end": "2028-01-18T10:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -1731,8 +3148,23 @@
           "end": "2028-01-25T08:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -1750,8 +3182,23 @@
           "end": "2028-01-25T10:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -1767,8 +3214,23 @@
           "end": "2028-02-01T08:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -1786,8 +3248,23 @@
           "end": "2028-02-01T10:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -1803,8 +3280,23 @@
           "end": "2028-02-08T08:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -1822,8 +3314,23 @@
           "end": "2028-02-08T10:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -1839,8 +3346,23 @@
           "end": "2028-02-15T08:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -1858,8 +3380,23 @@
           "end": "2028-02-15T10:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -1875,8 +3412,23 @@
           "end": "2028-02-22T08:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -1894,8 +3446,23 @@
           "end": "2028-02-22T10:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -1911,8 +3478,23 @@
           "end": "2028-02-29T08:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -1930,8 +3512,23 @@
           "end": "2028-02-29T10:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -1947,8 +3544,23 @@
           "end": "2028-03-07T08:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -1966,8 +3578,23 @@
           "end": "2028-03-07T10:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -1983,8 +3610,23 @@
           "end": "2028-03-14T08:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -2002,8 +3644,23 @@
           "end": "2028-03-14T10:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -2019,8 +3676,23 @@
           "end": "2028-03-21T08:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -2038,8 +3710,23 @@
           "end": "2028-03-21T10:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -2055,8 +3742,23 @@
           "end": "2028-03-28T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -2074,8 +3776,23 @@
           "end": "2028-03-28T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         },
         {
@@ -2091,8 +3808,23 @@
           "end": "2028-04-04T07:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": 4,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": [
             "fx-member-donna"
           ]
@@ -2110,8 +3842,23 @@
           "end": "2028-04-04T09:00:00.000Z",
           "timezone": "Europe/London",
           "repeats": true,
+          "repeat": {
+            "frequency": "weekly",
+            "interval": 1,
+            "weekdays": [
+              "TU"
+            ],
+            "endsOn": null,
+            "count": null
+          },
+          "readonly": false,
           "importance": null,
           "travelMinutes": null,
+          "travelFrom": null,
+          "color": null,
+          "status": "confirmed",
+          "updatedAt": "<stamp>",
+          "tags": [],
           "attendeeIds": []
         }
       ]

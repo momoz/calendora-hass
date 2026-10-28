@@ -1,0 +1,47 @@
+{
+  "describes": "One occurrence, in exactly the shape the list returns. The id GET /events handed out is the id this takes.",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/events/fx-event-gym:2027-03-09",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "occurrence": {
+        "id": "fx-event-gym:2027-03-09",
+        "eventId": "fx-event-gym",
+        "occurrenceKey": "2027-03-09",
+        "title": "Gym",
+        "description": null,
+        "location": "Planet Fitness",
+        "icon": null,
+        "isAllDay": false,
+        "start": "2027-03-09T07:00:00.000Z",
+        "end": "2027-03-09T08:00:00.000Z",
+        "timezone": "Europe/London",
+        "repeats": true,
+        "repeat": {
+          "frequency": "weekly",
+          "interval": 1,
+          "weekdays": [
+            "TU"
+          ],
+          "endsOn": null,
+          "count": null
+        },
+        "readonly": false,
+        "importance": 4,
+        "travelMinutes": null,
+        "travelFrom": null,
+        "color": null,
+        "status": "confirmed",
+        "updatedAt": "<stamp>",
+        "tags": [],
+        "attendeeIds": []
+      }
+    }
+  }
+}

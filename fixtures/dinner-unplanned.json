@@ -1,0 +1,26 @@
+{
+  "describes": "A day with no dinner: state unplanned, headline \"Not planned\", and the digest's \"Dinner · not planned yet\".",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/dinner?day=2027-03-20",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "dinner": {
+        "day": "2027-03-20",
+        "state": "unplanned",
+        "phase": null,
+        "placement": "glance",
+        "meals": [],
+        "headline": "Not planned",
+        "digestLine": "Dinner · not planned yet",
+        "tomorrow": null,
+        "away": []
+      }
+    }
+  }
+}

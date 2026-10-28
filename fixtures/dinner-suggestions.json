@@ -1,0 +1,26 @@
+{
+  "describes": "Up to four dinner ideas for a day, each with one reason that is a fact a person can check. busyUntil is how late the key owner's own afternoon runs (null when it does not); pantry reasons need pantry:read.",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/dinner/suggestions?day=2027-03-03",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "day": "2027-03-03",
+      "serveAt": "18:30",
+      "busyUntil": null,
+      "suggestions": [
+        {
+          "key": "leftovers:fx-meal-chili",
+          "source": "leftovers",
+          "title": "Chili",
+          "reason": "Leftovers from Mon"
+        }
+      ]
+    }
+  }
+}

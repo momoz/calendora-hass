@@ -1,0 +1,20 @@
+{
+  "describes": "A name that already exists, compared without case or spacing. Two shops that differ only that way are indistinguishable on the shelf and ambiguous to sectionName resolution, and the person who ends up with both did not ask for either. The refusal names the one that exists so a caller who meant it can use that id.",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/lists/fx-list-shopping/sections",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    },
+    "body": {
+      "name": "  trader   joe's "
+    }
+  },
+  "response": {
+    "status": 409,
+    "body": {
+      "error": "this list already has a section called \"Trader Joe's\"",
+      "code": "conflict"
+    }
+  }
+}

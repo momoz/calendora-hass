@@ -1,0 +1,110 @@
+{
+  "describes": "A cook-at-home dinner: its headline (what every surface shows), dishes with roles and gear, who's cooking, the serve time as a wall time and its zone.",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/dinner?day=2027-03-08",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "dinner": {
+        "day": "2027-03-08",
+        "state": "planned",
+        "phase": null,
+        "placement": "glance",
+        "meals": [
+          {
+            "id": "fx-meal-cook",
+            "kind": "cook",
+            "line": "Filet, green beans, mashed potatoes",
+            "label": "Cook at home",
+            "headline": "Cook at home · Filet, green beans, mashed potatoes · 6:30",
+            "owner": {
+              "id": "fx-member-mike",
+              "name": "Mike",
+              "verb": "cooking"
+            },
+            "ownerPhrase": "Mike's cooking",
+            "diners": {
+              "ids": [
+                "fx-member-mike",
+                "fx-member-donna"
+              ],
+              "names": "Mike & Donna",
+              "source": "usual"
+            },
+            "serveAt": "18:30",
+            "serveTz": "Europe/London",
+            "dishes": [
+              {
+                "id": "fx-dish-filet",
+                "name": "Filet",
+                "role": "main",
+                "gear": "Big Green Egg",
+                "recipe": null,
+                "pantry": {
+                  "status": "unknown",
+                  "why": "Pantry not set up"
+                }
+              },
+              {
+                "id": "fx-dish-beans",
+                "name": "Green Beans",
+                "role": "veg",
+                "gear": null,
+                "recipe": null,
+                "pantry": {
+                  "status": "unknown",
+                  "why": "Pantry not set up"
+                }
+              },
+              {
+                "id": "fx-dish-mashed",
+                "name": "Mashed Potatoes",
+                "role": "side",
+                "gear": null,
+                "recipe": null,
+                "pantry": {
+                  "status": "unknown",
+                  "why": "Pantry not set up"
+                }
+              }
+            ],
+            "placeText": null,
+            "orderText": null,
+            "fulfillment": null,
+            "notes": null,
+            "cookedAt": null,
+            "leftoverOf": null,
+            "dinersPrefix": "",
+            "sentence": "Dinner: cook at home, filet, green beans, mashed potatoes, at 6:30, Mike's cooking",
+            "plainWords": false,
+            "place": null,
+            "orderBy": null,
+            "prep": [],
+            "timeline": {
+              "steps": [],
+              "untimed": [
+                "Filet",
+                "Green Beans",
+                "Mashed Potatoes"
+              ],
+              "conflicts": []
+            },
+            "nextStep": null,
+            "rating": null,
+            "askRating": false,
+            "rain": null
+          }
+        ],
+        "headline": "Cook at home · Filet, green beans, mashed potatoes · 6:30",
+        "digestLine": "Dinner · Cook at home · Filet, green beans, mashed potatoes · 6:30",
+        "tomorrow": null,
+        "away": []
+      }
+    }
+  }
+}

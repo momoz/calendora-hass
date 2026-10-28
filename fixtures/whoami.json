@@ -1,0 +1,40 @@
+{
+  "describes": "What this key is: the member it acts as, the household, its scopes and the zone to read dates in. No email address and no user id.",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/whoami",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "key": {
+        "name": "Home Assistant",
+        "scopes": [
+          "household:read",
+          "calendar:read",
+          "calendar:write",
+          "lists:read",
+          "lists:write",
+          "meals:read",
+          "meals:write"
+        ]
+      },
+      "household": {
+        "id": "fx-household",
+        "name": "The Olsens"
+      },
+      "member": {
+        "id": "fx-member-mike",
+        "name": "Mike",
+        "role": "owner"
+      },
+      "timezone": {
+        "value": "Europe/London",
+        "source": "key-owner"
+      }
+    }
+  }
+}

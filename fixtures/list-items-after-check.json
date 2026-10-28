@@ -1,0 +1,70 @@
+{
+  "describes": "The list read back after a tick, so `completedAt` is pinned with a value in it and not only as a null. `isChecked` and `completedAt` are two halves of one fact and are written together; before this the second half was returned and never proved. Both timestamps read `<stamp>` because they are the wall clock at run time rather than a date the seed chose; what is pinned is the distinction that matters — a stamp on the ticked item, null on the open ones.",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/lists/fx-list-shopping/items",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "listId": "fx-list-shopping",
+      "sections": [
+        {
+          "id": "fx-section-produce",
+          "name": "PRODUCE",
+          "position": "a0"
+        }
+      ],
+      "items": [
+        {
+          "id": "fx-item-milk",
+          "text": "Milk",
+          "quantity": "2",
+          "notes": null,
+          "isChecked": false,
+          "sectionId": "fx-section-produce",
+          "position": "a0",
+          "assignedMembershipId": null,
+          "listId": "fx-list-shopping",
+          "completedAt": null,
+          "updatedAt": "<stamp>",
+          "assigneeName": null,
+          "due": null
+        },
+        {
+          "id": "fx-item-bins",
+          "text": "Bins out",
+          "quantity": null,
+          "notes": null,
+          "isChecked": false,
+          "sectionId": null,
+          "position": "a1",
+          "assignedMembershipId": "fx-member-mike",
+          "listId": "fx-list-shopping",
+          "completedAt": null,
+          "updatedAt": "<stamp>",
+          "assigneeName": "Mike",
+          "due": "2027-03-11"
+        },
+        {
+          "id": "fx-item-created",
+          "text": "Eggs",
+          "quantity": "6",
+          "notes": null,
+          "isChecked": true,
+          "sectionId": null,
+          "position": "niii",
+          "assignedMembershipId": null,
+          "listId": "fx-list-shopping",
+          "completedAt": "<stamp>",
+          "updatedAt": "<stamp>",
+          "assigneeName": null,
+          "due": "2027-03-11"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,226 @@
+{
+  "describes": "plan_dinner from one line. The idempotency key becomes the meal's id (the same words in the same household are the same dinner), the reply carries the meal, what was read, the doubts and the dinner card.",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/dinner",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    },
+    "body": {
+      "day": "2027-03-21",
+      "line": "Cook at home: Filet, Green Beans, Mashed Potatoes, BGE, 6:30",
+      "ownerMembershipId": "fx-member-mike",
+      "idempotencyKey": "fx-plan-2027-03-21"
+    }
+  },
+  "response": {
+    "status": 201,
+    "body": {
+      "saved": true,
+      "replaced": [],
+      "meal": {
+        "id": "9fe2ab4d-6c52-8dd8-af55-c21207d9a47e",
+        "day": "2027-03-21",
+        "slot": "dinner",
+        "recipeId": null,
+        "text": "Filet, green beans, mashed potatoes",
+        "servings": null,
+        "cookedAt": null,
+        "leftoverOf": null,
+        "kind": "cook",
+        "title": null,
+        "line": "Filet, green beans, mashed potatoes",
+        "headline": "Cook at home · Filet, green beans, mashed potatoes · 6:30",
+        "sourceLine": "Cook at home: Filet, Green Beans, Mashed Potatoes, BGE, 6:30",
+        "serveAt": "18:30",
+        "serveTz": "Europe/London",
+        "ownerMembershipId": "fx-member-mike",
+        "dinerIds": null,
+        "placeId": null,
+        "placeText": null,
+        "orderText": null,
+        "fulfillment": null,
+        "notes": null,
+        "rating": null,
+        "idea": false,
+        "dishes": [
+          {
+            "id": "<new-id>",
+            "name": "Filet",
+            "role": "main",
+            "recipeId": null,
+            "recipeTitle": null,
+            "servings": null,
+            "gear": "Big Green Egg",
+            "method": null,
+            "cookMinutes": null,
+            "restMinutes": null,
+            "frozen": null,
+            "thawHours": null,
+            "ingredientId": null,
+            "gearId": null
+          },
+          {
+            "id": "<new-id>",
+            "name": "Green Beans",
+            "role": "veg",
+            "recipeId": null,
+            "recipeTitle": null,
+            "servings": null,
+            "gear": null,
+            "method": null,
+            "cookMinutes": null,
+            "restMinutes": null,
+            "frozen": null,
+            "thawHours": null,
+            "ingredientId": null,
+            "gearId": null
+          },
+          {
+            "id": "<new-id>",
+            "name": "Mashed Potatoes",
+            "role": "side",
+            "recipeId": null,
+            "recipeTitle": null,
+            "servings": null,
+            "gear": null,
+            "method": null,
+            "cookMinutes": null,
+            "restMinutes": null,
+            "frozen": null,
+            "thawHours": null,
+            "ingredientId": null,
+            "gearId": null
+          }
+        ],
+        "plannedBy": {
+          "type": "integration",
+          "name": "Home Assistant"
+        }
+      },
+      "parsed": {
+        "kind": "cook",
+        "dishes": [
+          {
+            "name": "Filet",
+            "role": "main",
+            "gear": "Big Green Egg"
+          },
+          {
+            "name": "Green Beans",
+            "role": "veg",
+            "gear": null
+          },
+          {
+            "name": "Mashed Potatoes",
+            "role": "side",
+            "gear": null
+          }
+        ],
+        "serveAt": "18:30",
+        "ownerMembershipId": null,
+        "placeText": null,
+        "notes": null
+      },
+      "doubts": [
+        "‘6:30’: read as 6:30 PM",
+        "‘BGE’: read as gear Big Green Egg on Filet"
+      ],
+      "dinner": {
+        "day": "2027-03-21",
+        "state": "planned",
+        "phase": null,
+        "placement": "glance",
+        "meals": [
+          {
+            "id": "9fe2ab4d-6c52-8dd8-af55-c21207d9a47e",
+            "kind": "cook",
+            "line": "Filet, green beans, mashed potatoes",
+            "label": "Cook at home",
+            "headline": "Cook at home · Filet, green beans, mashed potatoes · 6:30",
+            "owner": {
+              "id": "fx-member-mike",
+              "name": "Mike",
+              "verb": "cooking"
+            },
+            "ownerPhrase": "Mike's cooking",
+            "diners": {
+              "ids": [
+                "fx-member-mike",
+                "fx-member-donna"
+              ],
+              "names": "Mike & Donna",
+              "source": "usual"
+            },
+            "serveAt": "18:30",
+            "serveTz": "Europe/London",
+            "dishes": [
+              {
+                "id": "<new-id>",
+                "name": "Filet",
+                "role": "main",
+                "gear": "Big Green Egg",
+                "recipe": null,
+                "pantry": {
+                  "status": "unknown",
+                  "why": "Pantry not set up"
+                }
+              },
+              {
+                "id": "<new-id>",
+                "name": "Green Beans",
+                "role": "veg",
+                "gear": null,
+                "recipe": null,
+                "pantry": {
+                  "status": "unknown",
+                  "why": "Pantry not set up"
+                }
+              },
+              {
+                "id": "<new-id>",
+                "name": "Mashed Potatoes",
+                "role": "side",
+                "gear": null,
+                "recipe": null,
+                "pantry": {
+                  "status": "unknown",
+                  "why": "Pantry not set up"
+                }
+              }
+            ],
+            "placeText": null,
+            "orderText": null,
+            "fulfillment": null,
+            "notes": null,
+            "cookedAt": null,
+            "leftoverOf": null,
+            "dinersPrefix": "",
+            "sentence": "Dinner: cook at home, filet, green beans, mashed potatoes, at 6:30, Mike's cooking",
+            "plainWords": false,
+            "place": null,
+            "orderBy": null,
+            "prep": [],
+            "timeline": {
+              "steps": [],
+              "untimed": [
+                "Filet",
+                "Green Beans",
+                "Mashed Potatoes"
+              ],
+              "conflicts": []
+            },
+            "nextStep": null,
+            "rating": null,
+            "askRating": false,
+            "rain": null
+          }
+        ],
+        "headline": "Cook at home · Filet, green beans, mashed potatoes · 6:30",
+        "digestLine": "Dinner · Cook at home · Filet, green beans, mashed potatoes · 6:30",
+        "tomorrow": null,
+        "away": []
+      }
+    }
+  }
+}

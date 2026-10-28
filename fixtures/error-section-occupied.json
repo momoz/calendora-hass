@@ -1,0 +1,17 @@
+{
+  "describes": "Removing a section that still holds items is refused, with the count, unless the caller says where they go. Ungrouping silently loses which shop they were for, and deleting them destroys a list because somebody tidied a heading — so the caller decides, with `reassign_to`.",
+  "request": {
+    "method": "DELETE",
+    "path": "/api/v1/lists/fx-list-shopping/sections/fx-section-created",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 400,
+    "body": {
+      "error": "\"Trader Joe's\" still holds 1 item. Send reassign_to with another section id to move them, or null to leave them ungrouped.",
+      "code": "bad_request"
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "describes": "No family dinner, with its note.",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/dinner?day=2027-03-13",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "dinner": {
+        "day": "2027-03-13",
+        "state": "planned",
+        "phase": null,
+        "placement": "glance",
+        "meals": [
+          {
+            "id": "fx-meal-skip",
+            "kind": "skip",
+            "line": "Fend for yourselves",
+            "label": "No dinner",
+            "headline": "No dinner · Fend for yourselves",
+            "owner": null,
+            "ownerPhrase": null,
+            "diners": {
+              "ids": [
+                "fx-member-mike",
+                "fx-member-donna"
+              ],
+              "names": "Mike & Donna",
+              "source": "usual"
+            },
+            "serveAt": null,
+            "serveTz": null,
+            "dishes": [],
+            "placeText": null,
+            "orderText": null,
+            "fulfillment": null,
+            "notes": "Fend for yourselves",
+            "cookedAt": null,
+            "leftoverOf": null,
+            "dinersPrefix": "",
+            "sentence": "Dinner: no dinner, Fend for yourselves",
+            "plainWords": false,
+            "place": null,
+            "orderBy": null,
+            "prep": [],
+            "timeline": null,
+            "nextStep": null,
+            "rating": null,
+            "askRating": false,
+            "rain": null
+          }
+        ],
+        "headline": "No dinner · Fend for yourselves",
+        "digestLine": "Dinner · No dinner · Fend for yourselves",
+        "tomorrow": null,
+        "away": []
+      }
+    }
+  }
+}

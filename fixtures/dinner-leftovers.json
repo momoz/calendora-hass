@@ -1,0 +1,64 @@
+{
+  "describes": "Leftovers whose words were \"leftovers\": the kind is set and the words are kept as they were.",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/dinner?day=2027-03-11",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "dinner": {
+        "day": "2027-03-11",
+        "state": "planned",
+        "phase": null,
+        "placement": "glance",
+        "meals": [
+          {
+            "id": "fx-meal-leftovers",
+            "kind": "leftovers",
+            "line": "leftovers",
+            "label": "Leftovers",
+            "headline": "Leftovers",
+            "owner": null,
+            "ownerPhrase": null,
+            "diners": {
+              "ids": [
+                "fx-member-mike",
+                "fx-member-donna"
+              ],
+              "names": "Mike & Donna",
+              "source": "usual"
+            },
+            "serveAt": null,
+            "serveTz": null,
+            "dishes": [],
+            "placeText": null,
+            "orderText": null,
+            "fulfillment": null,
+            "notes": null,
+            "cookedAt": null,
+            "leftoverOf": null,
+            "dinersPrefix": "",
+            "sentence": "Dinner: leftovers, leftovers",
+            "plainWords": false,
+            "place": null,
+            "orderBy": null,
+            "prep": [],
+            "timeline": null,
+            "nextStep": null,
+            "rating": null,
+            "askRating": false,
+            "rain": null
+          }
+        ],
+        "headline": "Leftovers",
+        "digestLine": "Dinner · Leftovers",
+        "tomorrow": null,
+        "away": []
+      }
+    }
+  }
+}

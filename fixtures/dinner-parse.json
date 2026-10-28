@@ -1,0 +1,40 @@
+{
+  "describes": "The parser alone: what a line is read as, and every guess it made. Nothing is written.",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/dinner/parse?line=Steak%20and%20Potatoes%20and%20Green%20Beans",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "parsed": {
+        "kind": null,
+        "dishes": [
+          {
+            "name": "Steak",
+            "role": "main",
+            "gear": null
+          },
+          {
+            "name": "Potatoes",
+            "role": "side",
+            "gear": null
+          },
+          {
+            "name": "Green Beans",
+            "role": "veg",
+            "gear": null
+          }
+        ],
+        "serveAt": null,
+        "ownerMembershipId": null,
+        "placeText": null,
+        "notes": null
+      },
+      "doubts": []
+    }
+  }
+}

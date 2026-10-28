@@ -14,7 +14,7 @@
   "response": {
     "status": 400,
     "body": {
-      "error": "unknown field: position. This route accepts: id, text, notes, quantity, isChecked, due, sectionId, assignedMembershipId",
+      "error": "unknown field: position. This route accepts: id, text, notes, quantity, isChecked, due, sectionId, assignedMembershipId, sectionName",
       "code": "bad_request"
     }
   }

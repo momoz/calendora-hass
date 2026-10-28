@@ -28,6 +28,10 @@
           "sectionId": "fx-section-produce",
           "position": "a0",
           "assignedMembershipId": null,
+          "listId": "fx-list-shopping",
+          "completedAt": null,
+          "updatedAt": "<stamp>",
+          "assigneeName": null,
           "due": null
         },
         {
@@ -39,6 +43,10 @@
           "sectionId": null,
           "position": "a1",
           "assignedMembershipId": "fx-member-mike",
+          "listId": "fx-list-shopping",
+          "completedAt": null,
+          "updatedAt": "<stamp>",
+          "assigneeName": "Mike",
           "due": "2027-03-11"
         }
       ]

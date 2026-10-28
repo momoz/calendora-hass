@@ -1,0 +1,17 @@
+{
+  "describes": "A key without meals:read is refused, and the refusal names the permission it needs.",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/meals?week=2027-03-08",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 403,
+    "body": {
+      "error": "this key does not have the \"meals:read\" permission",
+      "code": "forbidden"
+    }
+  }
+}

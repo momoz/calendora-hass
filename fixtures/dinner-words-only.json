@@ -1,0 +1,64 @@
+{
+  "describes": "A dinner that is only words (the Oct 14 shape): no kind, no dishes, the words as the headline, and plainWords true so a client can offer \"Make this a plan?\".",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/dinner?day=2027-03-14",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "dinner": {
+        "day": "2027-03-14",
+        "state": "planned",
+        "phase": null,
+        "placement": "glance",
+        "meals": [
+          {
+            "id": "fx-meal-words",
+            "kind": null,
+            "line": "Filets on the Big Green Egg, mashed potatoes, green beans",
+            "label": null,
+            "headline": "Filets on the Big Green Egg, mashed potatoes, green beans",
+            "owner": null,
+            "ownerPhrase": null,
+            "diners": {
+              "ids": [
+                "fx-member-mike",
+                "fx-member-donna"
+              ],
+              "names": "Mike & Donna",
+              "source": "usual"
+            },
+            "serveAt": null,
+            "serveTz": null,
+            "dishes": [],
+            "placeText": null,
+            "orderText": null,
+            "fulfillment": null,
+            "notes": null,
+            "cookedAt": null,
+            "leftoverOf": null,
+            "dinersPrefix": "",
+            "sentence": "Dinner: Filets on the Big Green Egg, mashed potatoes, green beans",
+            "plainWords": true,
+            "place": null,
+            "orderBy": null,
+            "prep": [],
+            "timeline": null,
+            "nextStep": null,
+            "rating": null,
+            "askRating": false,
+            "rain": null
+          }
+        ],
+        "headline": "Filets on the Big Green Egg, mashed potatoes, green beans",
+        "digestLine": "Dinner · Filets on the Big Green Egg, mashed potatoes, green beans",
+        "tomorrow": null,
+        "away": []
+      }
+    }
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "describes": "Takeout, from a place named in words: \"from Mario's\" in the headline, and the verb follows pickup.",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/dinner?day=2027-03-10",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "dinner": {
+        "day": "2027-03-10",
+        "state": "planned",
+        "phase": null,
+        "placement": "glance",
+        "meals": [
+          {
+            "id": "fx-meal-takeout",
+            "kind": "takeout",
+            "line": "Pizza, wings",
+            "label": "Takeout",
+            "headline": "Takeout · Pizza, wings from Mario's · 6:00",
+            "owner": {
+              "id": "fx-member-donna",
+              "name": "Donna",
+              "verb": "picking up"
+            },
+            "ownerPhrase": "Donna's picking up",
+            "diners": {
+              "ids": [
+                "fx-member-mike",
+                "fx-member-donna"
+              ],
+              "names": "Mike & Donna",
+              "source": "usual"
+            },
+            "serveAt": "18:00",
+            "serveTz": "Europe/London",
+            "dishes": [
+              {
+                "id": "fx-dish-pizza",
+                "name": "Pizza",
+                "role": "main",
+                "gear": null,
+                "recipe": null,
+                "pantry": {
+                  "status": "unknown",
+                  "why": "Pantry not set up"
+                }
+              },
+              {
+                "id": "fx-dish-wings",
+                "name": "Wings",
+                "role": null,
+                "gear": null,
+                "recipe": null,
+                "pantry": {
+                  "status": "unknown",
+                  "why": "Pantry not set up"
+                }
+              }
+            ],
+            "placeText": "Mario's",
+            "orderText": null,
+            "fulfillment": "pickup",
+            "notes": null,
+            "cookedAt": null,
+            "leftoverOf": null,
+            "dinersPrefix": "",
+            "sentence": "Dinner: takeout, pizza, wings, at 6:00, Donna's picking up",
+            "plainWords": false,
+            "place": null,
+            "orderBy": null,
+            "prep": [],
+            "timeline": {
+              "steps": [],
+              "untimed": [
+                "Pizza",
+                "Wings"
+              ],
+              "conflicts": []
+            },
+            "nextStep": null,
+            "rating": null,
+            "askRating": false,
+            "rain": null
+          }
+        ],
+        "headline": "Takeout · Pizza, wings from Mario's · 6:00",
+        "digestLine": "Dinner · Takeout · Pizza, wings from Mario's · 6:00",
+        "tomorrow": null,
+        "away": []
+      }
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "describes": "Eating out: the place is the line.",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/dinner?day=2027-03-12",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "dinner": {
+        "day": "2027-03-12",
+        "state": "planned",
+        "phase": null,
+        "placement": "glance",
+        "meals": [
+          {
+            "id": "fx-meal-out",
+            "kind": "out",
+            "line": "Murph's",
+            "label": "Out",
+            "headline": "Out · Murph's · 6:00",
+            "owner": null,
+            "ownerPhrase": null,
+            "diners": {
+              "ids": [
+                "fx-member-mike",
+                "fx-member-donna"
+              ],
+              "names": "Mike & Donna",
+              "source": "usual"
+            },
+            "serveAt": "18:00",
+            "serveTz": "Europe/London",
+            "dishes": [],
+            "placeText": "Murph's",
+            "orderText": null,
+            "fulfillment": null,
+            "notes": null,
+            "cookedAt": null,
+            "leftoverOf": null,
+            "dinersPrefix": "",
+            "sentence": "Dinner: out, Murph's, at 6:00",
+            "plainWords": false,
+            "place": null,
+            "orderBy": null,
+            "prep": [],
+            "timeline": null,
+            "nextStep": null,
+            "rating": null,
+            "askRating": false,
+            "rain": null
+          }
+        ],
+        "headline": "Out · Murph's · 6:00",
+        "digestLine": "Dinner · Out · Murph's · 6:00",
+        "tomorrow": null,
+        "away": []
+      }
+    }
+  }
+}

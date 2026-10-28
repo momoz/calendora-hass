@@ -1,0 +1,20 @@
+{
+  "describes": "scope this cancels one day. The series row stays alive with the date on its exception list, which is what leaves the day restorable in the app.",
+  "request": {
+    "method": "DELETE",
+    "path": "/api/v1/events/fx-event-gym:2027-03-02",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    },
+    "body": {
+      "scope": "this"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "id": "fx-event-gym",
+      "deleted": true
+    }
+  }
+}

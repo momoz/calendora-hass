@@ -1,0 +1,148 @@
+{
+  "describes": "A line the parser had to guess about saves anyway; the guesses are doubts, never errors.",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/dinner",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    },
+    "body": {
+      "day": "2027-03-22",
+      "line": "Pizza night on the Ooni",
+      "idempotencyKey": "fx-plan-2027-03-22"
+    }
+  },
+  "response": {
+    "status": 201,
+    "body": {
+      "saved": true,
+      "replaced": [],
+      "meal": {
+        "id": "c6367537-98bc-8225-9381-3c39d416260a",
+        "day": "2027-03-22",
+        "slot": "dinner",
+        "recipeId": null,
+        "text": "Pizza night",
+        "servings": null,
+        "cookedAt": null,
+        "leftoverOf": null,
+        "kind": null,
+        "title": null,
+        "line": "Pizza night",
+        "headline": "Pizza night",
+        "sourceLine": "Pizza night on the Ooni",
+        "serveAt": null,
+        "serveTz": null,
+        "ownerMembershipId": null,
+        "dinerIds": null,
+        "placeId": null,
+        "placeText": null,
+        "orderText": null,
+        "fulfillment": null,
+        "notes": null,
+        "rating": null,
+        "idea": false,
+        "dishes": [
+          {
+            "id": "<new-id>",
+            "name": "Pizza night",
+            "role": "main",
+            "recipeId": null,
+            "recipeTitle": null,
+            "servings": null,
+            "gear": "Ooni",
+            "method": null,
+            "cookMinutes": null,
+            "restMinutes": null,
+            "frozen": null,
+            "thawHours": null,
+            "ingredientId": null,
+            "gearId": null
+          }
+        ],
+        "plannedBy": {
+          "type": "integration",
+          "name": "Home Assistant"
+        }
+      },
+      "parsed": {
+        "kind": null,
+        "dishes": [
+          {
+            "name": "Pizza night",
+            "role": "main",
+            "gear": "Ooni"
+          }
+        ],
+        "serveAt": null,
+        "ownerMembershipId": null,
+        "placeText": null,
+        "notes": null
+      },
+      "doubts": [
+        "kind not stated"
+      ],
+      "dinner": {
+        "day": "2027-03-22",
+        "state": "planned",
+        "phase": null,
+        "placement": "glance",
+        "meals": [
+          {
+            "id": "c6367537-98bc-8225-9381-3c39d416260a",
+            "kind": null,
+            "line": "Pizza night",
+            "label": null,
+            "headline": "Pizza night",
+            "owner": null,
+            "ownerPhrase": null,
+            "diners": {
+              "ids": [
+                "fx-member-mike",
+                "fx-member-donna"
+              ],
+              "names": "Mike & Donna",
+              "source": "usual"
+            },
+            "serveAt": null,
+            "serveTz": null,
+            "dishes": [
+              {
+                "id": "<new-id>",
+                "name": "Pizza night",
+                "role": "main",
+                "gear": "Ooni",
+                "recipe": null,
+                "pantry": {
+                  "status": "unknown",
+                  "why": "Pantry not set up"
+                }
+              }
+            ],
+            "placeText": null,
+            "orderText": null,
+            "fulfillment": null,
+            "notes": null,
+            "cookedAt": null,
+            "leftoverOf": null,
+            "dinersPrefix": "",
+            "sentence": "Dinner: pizza night",
+            "plainWords": false,
+            "place": null,
+            "orderBy": null,
+            "prep": [],
+            "timeline": null,
+            "nextStep": null,
+            "rating": null,
+            "askRating": false,
+            "rain": null
+          }
+        ],
+        "headline": "Pizza night",
+        "digestLine": "Dinner · Pizza night",
+        "tomorrow": null,
+        "away": []
+      }
+    }
+  }
+}

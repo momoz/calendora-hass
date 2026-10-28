@@ -1,0 +1,31 @@
+{
+  "describes": "Saved takeout places and restaurants: phone, order link, the usual order and how long before dinner to order. Archived ones are included, marked.",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/places",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "places": [
+        {
+          "id": "fx-place-marios",
+          "name": "Mario's",
+          "kind": "takeout",
+          "phone": "+15555550100",
+          "orderUrl": "https://marios.example/order",
+          "menuUrl": null,
+          "address": null,
+          "usualOrder": "Large pepperoni, 10 garlic parm wings",
+          "fulfillmentDefault": "pickup",
+          "leadMinutes": 30,
+          "notes": null,
+          "archived": false
+        }
+      ]
+    }
+  }
+}

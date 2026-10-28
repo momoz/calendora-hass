@@ -1,0 +1,43 @@
+{
+  "describes": "Saved dinners to plan again, with a snapshot of their dishes, and how often and when last used.",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/favorites",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "favorites": [
+        {
+          "id": "fx-favorite-steak",
+          "name": "Steak night",
+          "mealId": null,
+          "kind": "cook",
+          "title": null,
+          "dishes": [
+            {
+              "gear": "Big Green Egg",
+              "name": "Filet",
+              "role": "main"
+            },
+            {
+              "name": "Green Beans",
+              "role": "veg"
+            }
+          ],
+          "serveAt": "18:30",
+          "serveTz": "Europe/London",
+          "ownerMembershipId": null,
+          "placeId": null,
+          "placeText": null,
+          "orderText": null,
+          "lastUsedAt": "2027-03-01T23:00:00.000Z",
+          "useCount": 2
+        }
+      ]
+    }
+  }
+}

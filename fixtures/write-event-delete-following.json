@@ -1,0 +1,20 @@
+{
+  "describes": "scope following stops the repeat from that day on by setting its end, rather than tombstoning occurrences that already happened.",
+  "request": {
+    "method": "DELETE",
+    "path": "/api/v1/events/fx-event-gym:2027-03-09",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    },
+    "body": {
+      "scope": "following"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "id": "fx-event-gym",
+      "deleted": true
+    }
+  }
+}

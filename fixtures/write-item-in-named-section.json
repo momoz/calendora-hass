@@ -1,0 +1,23 @@
+{
+  "describes": "The shop by NAME rather than by id. Resolved against this list and never created — a typo would otherwise become a shop nobody but the household can remove. The response says which section matched, in the household's OWN spelling, so no read-back is needed.",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/lists/fx-list-shopping/items",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    },
+    "body": {
+      "id": "fx-item-by-shop",
+      "text": "Oat milk",
+      "sectionName": "TRADER JOE'S"
+    }
+  },
+  "response": {
+    "status": 201,
+    "body": {
+      "id": "fx-item-by-shop",
+      "sectionId": "fx-section-created",
+      "sectionName": "Trader Joe's"
+    }
+  }
+}

@@ -1,0 +1,399 @@
+{
+  "describes": "Meals in a range (from–to, inclusive). Each meal carries its kind, dishes, line and headline; lines are the calendar's words and stay exactly as they were for a meal that is only words.",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/meals?from=2027-03-08&to=2027-03-14",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "week": [
+        "2027-03-08",
+        "2027-03-09",
+        "2027-03-10",
+        "2027-03-11",
+        "2027-03-12",
+        "2027-03-13",
+        "2027-03-14"
+      ],
+      "weekStart": 0,
+      "days": [
+        {
+          "day": "2027-03-08",
+          "meals": [
+            {
+              "id": "fx-meal-cook",
+              "day": "2027-03-08",
+              "slot": "dinner",
+              "recipeId": null,
+              "text": "Filet, green beans, mashed potatoes",
+              "servings": null,
+              "cookedAt": null,
+              "leftoverOf": null,
+              "kind": "cook",
+              "title": null,
+              "line": "Filet, green beans, mashed potatoes",
+              "headline": "Cook at home · Filet, green beans, mashed potatoes · 6:30",
+              "sourceLine": "Cook at home: Filet, Green Beans, Mashed Potatoes, BGE, 6:30",
+              "serveAt": "18:30",
+              "serveTz": "Europe/London",
+              "ownerMembershipId": "fx-member-mike",
+              "dinerIds": null,
+              "placeId": null,
+              "placeText": null,
+              "orderText": null,
+              "fulfillment": null,
+              "notes": null,
+              "rating": null,
+              "idea": false,
+              "dishes": [
+                {
+                  "id": "fx-dish-filet",
+                  "name": "Filet",
+                  "role": "main",
+                  "recipeId": null,
+                  "recipeTitle": null,
+                  "servings": null,
+                  "gear": "Big Green Egg",
+                  "method": null,
+                  "cookMinutes": null,
+                  "restMinutes": null,
+                  "frozen": null,
+                  "thawHours": null,
+                  "ingredientId": null,
+                  "gearId": null
+                },
+                {
+                  "id": "fx-dish-beans",
+                  "name": "Green Beans",
+                  "role": "veg",
+                  "recipeId": null,
+                  "recipeTitle": null,
+                  "servings": null,
+                  "gear": null,
+                  "method": null,
+                  "cookMinutes": null,
+                  "restMinutes": null,
+                  "frozen": null,
+                  "thawHours": null,
+                  "ingredientId": null,
+                  "gearId": null
+                },
+                {
+                  "id": "fx-dish-mashed",
+                  "name": "Mashed Potatoes",
+                  "role": "side",
+                  "recipeId": null,
+                  "recipeTitle": null,
+                  "servings": null,
+                  "gear": null,
+                  "method": null,
+                  "cookMinutes": null,
+                  "restMinutes": null,
+                  "frozen": null,
+                  "thawHours": null,
+                  "ingredientId": null,
+                  "gearId": null
+                }
+              ],
+              "plannedBy": null
+            }
+          ],
+          "lines": [
+            "Dinner: Filet, green beans, mashed potatoes"
+          ],
+          "headlines": [
+            "Cook at home · Filet, green beans, mashed potatoes · 6:30"
+          ]
+        },
+        {
+          "day": "2027-03-09",
+          "meals": [
+            {
+              "id": "fx-meal-quick",
+              "day": "2027-03-09",
+              "slot": "dinner",
+              "recipeId": null,
+              "text": "Quesadillas",
+              "servings": null,
+              "cookedAt": null,
+              "leftoverOf": null,
+              "kind": "quick",
+              "title": null,
+              "line": "Quesadillas",
+              "headline": "Quick · Quesadillas",
+              "sourceLine": null,
+              "serveAt": null,
+              "serveTz": null,
+              "ownerMembershipId": "fx-member-mike",
+              "dinerIds": null,
+              "placeId": null,
+              "placeText": null,
+              "orderText": null,
+              "fulfillment": null,
+              "notes": null,
+              "rating": null,
+              "idea": false,
+              "dishes": [
+                {
+                  "id": "fx-dish-quesadillas",
+                  "name": "Quesadillas",
+                  "role": "main",
+                  "recipeId": null,
+                  "recipeTitle": null,
+                  "servings": null,
+                  "gear": null,
+                  "method": null,
+                  "cookMinutes": null,
+                  "restMinutes": null,
+                  "frozen": null,
+                  "thawHours": null,
+                  "ingredientId": null,
+                  "gearId": null
+                }
+              ],
+              "plannedBy": null
+            }
+          ],
+          "lines": [
+            "Dinner: Quesadillas"
+          ],
+          "headlines": [
+            "Quick · Quesadillas"
+          ]
+        },
+        {
+          "day": "2027-03-10",
+          "meals": [
+            {
+              "id": "fx-meal-takeout",
+              "day": "2027-03-10",
+              "slot": "dinner",
+              "recipeId": null,
+              "text": "Takeout: Pizza, wings from Mario's",
+              "servings": null,
+              "cookedAt": null,
+              "leftoverOf": null,
+              "kind": "takeout",
+              "title": null,
+              "line": "Pizza, wings",
+              "headline": "Takeout · Pizza, wings from Mario's · 6:00",
+              "sourceLine": null,
+              "serveAt": "18:00",
+              "serveTz": "Europe/London",
+              "ownerMembershipId": "fx-member-donna",
+              "dinerIds": null,
+              "placeId": null,
+              "placeText": "Mario's",
+              "orderText": null,
+              "fulfillment": "pickup",
+              "notes": null,
+              "rating": null,
+              "idea": false,
+              "dishes": [
+                {
+                  "id": "fx-dish-pizza",
+                  "name": "Pizza",
+                  "role": "main",
+                  "recipeId": null,
+                  "recipeTitle": null,
+                  "servings": null,
+                  "gear": null,
+                  "method": null,
+                  "cookMinutes": null,
+                  "restMinutes": null,
+                  "frozen": null,
+                  "thawHours": null,
+                  "ingredientId": null,
+                  "gearId": null
+                },
+                {
+                  "id": "fx-dish-wings",
+                  "name": "Wings",
+                  "role": null,
+                  "recipeId": null,
+                  "recipeTitle": null,
+                  "servings": null,
+                  "gear": null,
+                  "method": null,
+                  "cookMinutes": null,
+                  "restMinutes": null,
+                  "frozen": null,
+                  "thawHours": null,
+                  "ingredientId": null,
+                  "gearId": null
+                }
+              ],
+              "plannedBy": null
+            }
+          ],
+          "lines": [
+            "Dinner (takeout): Pizza, wings"
+          ],
+          "headlines": [
+            "Takeout · Pizza, wings from Mario's · 6:00"
+          ]
+        },
+        {
+          "day": "2027-03-11",
+          "meals": [
+            {
+              "id": "fx-meal-leftovers",
+              "day": "2027-03-11",
+              "slot": "dinner",
+              "recipeId": null,
+              "text": "leftovers",
+              "servings": null,
+              "cookedAt": null,
+              "leftoverOf": null,
+              "kind": "leftovers",
+              "title": null,
+              "line": "leftovers",
+              "headline": "Leftovers",
+              "sourceLine": null,
+              "serveAt": null,
+              "serveTz": null,
+              "ownerMembershipId": null,
+              "dinerIds": null,
+              "placeId": null,
+              "placeText": null,
+              "orderText": null,
+              "fulfillment": null,
+              "notes": null,
+              "rating": null,
+              "idea": false,
+              "dishes": [],
+              "plannedBy": null
+            }
+          ],
+          "lines": [
+            "Dinner: leftovers"
+          ],
+          "headlines": [
+            "Leftovers"
+          ]
+        },
+        {
+          "day": "2027-03-12",
+          "meals": [
+            {
+              "id": "fx-meal-out",
+              "day": "2027-03-12",
+              "slot": "dinner",
+              "recipeId": null,
+              "text": "Out: Murph's",
+              "servings": null,
+              "cookedAt": null,
+              "leftoverOf": null,
+              "kind": "out",
+              "title": null,
+              "line": "Murph's",
+              "headline": "Out · Murph's · 6:00",
+              "sourceLine": null,
+              "serveAt": "18:00",
+              "serveTz": "Europe/London",
+              "ownerMembershipId": null,
+              "dinerIds": null,
+              "placeId": null,
+              "placeText": "Murph's",
+              "orderText": null,
+              "fulfillment": null,
+              "notes": null,
+              "rating": null,
+              "idea": false,
+              "dishes": [],
+              "plannedBy": null
+            }
+          ],
+          "lines": [
+            "Dinner (out): Murph's"
+          ],
+          "headlines": [
+            "Out · Murph's · 6:00"
+          ]
+        },
+        {
+          "day": "2027-03-13",
+          "meals": [
+            {
+              "id": "fx-meal-skip",
+              "day": "2027-03-13",
+              "slot": "dinner",
+              "recipeId": null,
+              "text": "No dinner",
+              "servings": null,
+              "cookedAt": null,
+              "leftoverOf": null,
+              "kind": "skip",
+              "title": null,
+              "line": "Fend for yourselves",
+              "headline": "No dinner · Fend for yourselves",
+              "sourceLine": null,
+              "serveAt": null,
+              "serveTz": null,
+              "ownerMembershipId": null,
+              "dinerIds": null,
+              "placeId": null,
+              "placeText": null,
+              "orderText": null,
+              "fulfillment": null,
+              "notes": "Fend for yourselves",
+              "rating": null,
+              "idea": false,
+              "dishes": [],
+              "plannedBy": null
+            }
+          ],
+          "lines": [
+            "Dinner (skipped): Fend for yourselves"
+          ],
+          "headlines": [
+            "No dinner · Fend for yourselves"
+          ]
+        },
+        {
+          "day": "2027-03-14",
+          "meals": [
+            {
+              "id": "fx-meal-words",
+              "day": "2027-03-14",
+              "slot": "dinner",
+              "recipeId": null,
+              "text": "Filets on the Big Green Egg, mashed potatoes, green beans",
+              "servings": null,
+              "cookedAt": null,
+              "leftoverOf": null,
+              "kind": null,
+              "title": null,
+              "line": "Filets on the Big Green Egg, mashed potatoes, green beans",
+              "headline": "Filets on the Big Green Egg, mashed potatoes, green beans",
+              "sourceLine": null,
+              "serveAt": null,
+              "serveTz": null,
+              "ownerMembershipId": null,
+              "dinerIds": null,
+              "placeId": null,
+              "placeText": null,
+              "orderText": null,
+              "fulfillment": null,
+              "notes": null,
+              "rating": null,
+              "idea": false,
+              "dishes": [],
+              "plannedBy": null
+            }
+          ],
+          "lines": [
+            "Dinner: Filets on the Big Green Egg, mashed potatoes, green beans"
+          ],
+          "headlines": [
+            "Filets on the Big Green Egg, mashed potatoes, green beans"
+          ]
+        }
+      ]
+    }
+  }
+}

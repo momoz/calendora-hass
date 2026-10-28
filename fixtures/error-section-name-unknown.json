@@ -1,0 +1,21 @@
+{
+  "describes": "A name matching no section is refused, and the refusal NAMES the sections that exist. That is what makes it self-correcting: the answer to the typo is inside the error, so a client fixes it without another round trip.",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/lists/fx-list-shopping/items",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    },
+    "body": {
+      "text": "Bread",
+      "sectionName": "Publx"
+    }
+  },
+  "response": {
+    "status": 400,
+    "body": {
+      "error": "there is no section called \"Publx\" on this list. It has: \"PRODUCE\", \"Trader Joe's\"",
+      "code": "bad_request"
+    }
+  }
+}

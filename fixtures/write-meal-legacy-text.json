@@ -1,0 +1,48 @@
+{
+  "describes": "The older plan_meal with text: the words are kept and never turned into dishes. A whole-line keyword (\"leftovers\") sets the kind.",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/meals",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    },
+    "body": {
+      "day": "2027-03-23",
+      "text": "leftovers"
+    }
+  },
+  "response": {
+    "status": 201,
+    "body": {
+      "id": "<new-id>",
+      "day": "2027-03-23",
+      "slot": "dinner",
+      "recipeId": null,
+      "text": "leftovers",
+      "servings": null,
+      "cookedAt": null,
+      "leftoverOf": null,
+      "kind": "leftovers",
+      "title": null,
+      "line": "leftovers",
+      "headline": "Leftovers",
+      "sourceLine": null,
+      "serveAt": null,
+      "serveTz": null,
+      "ownerMembershipId": null,
+      "dinerIds": null,
+      "placeId": null,
+      "placeText": null,
+      "orderText": null,
+      "fulfillment": null,
+      "notes": null,
+      "rating": null,
+      "idea": false,
+      "dishes": [],
+      "plannedBy": {
+        "type": "integration",
+        "name": "Home Assistant"
+      }
+    }
+  }
+}

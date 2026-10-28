@@ -1,0 +1,80 @@
+{
+  "describes": "A quick dinner: \"Mike's making\", no serve time asked for.",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/dinner?day=2027-03-09",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "dinner": {
+        "day": "2027-03-09",
+        "state": "planned",
+        "phase": null,
+        "placement": "glance",
+        "meals": [
+          {
+            "id": "fx-meal-quick",
+            "kind": "quick",
+            "line": "Quesadillas",
+            "label": "Quick",
+            "headline": "Quick · Quesadillas",
+            "owner": {
+              "id": "fx-member-mike",
+              "name": "Mike",
+              "verb": "making"
+            },
+            "ownerPhrase": "Mike's making",
+            "diners": {
+              "ids": [
+                "fx-member-mike",
+                "fx-member-donna"
+              ],
+              "names": "Mike & Donna",
+              "source": "usual"
+            },
+            "serveAt": null,
+            "serveTz": null,
+            "dishes": [
+              {
+                "id": "fx-dish-quesadillas",
+                "name": "Quesadillas",
+                "role": "main",
+                "gear": null,
+                "recipe": null,
+                "pantry": {
+                  "status": "unknown",
+                  "why": "Pantry not set up"
+                }
+              }
+            ],
+            "placeText": null,
+            "orderText": null,
+            "fulfillment": null,
+            "notes": null,
+            "cookedAt": null,
+            "leftoverOf": null,
+            "dinersPrefix": "",
+            "sentence": "Dinner: quick, quesadillas, Mike's making",
+            "plainWords": false,
+            "place": null,
+            "orderBy": null,
+            "prep": [],
+            "timeline": null,
+            "nextStep": null,
+            "rating": null,
+            "askRating": false,
+            "rain": null
+          }
+        ],
+        "headline": "Quick · Quesadillas",
+        "digestLine": "Dinner · Quick · Quesadillas",
+        "tomorrow": null,
+        "away": []
+      }
+    }
+  }
+}

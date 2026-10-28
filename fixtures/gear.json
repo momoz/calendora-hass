@@ -1,0 +1,30 @@
+{
+  "describes": "The kitchen's own gear. Preheat minutes are only what the household said; null is \"nobody said\", never zero.",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/gear",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "gear": [
+        {
+          "id": "fx-gear-egg",
+          "name": "Big Green Egg",
+          "aliases": [
+            "BGE",
+            "Egg"
+          ],
+          "kind": "kamado",
+          "preheatMinutes": null,
+          "defaultTemp": null,
+          "outdoor": true,
+          "archived": false
+        }
+      ]
+    }
+  }
+}

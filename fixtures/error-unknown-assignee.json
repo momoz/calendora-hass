@@ -1,0 +1,22 @@
+{
+  "describes": "Whose job it is is checked against THIS household's roster, not merely against the shape of an id. `membership.id` is unique across the table rather than per household, so a real id from somebody else's household satisfies the foreign key and would store an item assigned to a stranger — one that every client then renders as assigned to nobody, because none of them can resolve a name outside their own roster. The refusal does not say which kind of wrong id it was; that would confirm one exists.",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/lists/fx-list-shopping/items",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    },
+    "body": {
+      "id": "fx-item-bad-assignee",
+      "text": "Gas cans",
+      "assignedMembershipId": "fx-member-nobody"
+    }
+  },
+  "response": {
+    "status": 400,
+    "body": {
+      "error": "no member of this household has the id fx-member-nobody",
+      "code": "bad_request"
+    }
+  }
+}

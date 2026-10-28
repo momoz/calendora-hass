@@ -1,5 +1,5 @@
 {
-  "describes": "A repeating series cannot be removed here — the scope's own description promises it cannot.",
+  "describes": "A repeat cannot be removed by an id alone: which of the three it means is not in the id, and each is a different write.",
   "request": {
     "method": "DELETE",
     "path": "/api/v1/events/fx-event-gym",
@@ -10,7 +10,7 @@
   "response": {
     "status": 400,
     "body": {
-      "error": "this event repeats, and a repeating series cannot be removed through this API — it would take every occurrence off the calendar, which is not something the id you sent can ask for. Remove it in Calendora instead.",
+      "error": "this event repeats, so removing it needs a scope: \"this\" for the one occurrence, \"following\" for that one and everything after it, or \"all\" for the whole series.",
       "code": "bad_request"
     }
   }

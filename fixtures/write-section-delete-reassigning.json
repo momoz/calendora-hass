@@ -1,0 +1,22 @@
+{
+  "describes": "The same removal with a destination. The items move first and the tombstone follows, so a half-applied batch cannot leave rows pointing at a deleted section. The reply says how many moved and where.",
+  "request": {
+    "method": "DELETE",
+    "path": "/api/v1/lists/fx-list-shopping/sections/fx-section-created",
+    "headers": {
+      "authorization": "Bearer cal_<key>"
+    },
+    "body": {
+      "reassign_to": "fx-section-produce"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "id": "fx-section-created",
+      "deleted": true,
+      "moved": 1,
+      "movedTo": "fx-section-produce"
+    }
+  }
+}
